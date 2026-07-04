@@ -5,7 +5,6 @@ import (
 )
 
 type ProdutoRepository interface{
-	NovoMemoryProdutoRepository(produto *ProdutoRepository) 
 	Adicionar(produto *models.Produto)
 	RemoverID(id int)
 	BuscarProdutoID(id int) *models.Produto
@@ -30,7 +29,6 @@ func (r *MemoryProdutoRepository)RemoverID(id int){
 	for i, p := range r.produtos{
 		if p.ID == id{
 			r.produtos = append(r.produtos[:i], r.produtos[i+1:]...)
-			return 
 		}
 	}
 
@@ -58,7 +56,6 @@ func (r *MemoryProdutoRepository) Atualizar(p *models.Produto){
 	for i, x := range r.produtos{
 		if x.ID == p.ID{
 			r.produtos[i] = p
-			return
 		}
 	}
 }

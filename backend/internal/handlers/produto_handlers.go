@@ -21,7 +21,7 @@ func (h *ProdutoHandler) CriarProduto(id int, nome, codigo_geral string) *models
 		fmt.Println(h.service.CriarProduto(id, nome, codigo_geral))
 	}
 	fmt.Printf(
-		"Criando produto: %s ",
+		"\nCriando produto: %s \n",
 		nome,
 	)
 	return models.CriarProduto(id, nome, codigo_geral)

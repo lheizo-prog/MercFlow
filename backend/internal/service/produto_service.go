@@ -17,6 +17,10 @@ func NovoProdutoService(r *repository.MemoryProdutoRepository) *ProdutoService{
 }
 
 func (s *ProdutoService)CriarProduto(id int, nome, codigo_geral string) error{
+	if id <= 0 || nome == "" || codigo_geral == ""{
+		return errors.New("Parâmetro(s) inválido(s)")
+	}
+	
 	_, err := s.BuscarProdutoID(id)
 
 	if err != nil{
@@ -46,7 +50,7 @@ func (s *ProdutoService) Adicionar(p *models.Produto) error{
 
 func (s *ProdutoService) RemoverID(id int) error{
 	if s.repository.BuscarProdutoID(id) == nil{
-		return errors.New("Não foi possível encontrar um produto com o reespectivo ID")
+		return errors.New("Não foi possível encontrar um produto com o reespectivo ID.")
 	}
 	s.repository.RemoverID(id)
 	return nil
@@ -68,7 +72,7 @@ func (s *ProdutoService) BuscarProdutoCodigo(codigo string) (*models.Produto, er
 
 func (s *ProdutoService) Atualizar(p *models.Produto) error{
 	if s.repository.BuscarProdutoID(p.ID) == nil{
-		return errors.New("Não foi possível encontrar algum produto ocm o reespectivo ID")
+		return errors.New("Não foi possível encontrar algum produto com o reespectivo ID.")
 	}
 	s.repository.Atualizar(p)
 	return nil
