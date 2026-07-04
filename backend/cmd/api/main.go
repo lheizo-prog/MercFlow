@@ -4,6 +4,7 @@ import (
 	"MercFlow/internal/handlers"
 	"MercFlow/internal/repository"
 	"MercFlow/internal/service"
+	"fmt"
 )
 
 func main() {
@@ -32,4 +33,23 @@ func main() {
 
 	handler.RemoverID(2)
 	handler.Listar()
+	fmt.Println("_______________________________________________")
+	//-----------------------------------------------------------------
+	repoD := repository.NovoMemoryDepartamentoRepository()
+	servD := service.NovoDepartamentoService(repoD)
+	handlerD := handlers.NovoDepartamentoHandler(servD)
+
+	frios := handlerD.CriarDepartamento(1, "Frios")
+	padaria := handlerD.CriarDepartamento(2, "Padaria")
+
+	handlerD.Adicionar(frios)
+	handlerD.Adicionar(padaria)
+
+	handlerD.Listar()
+
+	handlerD.BuscarID(2)
+
+	handlerD.RemoverID(1)
+
+	handlerD.Listar()
 }
