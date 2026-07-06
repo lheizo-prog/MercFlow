@@ -16,15 +16,15 @@ func NovoDepartamentoHandler(s *service.DepartamentoService) *DepartamentoHandle
 	}
 }
 
-func (h *DepartamentoHandler)CriarDepartamento(id int, nome string) *models.Departamento{
-	if h.service.CriarDepartamento(id, nome) == nil{
-		fmt.Println(h.service.CriarDepartamento(id, nome))
+func (h *DepartamentoHandler)CriarDepartamento(id int, nome string, codigos []*models.Produto) *models.Departamento{
+	if h.service.CriarDepartamento(id, nome, codigos) == nil{
+		fmt.Println(h.service.CriarDepartamento(id, nome, codigos))
 	}
 	fmt.Printf(
 		"\nCriando setor: %s \n",
 		nome,
 	)
-	return models.CriarDepartamento(id, nome)
+	return models.CriarDepartamento(id, nome, codigos)
 }
 
 func (h *DepartamentoHandler)Adicionar(d * models.Departamento){

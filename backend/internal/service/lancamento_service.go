@@ -19,10 +19,10 @@ func NovoLancamentoService(repo *repository.MemoryLancamentoRepository) *Lancame
 func (s *LancamentoService)NovoLancamento(id int, tipo models.TipoLancamento, setor models.Departamento, produto models.Produto, quantidade float64) (*models.Lancamento, error){
 	_, err := s.BuscarID(id)
 	
-	if err == nil{
+	if err != nil{
 		return models.NovoLancamento(id, tipo, setor, produto, quantidade), nil
 	}
-	return nil, err
+	return nil, errors.New("Há um lançamento com o mesmo ID")
 }
 
 func (s *LancamentoService) Adicionar(lanca *models.Lancamento) error{
