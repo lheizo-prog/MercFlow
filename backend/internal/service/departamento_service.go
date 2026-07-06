@@ -17,7 +17,7 @@ func NovoDepartamentoService(repo *repository.MemoryDepartamentoRepository) *Dep
 	}
 }
 
-func (s *DepartamentoService)CriarDepartamento(id int, nome string) error{
+func (s *DepartamentoService)CriarDepartamento(id int, nome string, codigos []*models.Produto) error{
 	if id <= 0 || nome == ""{
 		return errors.New("Parâmetro(s) inválido(s).")
 	}
@@ -27,7 +27,7 @@ func (s *DepartamentoService)CriarDepartamento(id int, nome string) error{
 		return err
 	}
 
-	models.CriarDepartamento(id, nome)
+	models.CriarDepartamento(id, nome, codigos)
 	return nil
 }
 

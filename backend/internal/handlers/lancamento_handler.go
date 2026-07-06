@@ -17,8 +17,8 @@ func NovoLancamentoHandler(s *service.LancamentoService) *LancamentoHandler{
 	}
 }
 
-func (h *LancamentoHandler)NovoLancamento(id int, tipo models.TipoLancamento, setor models.Departamento, produto models.Produto, quantidade float64) (*models.Lancamento, error){
-	res, err := h.service.NovoLancamento(id, tipo, setor,produto, quantidade)
+func (h *LancamentoHandler)NovoLancamento(id int, tipo models.TipoLancamento, setor *models.Departamento, produto *models.Produto, quantidade float64) (*models.Lancamento, error){
+	res, err := h.service.NovoLancamento(id, tipo, *setor,*produto, quantidade)
 	
 	if err != nil{
 		fmt.Println(err)
