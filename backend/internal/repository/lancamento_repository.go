@@ -70,13 +70,14 @@ func (r *MemoryLancamentoRepository)Listar() []*models.Lancamento{
 
 func (r *MemoryLancamentoRepository)ListaCodigoSetor(base *MemoryProdutoRepository) []*Retorno{
 	lancamentos := []*Retorno{}
-	
+
 	for _, p := range r.lancamentos{
 		produto := *base.BuscarProdutoID(p.ID)
 		lancamento := &Retorno{
 			Produto: p.Produto,
 			Setor: p.Tipo,
-			CodigoSetor: produto.Codigo_Geral,
+			CodigoGeral: produto.Codigo_Geral,
+			CodigoSetor:p.Produto.Codigo_Geral,
 			Quantidade: p.Quantidade,
 		}
 		lancamentos = append(lancamentos, lancamento)
@@ -86,6 +87,7 @@ func (r *MemoryLancamentoRepository)ListaCodigoSetor(base *MemoryProdutoReposito
 type Retorno struct{
 	Produto models.Produto
 	Setor models.TipoLancamento
+	CodigoGeral string
 	CodigoSetor string
 	Quantidade float64
 }

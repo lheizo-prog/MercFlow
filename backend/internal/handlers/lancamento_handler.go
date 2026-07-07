@@ -115,16 +115,17 @@ func (h *LancamentoHandler)Listar() ([]*models.Lancamento, error){
 func (h *LancamentoHandler)ListarCodigoSetor(base *repository.MemoryProdutoRepository) ([]*repository.Retorno, error){
 	res, err := h.service.ListarCodigoSetor(base)
 
+	fmt.Printf("\nLista de Lançamentos: \n")
 	if err != nil{
 		fmt.Println(err)
 		return nil, err
 	}
-	fmt.Println("Lista de Lançamentos:")
 	for _, p := range res{
 		fmt.Printf(
-			"\n\nProduto: %s | Setor: %s | Produto: %s | Quantidade: %f",
+			"\n| Produto: %s | Setor: %s | Codigo geral: %s  | Código setor: %s | Quantidade: %.2f|\n",
 			p.Produto.Nome,
 			p.Setor,
+			p.CodigoGeral,
 			p.CodigoSetor,
 			p.Quantidade,
 		)
