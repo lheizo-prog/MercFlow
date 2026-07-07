@@ -115,4 +115,7 @@ func main() {
 		)
 	}
 	handlerLancamentos.Adicionar(lancamentos01)
+	handlerLancamentos.Listar()
+
+	handlerLancamentos.ListarCodigoSetor(repoPB)
 }
