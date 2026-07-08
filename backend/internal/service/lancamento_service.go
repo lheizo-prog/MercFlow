@@ -4,6 +4,7 @@ import (
 	"MercFlow/internal/models"
 	"MercFlow/internal/repository"
 	"errors"
+	"time"
 )
 
 type LancamentoService struct {
@@ -16,20 +17,45 @@ func NovoLancamentoService(repo *repository.MemoryLancamentoRepository) *Lancame
 	}
 }
 
-func (s *LancamentoService)NovoLancamento(id int, tipo models.TipoLancamento, setor models.Departamento, produto models.Produto, quantidade float64) (*models.Lancamento, error){
+func (s *LancamentoService)NovoLancamento(id int, tipo models.TipoLancamento, tempo time.Time, item []*models.ItemLancamento) (*models.Lancamento, error){
 	_, err := s.BuscarID(id)
 	
 	if err != nil{
-		return models.NovoLancamento(id, tipo, setor, produto, quantidade), nil
+		return models.NovoLancamento(id, tipo, tempo, item), nil
 	}
 	return nil, errors.New("Há um lançamento com o mesmo ID")
 }
 
-func (s *LancamentoService) Adicionar(lanca *models.Lancamento) error{
+func (s *LancamentoService)NovoItem(setor *models.Departamento, produto *models.Produto, codigoBase string, codigoSetor string, quantidade float64) (*models.ItemLancamento, error){
+	res := s.repository.NovoItem(setor, produto,codigoBase,codigoSetor,quantidade)
+	if quantidade <= 0{
+		return nil, errors.New("Quantidade inválida para lançamento")
+	}
+	if codigoBase == "" || codigoSetor == ""{
+		return nil, errors.New("Codigo inválido do produto base ou do setor")
+	}
+	return res, nil
+}
+
+func (s *LancamentoService)NovoSliceTemporario() []*models.ItemLancamento{
+	return s.repository.NovoSliceTemporario()
+}
+
+func (s *LancamentoService)AdicionarST(slice []*models.ItemLancamento, item *models.ItemLancamento) ([]*models.ItemLancamento, error){
+	if item.CodigoBase == "" || item.CodigoSetor == ""{
+		return nil, errors.New("Codigo inválido")
+	}
+	if item.Quantidade <= 0{
+		return nil, errors.New("Quantidade inválida para lançamento")
+	}
+	return s.repository.AdicionarST(slice, item), nil
+}
+
+func (s *LancamentoService) AdicionarL(lanca *models.Lancamento) error{
 	if s.repository.BuscarID(lanca.ID) != nil{
 		return nil
 	}
-	s.repository.Adicionar(lanca)
+	s.repository.AdicionarL(lanca)
 	return errors.New("Há um lançamento com o mesmo ID")
 }
 
@@ -67,11 +93,11 @@ func (s *LancamentoService)Listar() ([]*models.Lancamento, error){
 	return list, nil
 }
 
-func (s *LancamentoService)ListarCodigoSetor(base *repository.MemoryProdutoRepository) ([]*repository.Retorno, error){
-	list := s.repository.ListaCodigoSetor(base)
+func (s *LancamentoService)ListarCodigoSetor() ([]*models.ItemLancamento, error){
+	list := s.repository.ListaCodigoSetor()
 
 	if len(list) == 0{
 		return nil, errors.New("Não há lançamentos no repositório compatíveis com os produtos do repositório base")
 	}
-	return s.repository.ListaCodigoSetor(base), nil
+	return s.repository.ListaCodigoSetor(), nil
 }
