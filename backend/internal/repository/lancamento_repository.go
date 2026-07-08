@@ -26,11 +26,32 @@ func NovoMemoryLancamentoRepository() *MemoryLancamentoRepository{
 	}
 }
 
-func (r *MemoryLancamentoRepository) Adicionar(lancamento *models.Lancamento){
+func (r *MemoryLancamentoRepository) NovoItem(setor *models.Departamento, produto *models.Produto, codigoBase string, codigoSetor string, quantidade float64) *models.ItemLancamento{
+	return &models.ItemLancamento{
+		Setor: *setor,
+		Produto: *produto,
+		CodigoBase: codigoBase,
+		CodigoSetor: codigoSetor,
+		Quantidade: quantidade,
+	}
+}
+
+func (r *MemoryLancamentoRepository)NovoSliceTemporario() []*models.ItemLancamento{
+	return []*models.ItemLancamento{}
+}
+
+func (r *MemoryLancamentoRepository)AdicionarST(slice []*models.ItemLancamento,item *models.ItemLancamento) []*models.ItemLancamento{
+	return append(slice, item)
+}
+
+func (r *MemoryLancamentoRepository) AdicionarL(lancamento *models.Lancamento){
 	for _, p := range r.lancamentos{
-		if lancamento.Produto.ID == p.Produto.ID{
-			p.Quantidade += lancamento.Quantidade
-			return
+		for _, q := range p.Itens{
+			for _, r := range lancamento.Itens{
+				if q.Produto.ID == r.Produto.ID{
+					q.Quantidade += r.Quantidade
+				}
+			}
 		}
 	}
 	r.lancamentos = append(r.lancamentos, lancamento)
@@ -68,26 +89,20 @@ func (r *MemoryLancamentoRepository)Listar() []*models.Lancamento{
 	return r.lancamentos
 }
 
-func (r *MemoryLancamentoRepository)ListaCodigoSetor(base *MemoryProdutoRepository) []*Retorno{
-	lancamentos := []*Retorno{}
+func (r *MemoryLancamentoRepository)ListaCodigoSetor() []*models.ItemLancamento{
+	lancamentos := []*models.ItemLancamento{}
 
 	for _, p := range r.lancamentos{
-		produto := *base.BuscarProdutoID(p.ID)
-		lancamento := &Retorno{
-			Produto: p.Produto,
-			Setor: p.Tipo,
-			CodigoGeral: produto.Codigo_Geral,
-			CodigoSetor:p.Produto.Codigo_Geral,
-			Quantidade: p.Quantidade,
+		for _, q := range p.Itens{
+			lancamento := &models.ItemLancamento{
+				Produto: q.Produto,
+				Setor: q.Setor,
+				CodigoBase: q.CodigoBase,
+				CodigoSetor: q.CodigoSetor,
+				Quantidade: q.Quantidade,
+			}
+			lancamentos = append(lancamentos, lancamento)
 		}
-		lancamentos = append(lancamentos, lancamento)
 	}
 	return lancamentos
-}
-type Retorno struct{
-	Produto models.Produto
-	Setor models.TipoLancamento
-	CodigoGeral string
-	CodigoSetor string
-	Quantidade float64
 }

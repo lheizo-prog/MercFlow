@@ -1,19 +1,26 @@
 package models
 
+import "time"
+
 type Lancamento struct {
 	ID         int
+	Data       time.Time
 	Tipo       TipoLancamento
-	Setor      Departamento
-	Produto    Produto
-	Quantidade float64
+	Itens []*ItemLancamento
 }
 
-func NovoLancamento(id int, tipo TipoLancamento, setor Departamento, produto Produto, quantidade float64) *Lancamento {
+type ItemLancamento struct{
+	Setor Departamento
+	Produto Produto
+	CodigoBase string
+	CodigoSetor string
+	Quantidade float64
+}
+func NovoLancamento(id int, tipo TipoLancamento, data time.Time, itens []*ItemLancamento) *Lancamento {
 	return &Lancamento{
 		ID:         id,
+		Data:       data,
 		Tipo:       tipo,
-		Setor:      setor,
-		Produto:    produto,
-		Quantidade: quantidade,
+		Itens: itens,
 	}
 }

@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"MercFlow/internal/models"
-	"MercFlow/internal/repository"
 	"MercFlow/internal/service"
 	"fmt"
+	"time"
 )
 
 type LancamentoHandler struct {
@@ -17,8 +17,8 @@ func NovoLancamentoHandler(s *service.LancamentoService) *LancamentoHandler{
 	}
 }
 
-func (h *LancamentoHandler)NovoLancamento(id int, tipo models.TipoLancamento, setor *models.Departamento, produto *models.Produto, quantidade float64) (*models.Lancamento, error){
-	res, err := h.service.NovoLancamento(id, tipo, *setor,*produto, quantidade)
+func (h *LancamentoHandler)NovoLancamento(id int, tipo models.TipoLancamento,tempo time.Time ,item []*models.ItemLancamento,) (*models.Lancamento, error){
+	res, err := h.service.NovoLancamento(id, tipo, tempo, item)
 	
 	if err != nil{
 		fmt.Println(err)
@@ -28,21 +28,48 @@ func (h *LancamentoHandler)NovoLancamento(id int, tipo models.TipoLancamento, se
 	return res, nil
 }
 
+func (h *LancamentoHandler)NovoItem(setor *models.Departamento, produto *models.Produto, codigoBase string, codigoSetor string, quantidade float64) (*models.ItemLancamento, error){
+	res, err := h.service.NovoItem(setor, produto, codigoBase, codigoSetor, quantidade)
+	if err != nil{
+		fmt.Println(err)
+		return nil, err
+	}
+	fmt.Println("Criando novo item para lançamento...")
+	return res, nil
+}
+
+func(h *LancamentoHandler)NovoSliceTemporario() []*models.ItemLancamento{
+	return h.service.NovoSliceTemporario()
+}
+
+func (h *LancamentoHandler)AdicionarST(slice []*models.ItemLancamento, item *models.ItemLancamento) ([]*models.ItemLancamento, error){
+	res, err := h.service.AdicionarST(slice, item)
+
+	if err != nil{
+		fmt.Println(err)
+		return nil, err
+	}
+	fmt.Println("Adicionando Item ao Slice temporário")
+	return res, nil
+}
+
 func (h *LancamentoHandler)Adicionar(lanca *models.Lancamento) error{
-	if h.service.Adicionar(lanca) != nil{
-		fmt.Println(h.service.Adicionar(lanca))
-		return h.service.Adicionar(lanca)
+	if h.service.AdicionarL(lanca) != nil{
+		fmt.Println(h.service.AdicionarL(lanca))
+		return h.service.AdicionarL(lanca)
 	}
 
 	fmt.Println("Adicionando lançamento ao repositório")
-	fmt.Printf(
-		"\n\nID: %d | Setor: %s | Produto: %s | Quantidade: %f\n",
-		lanca.ID,
-		lanca.Tipo,
-		lanca.Produto.Nome,
-		lanca.Quantidade,
-	)
-	h.service.Adicionar(lanca)
+	for _, p := range lanca.Itens{
+		fmt.Printf(
+			"\n\nID: %d | Setor: %s | Produto: %s | Quantidade: %f\n",
+			lanca.ID,
+			lanca.Tipo,
+			p.Produto.Nome,
+			p.Quantidade,
+		)
+	}
+	h.service.AdicionarL(lanca)
 	return nil
 }
 
@@ -62,13 +89,15 @@ func (h *LancamentoHandler)BuscarID(id int) error{
 		return err
 	}
 	fmt.Println("Lançamento Encontrado!")
-	fmt.Printf(
-	"\n\nID: %d | Setor: %s | Produto: %s | Quantidade: %f\n",
-	res.ID,
-	res.Tipo,
-	res.Produto.Nome,
-	res.Quantidade,
-	)
+	for _, p := range res.Itens{
+		fmt.Printf(
+		"\n\nID: %d | Setor: %s | Produto: %s | Quantidade: %f\n",
+		res.ID,
+		res.Tipo,
+		p.Produto.Nome,
+		p.Quantidade,
+		)
+	}
 	return nil
 }
 
@@ -81,13 +110,15 @@ func (h *LancamentoHandler)FiltrarTipo(tipo models.TipoLancamento) ([]*models.La
 	}
 	fmt.Println("Filtrando lançamentos pelo setor")
 	for _, p := range res{
-		fmt.Printf(
-		"\n\nID: %d | Setor: %s | Produto: %s | Quantidade: %f\n",
-		p.ID,
-		p.Tipo,
-		p.Produto.Nome,
-		p.Quantidade,
-		)
+		for _, q := range p.Itens{
+			fmt.Printf(
+			"\n\nID: %d | Setor: %s | Produto: %s | Quantidade: %f\n",
+			p.ID,
+			p.Tipo,
+			q.Produto.Nome,
+			q.Quantidade,
+			)
+		}
 	}
 	return res, nil
 }
@@ -101,19 +132,22 @@ func (h *LancamentoHandler)Listar() ([]*models.Lancamento, error){
 	}
 	fmt.Println("Lista de Lançamentos:")
 	for _, p := range res{
-		fmt.Printf(
-			"\n\nID: %d | Setor: %s | Produto: %s | Quantidade: %f",
-			p.ID,
-			p.Tipo,
-			p.Setor.Nome,
-			p.Quantidade,
-		)
+		for _, q := range p.Itens{
+			fmt.Printf(
+				"\n|Setor: %s | Produto: %s | Código Base: %s | Código Setor: %s | Quantidade: %f |\n",
+				q.Setor.Nome,
+				q.Produto.Nome,
+				q.CodigoBase,
+				q.CodigoSetor,
+				q.Quantidade,
+			)
+		}
 	}
 	return res, nil
 }
 
-func (h *LancamentoHandler)ListarCodigoSetor(base *repository.MemoryProdutoRepository) ([]*repository.Retorno, error){
-	res, err := h.service.ListarCodigoSetor(base)
+func (h *LancamentoHandler)ListarCodigoSetor() ([]*models.ItemLancamento, error){
+	res, err := h.service.ListarCodigoSetor()
 
 	fmt.Printf("\nLista de Lançamentos: \n")
 	if err != nil{
@@ -124,8 +158,8 @@ func (h *LancamentoHandler)ListarCodigoSetor(base *repository.MemoryProdutoRepos
 		fmt.Printf(
 			"\n| Produto: %s | Setor: %s | Codigo geral: %s  | Código setor: %s | Quantidade: %.2f|\n",
 			p.Produto.Nome,
-			p.Setor,
-			p.CodigoGeral,
+			p.Setor.Nome,
+			p.CodigoBase,
 			p.CodigoSetor,
 			p.Quantidade,
 		)

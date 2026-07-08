@@ -5,6 +5,7 @@ import (
 	"MercFlow/internal/repository"
 	"MercFlow/internal/service"
 	"fmt"
+	"time"
 )
 
 func main() {
@@ -97,25 +98,35 @@ func main() {
 		)
 	}
 
+	// repositório para os lançamentos
 	repoLancamentos := repository.NovoMemoryLancamentoRepository()
 	servLancamentos := service.NovoLancamentoService(repoLancamentos)
 	handlerLancamentos := handlers.NovoLancamentoHandler(servLancamentos)
 
-	lancamentos01, err := handlerLancamentos.NovoLancamento(1, "Quebra", padaria, macaF, 0.33)
+	sliceT := handlerLancamentos.NovoSliceTemporario()
+	item1, _ := handlerLancamentos.NovoItem(frios, macaF, maca.Codigo_Geral, macaF.Codigo_Geral, 0.233)
+	item2, _ := handlerLancamentos.NovoItem(frios, peraF, pera.Codigo_Geral, peraF.Codigo_Geral, 0.523)
+	sliceT, _ = handlerLancamentos.AdicionarST(sliceT, item1)
+	sliceT, _ = handlerLancamentos.AdicionarST(sliceT, item2)
+
+	lancamentos01, err := handlerLancamentos.NovoLancamento(1,"Quebra", time.Now(), sliceT)
 	if err != nil{
 		fmt.Println(err)
 	} else{
-		fmt.Printf(
-			"\nID: %d | Tipo: %s | Setor: %s | Produto: %s | Quantidade: %f",
-			lancamentos01.ID,
-			lancamentos01.Tipo,
-			lancamentos01.Setor.Nome,
-			lancamentos01.Produto.Nome,
-			lancamentos01.Quantidade,
-		)
+		for _, p := range lancamentos01.Itens{
+			fmt.Printf(
+				"\n| Setor: %s | Produto: %s | Código Base: %s | Código Setor: %s | Quantidade: %f |\n",
+				p.Setor.Nome,
+				p.Produto.Nome,
+				p.CodigoBase,
+				p.CodigoSetor,
+				p.Quantidade,
+			)
+		}
 	}
+		
 	handlerLancamentos.Adicionar(lancamentos01)
 	handlerLancamentos.Listar()
 
-	handlerLancamentos.ListarCodigoSetor(repoPB)
+	handlerLancamentos.ListarCodigoSetor()
 }
