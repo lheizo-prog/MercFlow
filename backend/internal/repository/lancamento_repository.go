@@ -26,7 +26,16 @@ func NovoMemoryLancamentoRepository() *MemoryLancamentoRepository{
 	}
 }
 
-func (r *MemoryLancamentoRepository) NovoItem(setor *models.Departamento, produto *models.Produto, codigoBase string, codigoSetor string, quantidade float64) *models.ItemLancamento{
+func (r *MemoryLancamentoRepository) NovoItem(setor *models.Departamento, produto *models.Produto, quantidade float64) *models.ItemLancamento{
+	codigoBase := produto.Codigo_Geral
+	var codigoSetor string
+
+	for _, p := range setor.Codigos{
+		if p.ID == produto.ID{
+			codigoSetor = p.Codigo_Geral
+		}
+	}
+
 	return &models.ItemLancamento{
 		Setor: *setor,
 		Produto: *produto,

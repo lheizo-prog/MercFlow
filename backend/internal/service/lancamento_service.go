@@ -26,12 +26,12 @@ func (s *LancamentoService)NovoLancamento(id int, tipo models.TipoLancamento, te
 	return nil, errors.New("Há um lançamento com o mesmo ID")
 }
 
-func (s *LancamentoService)NovoItem(setor *models.Departamento, produto *models.Produto, codigoBase string, codigoSetor string, quantidade float64) (*models.ItemLancamento, error){
-	res := s.repository.NovoItem(setor, produto,codigoBase,codigoSetor,quantidade)
+func (s *LancamentoService)NovoItem(setor *models.Departamento, produto *models.Produto, quantidade float64) (*models.ItemLancamento, error){
+	res := s.repository.NovoItem(setor, produto,quantidade)
 	if quantidade <= 0{
 		return nil, errors.New("Quantidade inválida para lançamento")
 	}
-	if codigoBase == "" || codigoSetor == ""{
+	if res.CodigoBase == "" || res.CodigoSetor == ""{
 		return nil, errors.New("Codigo inválido do produto base ou do setor")
 	}
 	return res, nil
