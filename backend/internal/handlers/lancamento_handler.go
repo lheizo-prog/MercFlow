@@ -29,7 +29,7 @@ func (h *LancamentoHandler)NovoLancamento(id int, tipo models.TipoLancamento,tem
 }
 
 func (h *LancamentoHandler)NovoItem(setor *models.Departamento, produto *models.Produto, codigoBase string, codigoSetor string, quantidade float64) (*models.ItemLancamento, error){
-	res, err := h.service.NovoItem(setor, produto, codigoBase, codigoSetor, quantidade)
+	res, err := h.service.NovoItem(setor, produto, quantidade)
 	if err != nil{
 		fmt.Println(err)
 		return nil, err
