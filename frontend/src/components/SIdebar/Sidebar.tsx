@@ -1,20 +1,17 @@
-type SidebarProps = {
-  usuario: string;
-};
+import { Link } from "react-router-dom";
 
-function Sidebar({ usuario }: SidebarProps) {
+function Sidebar() {
   return (
     <>
-      <h4>Usuário: {usuario}</h4>
-      <aside>
-        <ul>
-          <li>Dashboard</li>
-          <li>Produtos</li>
-          <li>Setores</li>
-          <li>Transferências</li>
-          <li>Histórico</li>
-        </ul>
-      </aside>
+      <div>
+        <Link to="/">Dashboard</Link>
+      </div>
+      <div>
+        <Link to="/produtos">Produtos</Link>
+      </div>
+      <div>
+        <Link to="/setores">Setores</Link>
+      </div>
     </>
   );
 }
