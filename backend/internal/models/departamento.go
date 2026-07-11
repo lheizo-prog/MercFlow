@@ -1,9 +1,9 @@
 package models
 
 type Departamento struct {
-	ID   int
-	Nome string
-	Codigos []*Produto
+	ID   int `json:"id"`
+	Nome string `json:"nome"`
+	Codigos []*Produto `json:"codigos"`
 }
 
 func CriarDepartamento(id int, nome string, codigos []*Produto) *Departamento {

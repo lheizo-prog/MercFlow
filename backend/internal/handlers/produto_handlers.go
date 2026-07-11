@@ -16,15 +16,18 @@ func NovoProdutoHandler(s *service.ProdutoService) *ProdutoHandler{
 	}
 }
 
-func (h *ProdutoHandler) CriarProduto(id int, nome, codigo_geral string) *models.Produto{
-	if h.service.CriarProduto(id, nome, codigo_geral) == nil{
-		fmt.Println(h.service.CriarProduto(id, nome, codigo_geral))
+func (h *ProdutoHandler) CriarProduto(produto *models.Produto) (*models.Produto, error){
+	criarP := h.service.CriarProduto(produto.ID, produto.Nome, produto.Codigo_Geral) 
+	
+	if criarP == nil{
+		fmt.Println(h.service.CriarProduto(produto.ID, produto.Nome, produto.Codigo_Geral))
+		return nil, criarP
 	}
 	fmt.Printf(
 		"\nCriando produto: %s \n",
-		nome,
+		produto.Nome,
 	)
-	return models.CriarProduto(id, nome, codigo_geral)
+	return models.CriarProduto(produto.ID, produto.Nome, produto.Codigo_Geral), nil
 }
 
 func (h *ProdutoHandler) Adicionar(p *models.Produto){

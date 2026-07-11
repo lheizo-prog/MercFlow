@@ -1,13 +1,13 @@
 package main
 
 import (
-	"MercFlow/internal/routes"
+	"MercFlow/internal/bootstrap"
 	"log"
 	"net/http"
 )
 
 func main() {
-	router := routes.NewRouter()
+	router := bootstrap.NewRouter()
 
 	log.Println("Servidor  iniciado em http://localhost:8080")
 	
