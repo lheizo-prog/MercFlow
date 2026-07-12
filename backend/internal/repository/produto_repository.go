@@ -18,7 +18,12 @@ type MemoryProdutoRepository struct{
 }
 
 func NovoMemoryProdutoRepository() *MemoryProdutoRepository{
-	return &MemoryProdutoRepository{}
+	return &MemoryProdutoRepository{
+		produtos: []*models.Produto{
+			models.CriarProduto(1, "Arroz", "12345"),
+			models.CriarProduto(2, "Feijão","12346"),
+		},
+	}
 }
 
 func (r *MemoryProdutoRepository) Adicionar(p *models.Produto){

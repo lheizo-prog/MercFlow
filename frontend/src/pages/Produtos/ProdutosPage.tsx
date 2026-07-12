@@ -2,6 +2,11 @@ import { useEffect, useState } from "react";
 import produtoService from "../../services/produtoService";
 import type { Produto } from "../../types/Produto";
 import TabelaProdutos from "../../components/TabelaProdutos/TabelaProdutos";
+import ProdutoForm from "../../components/ProdutoForm/ProdutoForm";
+
+async function criarProduto(produto: Produto) {
+  await produtoService.criar(produto);
+}
 
 function ProdutosPage() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
@@ -16,10 +21,12 @@ function ProdutosPage() {
     }
     carregarProdutos();
   }, []);
+
   return (
     <>
       <div className="container">
         <h1>Produtos</h1>
+        <ProdutoForm onSalvar={criarProduto} />
         <button className="btn btn-primary">Novo Produto</button>
         <div className="mt-4">
           <label className="form-label">Pesquisar Produto</label>
