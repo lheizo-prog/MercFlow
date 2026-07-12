@@ -9,7 +9,7 @@ func NewRouter(produtoHTTP *api.ProdutoHTTPHandler) *http.ServeMux {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/health", api.Health)
-	mux.HandleFunc("/produto", produtoHTTP.Criar)
+	mux.HandleFunc("/produto", produtoHTTP.HandleProdutos)
 
 	return mux
 }

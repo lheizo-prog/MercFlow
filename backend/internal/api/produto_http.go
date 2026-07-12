@@ -18,15 +18,42 @@ func NovoProdutoHTTPHandler(handler *handlers.ProdutoHandler) *ProdutoHTTPHandle
 		handler: handler,
 	}
 }
+
+func (h *ProdutoHTTPHandler) HandleProdutos(
+	w http.ResponseWriter,
+	r *http.Request,
+) {
+	switch r.Method {
+		case http.MethodGet:
+			h.Listar(w, r)
+		case http.MethodPost:
+			h.Criar(w, r)
+		default:
+			http.Error(
+				w,
+				"Método não permitido",
+				http.StatusMethodNotAllowed,
+			)
+	}
+}
+
+func (h *ProdutoHTTPHandler) Listar(
+	w http.ResponseWriter,
+	r *http.Request,
+) {
+	produto, err := h.handler.Listar()
+
+	if err != nil{
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	json.NewEncoder(w).Encode(produto)
+}
+
 func (h *ProdutoHTTPHandler) Criar(
 	w http.ResponseWriter,
 	r *http.Request,
 ) {
-
-	if r.Method != http.MethodPost {
-		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
-	}
-
 	var produto models.Produto
 
 	decoder := json.NewDecoder(r.Body)

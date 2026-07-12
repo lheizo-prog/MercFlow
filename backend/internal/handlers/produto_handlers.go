@@ -97,12 +97,12 @@ func (h *ProdutoHandler) Atualizar(p *models.Produto){
 	)
 }
 
-func (h *ProdutoHandler) Listar(){
+func (h *ProdutoHandler) Listar() ([]*models.Produto, error){
 	res, err := h.service.Listar()
 
 	if err != nil{
 		fmt.Println(err)
-		return
+		return nil, err
 	}
 	fmt.Println("______________________________________________________")
 	fmt.Println("Lista de Produto:")
@@ -115,4 +115,5 @@ func (h *ProdutoHandler) Listar(){
 		)
 	}
 	fmt.Println("______________________________________________________")
+	return res, nil
 }
