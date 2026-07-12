@@ -3,13 +3,14 @@ package bootstrap
 import (
 	"MercFlow/internal/api"
 	"MercFlow/internal/handlers"
+	"MercFlow/internal/middleware"
 	"MercFlow/internal/repository"
 	"MercFlow/internal/routes"
 	"MercFlow/internal/service"
 	"net/http"
 )
 
-func NewRouter() *http.ServeMux {
+func NewRouter() http.Handler{
 
 	// Produto
 	produtoRepo := repository.NovoMemoryProdutoRepository()
@@ -22,5 +23,5 @@ func NewRouter() *http.ServeMux {
 
 	router := routes.NewRouter(produtoHTTP)
 
-	return router
+	return middleware.CORS(router)
 }

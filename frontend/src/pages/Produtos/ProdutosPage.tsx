@@ -1,25 +1,21 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import produtoService from "../../services/produtoService";
 import type { Produto } from "../../types/Produto";
 import TabelaProdutos from "../../components/TabelaProdutos/TabelaProdutos";
 
 function ProdutosPage() {
-  const [produtos, setProdutos] = useState<Produto[]>([
-    {
-      id: 1,
-      nome: "Arroz",
-      codigo: "12345",
-    },
-    {
-      id: 2,
-      nome: "Feijão",
-      codigo: "12346",
-    },
-    {
-      id: 3,
-      nome: "Leite",
-      codigo: "12347",
-    },
-  ]);
+  const [produtos, setProdutos] = useState<Produto[]>([]);
+  useEffect(() => {
+    async function carregarProdutos() {
+      try {
+        const lista = await produtoService.buscarTodos();
+        setProdutos(lista);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    carregarProdutos();
+  }, []);
   return (
     <>
       <div className="container">
