@@ -1,27 +1,16 @@
 package bootstrap
 
 import (
-	"MercFlow/internal/api"
-	"MercFlow/internal/handlers"
 	"MercFlow/internal/middleware"
-	"MercFlow/internal/repository"
-	"MercFlow/internal/routes"
-	"MercFlow/internal/service"
-	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
-func NewRouter() http.Handler{
+func NewRouter() *gin.Engine{
 
-	// Produto
-	produtoRepo := repository.NovoMemoryProdutoRepository()
+	router := gin.Default()
+	
+	router.Use(middleware.CORS()) 
 
-	produtoService := service.NovoProdutoService(produtoRepo)
-
-	produtoHandler := handlers.NovoProdutoHandler(produtoService)
-
-	produtoHTTP := api.NovoProdutoHTTPHandler(produtoHandler)
-
-	router := routes.NewRouter(produtoHTTP)
-
-	return middleware.CORS(router)
+	return router
 }

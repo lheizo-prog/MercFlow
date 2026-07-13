@@ -4,10 +4,6 @@ import type { Produto } from "../../types/Produto";
 import TabelaProdutos from "../../components/TabelaProdutos/TabelaProdutos";
 import ProdutoForm from "../../components/ProdutoForm/ProdutoForm";
 
-async function criarProduto(produto: Produto) {
-  await produtoService.criar(produto);
-}
-
 function ProdutosPage() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   useEffect(() => {
@@ -22,6 +18,14 @@ function ProdutosPage() {
     carregarProdutos();
   }, []);
 
+  async function criarProduto(produto: Produto) {
+    try {
+      const produtoCriado = await produtoService.criar(produto);
+      setProdutos((listaAtual) => [...listaAtual, produtoCriado]);
+    } catch (error) {
+      console.error(error);
+    }
+  }
   return (
     <>
       <div className="container">

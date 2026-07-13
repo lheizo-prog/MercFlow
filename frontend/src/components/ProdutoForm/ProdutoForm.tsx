@@ -7,18 +7,32 @@ interface ProdutoFormProps {
 }
 
 function ProdutoForm(props: ProdutoFormProps) {
+  const [erro, setErro] = useState<string>("");
   const [nome, setNome] = useState<string>("");
   const [codigo, setCodigo] = useState<string>("");
 
   const salvarProduto: SubmitEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
+
+    if (!nome.trim() || !codigo.trim()) {
+      setErro("Nome e código são obrigatórios");
+      return;
+    }
+
+    setErro("");
+
     const produto: Produto = {
       id: 0,
-      nome,
-      codigo,
+      nome: nome.trim(),
+      codigo: codigo.trim(),
     };
 
     props.onSalvar(produto);
+
+    if (erro == "") {
+      setNome("");
+      setCodigo("");
+    }
   };
 
   return (
@@ -42,6 +56,7 @@ function ProdutoForm(props: ProdutoFormProps) {
             onChange={(event) => setCodigo(event.target.value)}
           />
         </div>
+        {erro && <div className="alert alert-danger">{erro}</div>}
         <div className="mb-3">
           <button className="btn btn-primary" type="submit">
             Salvar

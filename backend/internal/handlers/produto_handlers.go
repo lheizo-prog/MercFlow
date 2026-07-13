@@ -17,11 +17,11 @@ func NovoProdutoHandler(s *service.ProdutoService) *ProdutoHandler{
 }
 
 func (h *ProdutoHandler) CriarProduto(produto *models.Produto) (*models.Produto, error){
-	criarP := h.service.CriarProduto(produto.ID, produto.Nome, produto.Codigo_Geral) 
+	err := h.service.CriarProduto(produto.ID, produto.Nome, produto.Codigo_Geral) 
 	
-	if criarP == nil{
+	if err != nil{
 		fmt.Println(h.service.CriarProduto(produto.ID, produto.Nome, produto.Codigo_Geral))
-		return nil, criarP
+		return nil, err
 	}
 	fmt.Printf(
 		"\nCriando produto: %s \n",

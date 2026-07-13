@@ -11,7 +11,7 @@ const produtoService = {
     return produtos;
   },
 
-  async criar(produto: Produto) {
+  async criar(produto: Produto): Promise<Produto> {
     const response = await fetch(`${API_URL}/produtos`, {
       method: "POST",
       headers: {
@@ -22,6 +22,10 @@ const produtoService = {
     if (!response.ok) {
       throw new Error("Não foi possível criar o produto");
     }
+
+    const produtoCriado: Produto = await response.json();
+
+    return produtoCriado;
   },
 };
 

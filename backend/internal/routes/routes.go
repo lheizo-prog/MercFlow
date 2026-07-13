@@ -2,14 +2,16 @@ package routes
 
 import (
 	"MercFlow/internal/api"
-	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
-func NewRouter(produtoHTTP *api.ProdutoHTTPHandler) *http.ServeMux {
-	mux := http.NewServeMux()
+func NewRouter(produtoHTTP *api.ProdutoHTTPHandler) *gin.Engine{
+	router := gin.Default()
 
-	mux.HandleFunc("/health", api.Health)
-	mux.HandleFunc("/produtos", produtoHTTP.HandleProdutos)
+	router.GET("/health",)
+	router.GET("/produtos", produtoHTTP.Listar)
+	router.POST("/produto", produtoHTTP.Criar)
 
-	return mux
+	return router
 }
