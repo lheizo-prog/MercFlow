@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: mercflow-postgres
+    environment:
+      POSTGRES_USER: mercflow
+      POSTGRES_PASSWORD: mercflow
+      POSTGRES_DB: mercflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data: {}
