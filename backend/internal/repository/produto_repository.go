@@ -5,12 +5,12 @@ import (
 )
 
 type ProdutoRepository interface{
-	Adicionar(produto *models.Produto)
-	RemoverID(id int)
-	BuscarProdutoID(id int) *models.Produto
-	BuscarProdutoCodigo(codigo string) *models.Produto
-	Atualizar(produto models.Produto)
-	Listar() []*models.Produto
+	Adicionar(produto *models.Produto) (*models.Produto, error)
+	RemoverID(id int) error
+	BuscarProdutoID(id int) (*models.Produto, error)
+	BuscarProdutoCodigo(codigo string) (*models.Produto, error)
+	Atualizar(produto models.Produto) error
+	Listar() ([]*models.Produto, error)
 }
 
 type MemoryProdutoRepository struct{
