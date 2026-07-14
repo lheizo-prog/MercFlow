@@ -4,9 +4,13 @@ import (
 	"MercFlow/internal/bootstrap"
 	"log"
 	"net/http"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	godotenv.Load()
+
 	router := bootstrap.NewRouter()
 
 	log.Println("Servidor  iniciado em http://localhost:8080")
