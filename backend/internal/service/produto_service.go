@@ -1,14 +1,14 @@
 package service
 
 import (
-	"MercFlow/repository"
+	"MercFlow/internal/repository"
 )
 
 type ProdutoService struct {
-	repository *repository.PostgresProdutoRepository
+	repository repository.ProdutoRepository
 }
 
-func NovoProdutoService(r *repository.PostgresProdutoRepository) *ProdutoService{
+func NovoProdutoService(r repository.ProdutoRepository) *ProdutoService{
 	return &ProdutoService{
 		repository: r,
 	}

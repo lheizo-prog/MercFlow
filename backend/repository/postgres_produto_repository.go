@@ -26,3 +26,19 @@ func (r *PostgresProdutoRepository)Adicionar(p *models.Produto) (*models.Produto
 	}
 	return p, nil
 }
+
+func (r *PostgresProdutoRepository)RemoverID(id int) error{
+	return nil
+}
+func (r *PostgresProdutoRepository)BuscarProdutoID(id int) (*models.Produto, error){
+	return nil, nil
+}
+func (r *PostgresProdutoRepository)BuscarProdutoCodigo(codigo string) (*models.Produto, error){
+	return nil, nil
+}
+func (r *PostgresProdutoRepository)Atualizar(produto *models.Produto) error{
+	return nil
+}
+func (r *PostgresProdutoRepository)Listar() ([]*models.Produto, error){
+	return nil, nil
+}

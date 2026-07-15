@@ -9,9 +9,10 @@ import (
 	"MercFlow/repository"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func New(db ) (*gin.Engine, error){
+func New(DB *pgxpool.Pool) (*gin.Engine, error){
 
 	router := gin.Default()
 	

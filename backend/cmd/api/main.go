@@ -2,6 +2,7 @@ package main
 
 import (
 	"MercFlow/internal/bootstrap"
+	"MercFlow/internal/database"
 	"log"
 	"net/http"
 
@@ -11,7 +12,7 @@ import (
 func main() {
 	godotenv.Load()
 
-	router, err := bootstrap.New()
+	router, err := bootstrap.New(database.NovaConexao())
 
 	log.Println("Servidor  iniciado em http://localhost:8080")
 	
