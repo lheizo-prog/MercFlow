@@ -1,31 +1,30 @@
 package service
 
 import (
-	"MercFlow/internal/models"
-	"MercFlow/internal/repository"
-	"errors"
+	"MercFlow/repository"
 )
 
 type ProdutoService struct {
-	repository *repository.MemoryProdutoRepository
+	repository *repository.PostgresProdutoRepository
 }
 
-func NovoProdutoService(r *repository.MemoryProdutoRepository) *ProdutoService{
+func NovoProdutoService(r *repository.PostgresProdutoRepository) *ProdutoService{
 	return &ProdutoService{
 		repository: r,
 	}
 }
 
+/*
 func (s *ProdutoService)CriarProduto(id int, nome, codigo_geral string) error{
 	if id <= 0 || nome == "" || codigo_geral == ""{
 		return errors.New("Parâmetro(s) inválido(s)")
 	}
 	
 	_, err := s.BuscarProdutoID(id)
-
+	
 	if err != nil{
 		return err
-	}
+		}
 
 	_, err = s.BuscarProdutoCodigo(codigo_geral)
 
@@ -36,7 +35,6 @@ func (s *ProdutoService)CriarProduto(id int, nome, codigo_geral string) error{
 	models.CriarProduto(id, nome, codigo_geral)
 	return nil
 }
-
 func (s *ProdutoService) Adicionar(p *models.Produto) error{
 	if s.repository.BuscarProdutoID(p.ID) != nil{
 		return errors.New("Já há um produto com o reespectivo ID.")
@@ -85,3 +83,4 @@ func (s *ProdutoService) Listar() ([]*models.Produto, error){
 	}
 	return s.repository.Listar(), nil
 }
+	*/

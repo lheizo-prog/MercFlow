@@ -7,10 +7,9 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func NovaConexao() (*pgxpool.Pool, error){
-	dbpool, err := pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
+func NovaConexao(databaseURL string) (*pgxpool.Pool, error){
+	dbpool, err := pgxpool.New(context.Background(), os.Getenv(databaseURL))
 	if err != nil{
-		dbpool.Close()
 		return nil, err
 	}
 

@@ -1,9 +1,7 @@
 package handlers
 
 import (
-	"MercFlow/internal/models"
 	"MercFlow/internal/service"
-	"fmt"
 )
 
 type ProdutoHandler struct {
@@ -15,7 +13,7 @@ func NovoProdutoHandler(s *service.ProdutoService) *ProdutoHandler{
 		service: s,
 	}
 }
-
+ /*
 func (h *ProdutoHandler) CriarProduto(produto *models.Produto) (*models.Produto, error){
 	err := h.service.CriarProduto(produto.ID, produto.Nome, produto.Codigo_Geral) 
 	
@@ -117,3 +115,4 @@ func (h *ProdutoHandler) Listar() ([]*models.Produto, error){
 	fmt.Println("______________________________________________________")
 	return res, nil
 }
+	*/

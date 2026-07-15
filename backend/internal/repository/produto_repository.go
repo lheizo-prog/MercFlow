@@ -9,7 +9,7 @@ type ProdutoRepository interface{
 	RemoverID(id int) error
 	BuscarProdutoID(id int) (*models.Produto, error)
 	BuscarProdutoCodigo(codigo string) (*models.Produto, error)
-	Atualizar(produto models.Produto) error
+	Atualizar(produto *models.Produto) error
 	Listar() ([]*models.Produto, error)
 }
 

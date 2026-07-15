@@ -1,6 +1,8 @@
 package bootstrap
 
 import (
+	"MercFlow/internal/config"
+	"MercFlow/internal/database"
 	"MercFlow/internal/handlers"
 	"MercFlow/internal/middleware"
 	"MercFlow/internal/service"
@@ -9,13 +11,23 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func New() (*gin.Engine, error){
+func New(db ) (*gin.Engine, error){
 
 	router := gin.Default()
 	
 	router.Use(middleware.CORS()) 
 
-	repo := repository.NovoPostgresProdutoRepository()
+	cfg, err := config.Load()
+	if err != nil{
+		return nil, err
+	}
+
+	db, err := database.NovaConexao(cfg.Database.URL)
+	if err != nil{
+		return nil, err
+	}
+
+	repo := repository.NovoPostgresProdutoRepository(db)
 	service := service.NovoProdutoService(repo)
 	handler := handlers.NovoProdutoHandler(service)
 
