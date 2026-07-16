@@ -5,14 +5,20 @@ import (
 	"MercFlow/internal/database"
 	"MercFlow/internal/handlers"
 	"MercFlow/internal/middleware"
+	"MercFlow/internal/repository"
 	"MercFlow/internal/service"
-	"MercFlow/repository"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func New(DB *pgxpool.Pool) (*gin.Engine, error){
+type Application struct{
+	Router *gin.Engine
+	DB *pgxpool.Pool
+	Config *config.Config
+}
+
+func New() (*Application, error){
 
 	router := gin.Default()
 	
@@ -28,9 +34,15 @@ func New(DB *pgxpool.Pool) (*gin.Engine, error){
 		return nil, err
 	}
 
-	repo := repository.NovoPostgresProdutoRepository(db)
-	service := service.NovoProdutoService(repo)
-	handler := handlers.NovoProdutoHandler(service)
+	produtoRepo := repository.NovoPostgresProdutoRepository(db)
+	produtoService := service.NovoProdutoService(produtoRepo)
+	produtoHandler := handlers.NovoProdutoHandler(produtoService)
+	produtoHandler.HandleProdutos(router)
 
-	return router, nil
+
+	return &Application{
+		Router: router,
+		DB: db,
+		Config: cfg,
+	}, nil
 }
