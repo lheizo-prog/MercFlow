@@ -4,84 +4,52 @@ import (
 	"MercFlow/internal/models"
 	"MercFlow/internal/repository"
 	"errors"
+	"strings"
 )
 
 type ProdutoService struct {
-	repository *repository.MemoryProdutoRepository
+	repo repository.ProdutoRepository
 }
 
-func NovoProdutoService(r *repository.MemoryProdutoRepository) *ProdutoService{
+func NovoProdutoService(r repository.ProdutoRepository) *ProdutoService{
 	return &ProdutoService{
-		repository: r,
+		repo: r,
 	}
 }
 
-func (s *ProdutoService)CriarProduto(id int, nome, codigo_geral string) error{
-	if id <= 0 || nome == "" || codigo_geral == ""{
-		return errors.New("Parâmetro(s) inválido(s)")
+func (s *ProdutoService) Criar(p *models.Produto) (*models.Produto, error){
+	if strings.TrimSpace(p.Nome) == ""{
+		return nil, errors.New("Nome do produto é obrigatório")
 	}
-	
-	_, err := s.BuscarProdutoID(id)
-
-	if err != nil{
-		return err
+	if strings.TrimSpace(p.Codigo_Geral) == ""{
+		return nil, errors.New("Código do produto é obrigatório")
 	}
-
-	_, err = s.BuscarProdutoCodigo(codigo_geral)
-
-	if err != nil{
-		return err
+	if p == nil{
+		return nil, errors.New("Produto inválido")
 	}
-
-	models.CriarProduto(id, nome, codigo_geral)
-	return nil
-}
-
-func (s *ProdutoService) Adicionar(p *models.Produto) error{
-	if s.repository.BuscarProdutoID(p.ID) != nil{
-		return errors.New("Já há um produto com o reespectivo ID.")
-	}
-	if s.repository.BuscarProdutoCodigo(p.Codigo_Geral) != nil{
-		return errors.New("Já há um produto com reespectivo código geral.")
-	}
-	s.repository.Adicionar(p)
-	return nil
-}
-
-func (s *ProdutoService) RemoverID(id int) error{
-	if s.repository.BuscarProdutoID(id) == nil{
-		return errors.New("Não foi possível encontrar um produto com o reespectivo ID.")
-	}
-	s.repository.RemoverID(id)
-	return nil
-}
-
-func (s *ProdutoService) BuscarProdutoID(id int) (*models.Produto, error){
-	if s.repository.BuscarProdutoID(id) != nil{
-		return s.repository.BuscarProdutoID(id), nil
-	}
-	return nil, errors.New("Não foi possível encontrar algum produto com o reespectivo ID.")
-}
-
-func (s *ProdutoService) BuscarProdutoCodigo(codigo string) (*models.Produto, error){
-	if s.repository.BuscarProdutoCodigo(codigo) != nil{
-		return s.repository.BuscarProdutoCodigo(codigo), nil
-	}
-	return nil, errors.New("Não foi possível enconrtrar algum produto com o reespectivo Código.")
-}
-
-func (s *ProdutoService) Atualizar(p *models.Produto) error{
-	if s.repository.BuscarProdutoID(p.ID) == nil{
-		return errors.New("Não foi possível encontrar algum produto com o reespectivo ID.")
-	}
-	s.repository.Atualizar(p)
-	return nil
+	return s.repo.Adicionar(p)
 }
 
 func (s *ProdutoService) Listar() ([]*models.Produto, error){
-	produtos := s.repository.Listar()
-	if len(produtos) == 0{
-		return nil, errors.New("Não há produtos para listar")
+	produtos, err := s.repo.Listar()
+	if err != nil{
+		return nil, err
 	}
-	return s.repository.Listar(), nil
+	return produtos, nil
+}
+
+func (s *ProdutoService) BuscarID(id int) (*models.Produto, error){
+	produto, err := s.repo.BuscarID(id)
+	if err != nil{
+		return nil, err
+	}
+	return produto, nil
+}
+
+func (s *ProdutoService) BuscarCodigo(codigo string) (*models.Produto, error){
+	produto, err := s.repo.BuscarCodigo(codigo)
+	if err != nil{
+		return nil, err
+	}
+	return produto, nil
 }

@@ -3,10 +3,10 @@ package models
 import "time"
 
 type Lancamento struct {
-	ID         int
-	Data       time.Time
-	Tipo       TipoLancamento
-	Itens []*ItemLancamento
+	ID         int `json:"id"`
+	Data       time.Time `json:"data"`
+	Tipo       TipoLancamento `json:"tipo"`
+	Itens []*ItemLancamento `json:"itens"`
 }
 
 type ItemLancamento struct{

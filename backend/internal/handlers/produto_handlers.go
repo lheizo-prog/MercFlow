@@ -3,7 +3,10 @@ package handlers
 import (
 	"MercFlow/internal/models"
 	"MercFlow/internal/service"
-	"fmt"
+	"net/http"
+	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 type ProdutoHandler struct {
@@ -15,101 +18,76 @@ func NovoProdutoHandler(s *service.ProdutoService) *ProdutoHandler{
 		service: s,
 	}
 }
+func (h *ProdutoHandler) HandleProdutos(router *gin.Engine){
+	produtos := router.Group("/produtos")
 
-func (h *ProdutoHandler) CriarProduto(id int, nome, codigo_geral string) *models.Produto{
-	if h.service.CriarProduto(id, nome, codigo_geral) == nil{
-		fmt.Println(h.service.CriarProduto(id, nome, codigo_geral))
-	}
-	fmt.Printf(
-		"\nCriando produto: %s \n",
-		nome,
-	)
-	return models.CriarProduto(id, nome, codigo_geral)
+	produtos.GET("",h.Listar)
+	produtos.POST("", h.Criar)
+	produtos.GET("/:id", h.BuscarID)
+	produtos.GET("/codigo/:codigo",h.BuscarProduto)
 }
 
-func (h *ProdutoHandler) Adicionar(p *models.Produto){
-	if h.service.Adicionar(p) != nil{
-		fmt.Println(h.service.Adicionar(p))
+func (h *ProdutoHandler) Criar(ctx *gin.Context) {
+	var produto models.Produto
+
+	err := ctx.BindJSON(&produto)
+	if err != nil{
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro":err.Error(),
+		})
 		return
 	}
-	fmt.Println("Adicionando produto... ")
-	h.service.Adicionar(p)
-}
-
-func (h *ProdutoHandler) RemoverID(id int) {
-	if h.service.RemoverID(id) != nil{
-		fmt.Println(h.service.RemoverID(id))
+	produtoCriado, err := h.service.Criar(&produto)
+	if err != nil{
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro":err.Error(),
+		})
 		return
 	}
-	fmt.Println("Removendo produto... ")
-	h.service.RemoverID(id)
+	ctx.JSON(201, produtoCriado)
+
 }
 
-func (h *ProdutoHandler) BuscarProdutoID(id int) (*models.Produto){
-	res, err := h.service.BuscarProdutoID(id)
+func (h *ProdutoHandler) Listar(ctx *gin.Context){
+	lista, err := h.service.Listar()
 
 	if err != nil{
-		fmt.Println(err)
-		return nil
-	}
-	fmt.Println("Buscando produto...")
-	fmt.Printf(
-		"\nID: %d | Descrição: %s | Código Geral: %s\n",
-		res.ID,
-		res.Nome,
-		res.Codigo_Geral,
-	)
-	return res
-}
-
-func (h *ProdutoHandler) BuscarProdutoCodigo(codigo string) (*models.Produto){
-	res, err := h.service.BuscarProdutoCodigo(codigo)
-
-	if err != nil{
-		fmt.Println(err)
-		return nil
-	}
-	fmt.Println("Buscando produto... ")
-	fmt.Printf(
-		"\nID: %d | Descrição: %s | Código Geral: %s\n",
-		res.ID,
-		res.Nome,
-		res.Codigo_Geral,
-	)
-	return res
-}
-
-func (h *ProdutoHandler) Atualizar(p *models.Produto){
-	if h.service.Atualizar(p) != nil{
-		fmt.Println(h.service.Atualizar(p))
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"erro":err.Error(),
+		})
 		return
 	}
-	fmt.Println("Atualizando produto... ")
-	h.service.Atualizar(p)
-	fmt.Printf(
-		"\nID: %d | Descrição: %s | Código Geral: %s\n",
-		p.ID,
-		p.Nome,
-		p.Codigo_Geral,
-	)
+	ctx.JSON(200, lista)
 }
 
-func (h *ProdutoHandler) Listar(){
-	res, err := h.service.Listar()
-
+func (h *ProdutoHandler)BuscarID(ctx *gin.Context){
+	str := ctx.Param("id")
+	id, err := strconv.Atoi(str)
 	if err != nil{
-		fmt.Println(err)
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro":err.Error(),
+		})
 		return
 	}
-	fmt.Println("______________________________________________________")
-	fmt.Println("Lista de Produto:")
-	for _, p := range res{
-		fmt.Printf(
-			"\n| ID: %d | Nome: %s | Codigo Geral: %s|\n",
-			p.ID,
-			p.Nome,
-			p.Codigo_Geral,
-		)
+	produto, err := h.service.BuscarID(id)
+	if err != nil{
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro":err.Error(),
+		})
+		return
 	}
-	fmt.Println("______________________________________________________")
+	ctx.JSON(200, produto)
+}
+
+func (h *ProdutoHandler)BuscarProduto(ctx *gin.Context){
+	cod := ctx.Param("codigo")
+	produto, err := h.service.BuscarCodigo(cod)
+
+	if err != nil{
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro":err.Error(),
+		})
+		return
+	}
+	ctx.JSON(200, produto)
 }

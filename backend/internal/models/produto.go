@@ -1,9 +1,9 @@
 package models
 
 type Produto struct {
-	ID           int
-	Nome         string
-	Codigo_Geral string
+	ID           int `json:"id"`
+	Nome         string `json:"nome"`
+	Codigo_Geral string `json:"codigo"`
 }
 
 func CriarProduto(id int, nome, codigo_geral string) *Produto {
