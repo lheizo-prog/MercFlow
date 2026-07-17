@@ -1,6 +1,9 @@
 package repository
 
-import "MercFlow/internal/models"
+import (
+	"MercFlow/internal/models"
+	"errors"
+)
 
 type MemoryProdutoRepository struct {
 	produtos []*models.Produto
@@ -28,13 +31,13 @@ func (r *MemoryProdutoRepository) RemoverID(id int) {
 
 }
 
-func (r *MemoryProdutoRepository) BuscarProdutoID(id int) *models.Produto {
+func (r *MemoryProdutoRepository) BuscarID(id int) (*models.Produto, error) {
 	for _, p := range r.produtos {
 		if p.ID == id {
-			return p
+			return p, nil
 		}
 	}
-	return nil
+	return nil, errors.New("Produto não encontrado")
 }
 
 func (r *MemoryProdutoRepository) BuscarProdutoCodigo(codigo string) *models.Produto {

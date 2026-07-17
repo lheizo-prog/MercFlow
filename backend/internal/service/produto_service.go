@@ -37,3 +37,19 @@ func (s *ProdutoService) Listar() ([]*models.Produto, error){
 	}
 	return produtos, nil
 }
+
+func (s *ProdutoService) BuscarID(id int) (*models.Produto, error){
+	produto, err := s.repo.BuscarID(id)
+	if err != nil{
+		return nil, err
+	}
+	return produto, nil
+}
+
+func (s *ProdutoService) BuscarCodigo(codigo string) (*models.Produto, error){
+	produto, err := s.repo.BuscarCodigo(codigo)
+	if err != nil{
+		return nil, err
+	}
+	return produto, nil
+}

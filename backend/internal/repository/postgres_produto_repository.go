@@ -3,8 +3,10 @@ package repository
 import (
 	"MercFlow/internal/models"
 	"context"
+	"errors"
 	"fmt"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -39,9 +41,6 @@ func (r *PostgresProdutoRepository)RemoverID(id int) error{
 func (r *PostgresProdutoRepository)BuscarProdutoID(id int) (*models.Produto, error){
 	return nil, nil
 }
-func (r *PostgresProdutoRepository)BuscarProdutoCodigo(codigo string) (*models.Produto, error){
-	return nil, nil
-}
 func (r *PostgresProdutoRepository)Atualizar(produto *models.Produto) error{
 	return nil
 }
@@ -53,7 +52,7 @@ func (r *PostgresProdutoRepository)Listar() ([]*models.Produto, error){
 	defer rows.Close()
 
 	var lista []*models.Produto
-
+	
 	for rows.Next() {
 		produto := &models.Produto{}
 		rows.Scan(
@@ -66,4 +65,44 @@ func (r *PostgresProdutoRepository)Listar() ([]*models.Produto, error){
 
 
 	return lista, nil
+}
+
+func (r *PostgresProdutoRepository)BuscarID(id int) (*models.Produto, error){
+	produto := &models.Produto{}
+	
+	row := r.db.QueryRow(context.Background(), "SELECT id, nome, codigo FROM produtos WHERE id = $1;",id)
+	
+	err := row.Scan(
+		&produto.ID,
+		&produto.Nome,
+		&produto.Codigo_Geral,
+	)
+	
+	if errors.Is(err, pgx.ErrNoRows){
+		return nil, errors.New("Produto não encontrado")
+	}
+	if err != nil{
+		return nil, err
+	}
+	
+	return produto, nil
+}
+func (r *PostgresProdutoRepository)BuscarCodigo(codigo string) (*models.Produto, error){
+	produto := &models.Produto{}
+	row := r.db.QueryRow(context.Background(), "SELECT id, nome, codigo FROM produtos WHERE codigo = $1",codigo)
+
+	err := row.Scan(
+		&produto.ID,
+		&produto.Nome,
+		&produto.Codigo_Geral,
+	)
+
+	if errors.Is(err, pgx.ErrNoRows){
+		return nil, errors.New("Produto não encontrado")
+	}
+	if err != nil{
+		return nil, err
+	}
+
+	return produto, nil
 }

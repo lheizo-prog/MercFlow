@@ -20,7 +20,7 @@ func NovoProdutoHTTPHandler(handler *handlers.ProdutoHandler) *ProdutoHTTPHandle
 }
 
 func (h *ProdutoHTTPHandler) Listar(ctx *gin.Context) {
-	produto, err := h.handler.Listar()
+	produto, err := h.handler.Listar(ctx)
 
 	if err != nil{
 		ctx.JSON(400, gin.H{
