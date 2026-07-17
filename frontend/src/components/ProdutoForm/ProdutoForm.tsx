@@ -3,15 +3,17 @@ import type { SubmitEventHandler } from "react";
 import type { Produto } from "../../types/Produto";
 
 interface ProdutoFormProps {
-  onSalvar: (produto: Produto) => void;
+  produto?: Produto;
+  onSalvar: (produto: Produto) => Promise<void>;
 }
 
-function ProdutoForm(props: ProdutoFormProps) {
+function ProdutoForm({ produto, onSalvar }: ProdutoFormProps) {
   const [erro, setErro] = useState<string>("");
-  const [nome, setNome] = useState<string>("");
-  const [codigo, setCodigo] = useState<string>("");
+  const [nome, setNome] = useState(produto?.nome ?? "");
+  const [codigo, setCodigo] = useState(produto?.codigo ?? "");
+  const [salvando, setSalvando] = useState(false);
 
-  const salvarProduto: SubmitEventHandler<HTMLFormElement> = (event) => {
+  const salvarProduto: SubmitEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault();
 
     if (!nome.trim() || !codigo.trim()) {
@@ -22,16 +24,20 @@ function ProdutoForm(props: ProdutoFormProps) {
     setErro("");
 
     const produto: Produto = {
-      id: 0,
       nome: nome.trim(),
       codigo: codigo.trim(),
     };
+    try {
+      setSalvando(true);
+      await onSalvar(produto);
 
-    props.onSalvar(produto);
-
-    if (erro == "") {
+      setErro("");
       setNome("");
       setCodigo("");
+    } catch {
+      setErro("Não foi possível salvar o produto.");
+    } finally {
+      setSalvando(false);
     }
   };
 
@@ -44,7 +50,10 @@ function ProdutoForm(props: ProdutoFormProps) {
             type="text"
             className="form-control"
             value={nome}
-            onChange={(event) => setNome(event.target.value)}
+            onChange={(event) => {
+              setNome(event.target.value);
+              setErro("");
+            }}
           />
         </div>
         <div className="mb-3">
@@ -53,13 +62,16 @@ function ProdutoForm(props: ProdutoFormProps) {
             type="text"
             className="form-control"
             value={codigo}
-            onChange={(event) => setCodigo(event.target.value)}
+            onChange={(event) => {
+              setCodigo(event.target.value);
+              setErro("");
+            }}
           />
         </div>
         {erro && <div className="alert alert-danger">{erro}</div>}
         <div className="mb-3">
-          <button className="btn btn-primary" type="submit">
-            Salvar
+          <button className="btn btn-primary" type="submit" disabled={salvando}>
+            {salvando ? "Salvando..." : "Salvar"}
           </button>
         </div>
       </form>

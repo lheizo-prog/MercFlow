@@ -1,3 +1,10 @@
-const API_URL = "http://localhost:8080";
+import axios from "axios";
 
-export default API_URL;
+const api = axios.create({
+  baseURL: "http://localhost:8080",
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+export default api;
