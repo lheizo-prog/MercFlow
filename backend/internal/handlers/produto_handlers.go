@@ -25,6 +25,8 @@ func (h *ProdutoHandler) HandleProdutos(router *gin.Engine){
 	produtos.POST("", h.Criar)
 	produtos.GET("/:id", h.BuscarID)
 	produtos.GET("/codigo/:codigo",h.BuscarProduto)
+	produtos.PUT("/id/:id",h.Atualizar)
+	produtos.DELETE("/id/:id",h.RemoverID)
 }
 
 func (h *ProdutoHandler) Criar(ctx *gin.Context) {
@@ -46,6 +48,63 @@ func (h *ProdutoHandler) Criar(ctx *gin.Context) {
 	}
 	ctx.JSON(201, produtoCriado)
 
+}
+
+func (h *ProdutoHandler)Atualizar(ctx *gin.Context){
+	idParam := ctx.Param("id")
+
+	id, err := strconv.Atoi(idParam)
+	if err != nil{
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro":"ID inválido",
+		})
+		return
+	}
+
+	var produto models.Produto
+	
+	if err := ctx.BindJSON(&produto); err != nil{
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro":"JSON inválido",
+		})
+		return
+	}
+	produto.ID = id
+
+	produtoAtualizado, err := h.service.Atualizar(&produto)
+
+	if err != nil{
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro":err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(200, produtoAtualizado)
+}
+
+func (h *ProdutoHandler)RemoverID(ctx *gin.Context){
+	idParam := ctx.Param("id")
+
+	id, err := strconv.Atoi(idParam)
+
+	if err != nil{
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro":"ID inválido",
+		})
+		return
+	}
+	err = h.service.RemoverID(id)
+
+	if err != nil{
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro":err.Error(),
+		})
+		return
+	}
+	ctx.JSON(200, gin.H{
+		"messagem":"Produto removido com sucesso",
+	})
 }
 
 func (h *ProdutoHandler) Listar(ctx *gin.Context){

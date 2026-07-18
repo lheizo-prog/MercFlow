@@ -18,16 +18,25 @@ func NovoProdutoService(r repository.ProdutoRepository) *ProdutoService{
 }
 
 func (s *ProdutoService) Criar(p *models.Produto) (*models.Produto, error){
-	if strings.TrimSpace(p.Nome) == ""{
-		return nil, errors.New("Nome do produto é obrigatório")
-	}
-	if strings.TrimSpace(p.Codigo_Geral) == ""{
-		return nil, errors.New("Código do produto é obrigatório")
-	}
-	if p == nil{
-		return nil, errors.New("Produto inválido")
+	if s.ValidarProduto(p) != nil{
+		return nil, s.ValidarProduto(p)
 	}
 	return s.repo.Adicionar(p)
+}
+
+func (s *ProdutoService)Atualizar(p *models.Produto) (*models.Produto, error){
+	if s.ValidarProduto(p) != nil{
+		return nil, s.ValidarProduto(p)
+	}
+	return s.repo.Atualizar(p)
+}
+
+func(s *ProdutoService)RemoverID(id int) error{
+	if id <= 0{
+		return errors.New("ID inválido")
+	}
+	
+	return s.repo.RemoverID(id)
 }
 
 func (s *ProdutoService) Listar() ([]*models.Produto, error){
@@ -52,4 +61,18 @@ func (s *ProdutoService) BuscarCodigo(codigo string) (*models.Produto, error){
 		return nil, err
 	}
 	return produto, nil
+}
+
+func (s *ProdutoService)ValidarProduto(p *models.Produto) error{
+	if strings.TrimSpace(p.Nome) == ""{
+		return errors.New("Nome do produto é obrigatório")
+	}
+	if strings.TrimSpace(p.Codigo_Geral) == ""{
+		return errors.New("Código do produto é obrigatório")
+	}
+	if p == nil{
+		return errors.New("Produto inválido")
+	}
+	
+	return nil
 }
