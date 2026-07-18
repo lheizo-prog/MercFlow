@@ -12,6 +12,18 @@ function ProdutosPage() {
   const [produtoSelecionado, setProdutoSelecionado] = useState<
     Produto | undefined
   >();
+  const produtosFiltrados = produtos.filter((produto) => {
+    const termo = pesquisa.trim().toLocaleLowerCase();
+
+    if (!termo) {
+      return true;
+    }
+    return (
+      produto.nome.toLocaleLowerCase().includes(termo) ||
+      produto.codigo.toLocaleLowerCase().includes(termo) ||
+      String(produto.id).includes(termo)
+    );
+  });
 
   async function carregarProdutos() {
     try {
@@ -40,6 +52,16 @@ function ProdutosPage() {
       </div>
     );
   }
+
+  function editarProduto(produto: Produto) {
+    setProdutoSelecionado(produto);
+    setMostrarModal(true);
+  }
+
+  function excluirProduto(produto: Produto) {
+    console.log("Excluir:", produto);
+  }
+
   return (
     <>
       <div className="container">
@@ -59,13 +81,17 @@ function ProdutosPage() {
           onSalvar={criarProduto}
         />
         <div className="mt-4">
-          <label className="form-label">Pesquisar Produto</label>
+          <label className="form-label me-2">Pesquisar Produto:</label>
           <input
             value={pesquisa}
             onChange={(e) => setPesquisa(e.target.value)}
           />
         </div>
-        <TabelaProdutos produtos={produtos} />
+        <TabelaProdutos
+          produtos={produtosFiltrados}
+          onEditar={editarProduto}
+          onExcluir={excluirProduto}
+        />
       </div>
     </>
   );

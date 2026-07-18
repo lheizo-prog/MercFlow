@@ -42,6 +42,8 @@ func (r *PostgresProdutoRepository)BuscarProdutoID(id int) (*models.Produto, err
 	return nil, nil
 }
 func (r *PostgresProdutoRepository)Atualizar(produto *models.Produto) error{
+	
+	
 	return nil
 }
 func (r *PostgresProdutoRepository)Listar() ([]*models.Produto, error){

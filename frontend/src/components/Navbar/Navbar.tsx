@@ -4,9 +4,13 @@ type NavbarProps = {
 
 function Navbar({ titulo }: NavbarProps) {
   return (
-    <nav>
-      <h2>{titulo}</h2>
-    </nav>
+    <>
+      <div className="container m-3">
+        <nav>
+          <h2>{titulo}</h2>
+        </nav>
+      </div>
+    </>
   );
 }
 
