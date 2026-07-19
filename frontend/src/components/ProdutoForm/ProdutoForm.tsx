@@ -3,67 +3,93 @@ import type { SubmitEventHandler } from "react";
 import type { Produto } from "../../types/Produto";
 
 interface ProdutoFormProps {
-  onSalvar: (produto: Produto) => void;
+  produto?: Produto;
+  onSalvar: (produto: Produto) => Promise<void>;
 }
 
-function ProdutoForm(props: ProdutoFormProps) {
-  const [erro, setErro] = useState<string>("");
-  const [nome, setNome] = useState<string>("");
-  const [codigo, setCodigo] = useState<string>("");
+function ProdutoForm({ produto, onSalvar }: ProdutoFormProps) {
+  const [erro, setErro] = useState("");
+  const [salvando, setSalvando] = useState(false);
 
-  const salvarProduto: SubmitEventHandler<HTMLFormElement> = (event) => {
+  const [form, setForm] = useState<Produto>({
+    id: produto?.id,
+    nome: produto?.nome ?? "",
+    codigo: produto?.codigo ?? "",
+  });
+
+  const salvarProduto: SubmitEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault();
 
-    if (!nome.trim() || !codigo.trim()) {
-      setErro("Nome e código são obrigatórios");
+    if (!form.nome.trim() || !form.codigo.trim()) {
+      setErro("Nome e código são obrigatórios.");
       return;
     }
 
     setErro("");
+    setSalvando(true);
 
-    const produto: Produto = {
-      id: 0,
-      nome: nome.trim(),
-      codigo: codigo.trim(),
-    };
+    try {
+      await onSalvar({
+        ...form,
+        nome: form.nome.trim(),
+        codigo: form.codigo.trim(),
+      });
 
-    props.onSalvar(produto);
-
-    if (erro == "") {
-      setNome("");
-      setCodigo("");
+      setForm({
+        nome: "",
+        codigo: "",
+      } as Produto);
+    } catch {
+      setErro("Não foi possível salvar o produto.");
+    } finally {
+      setSalvando(false);
     }
   };
 
   return (
-    <>
-      <form onSubmit={salvarProduto}>
-        <div className="mb-3">
-          <label className="form-label">Nome</label>
-          <input
-            type="text"
-            className="form-control"
-            value={nome}
-            onChange={(event) => setNome(event.target.value)}
-          />
-        </div>
-        <div className="mb-3">
-          <label className="form-label">Codigo</label>
-          <input
-            type="text"
-            className="form-control"
-            value={codigo}
-            onChange={(event) => setCodigo(event.target.value)}
-          />
-        </div>
-        {erro && <div className="alert alert-danger">{erro}</div>}
-        <div className="mb-3">
-          <button className="btn btn-primary" type="submit">
-            Salvar
-          </button>
-        </div>
-      </form>
-    </>
+    <form onSubmit={salvarProduto}>
+      <div className="mb-3">
+        <label className="form-label">Nome</label>
+
+        <input
+          type="text"
+          className="form-control"
+          value={form.nome}
+          disabled={salvando}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              nome: e.target.value,
+            })
+          }
+        />
+      </div>
+
+      <div className="mb-3">
+        <label className="form-label">Código</label>
+
+        <input
+          type="text"
+          className="form-control"
+          value={form.codigo}
+          disabled={salvando}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              codigo: e.target.value,
+            })
+          }
+        />
+      </div>
+
+      {erro && <div className="alert alert-danger">{erro}</div>}
+
+      <div className="d-flex justify-content-end">
+        <button className="btn btn-primary" type="submit" disabled={salvando}>
+          {salvando ? "Salvando..." : "Salvar"}
+        </button>
+      </div>
+    </form>
   );
 }
 

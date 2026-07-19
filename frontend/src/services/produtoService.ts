@@ -1,31 +1,27 @@
-import API_URL from "./api";
 import type { Produto } from "../types/Produto";
+import api from "./api";
 
 const produtoService = {
   async buscarTodos() {
-    const response = await fetch(`${API_URL}/produtos`);
-    if (!response.ok) {
-      throw new Error("Erro ao buscar produtos");
-    }
-    const produtos = await response.json();
-    return produtos;
+    const response = await api.get("/produtos");
+
+    return response;
   },
 
   async criar(produto: Produto): Promise<Produto> {
-    const response = await fetch(`${API_URL}/produtos`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(produto),
-    });
-    if (!response.ok) {
-      throw new Error("Não foi possível criar o produto");
-    }
+    const response = await api.post("/produtos", produto);
 
-    const produtoCriado: Produto = await response.json();
+    return response.data;
+  },
 
-    return produtoCriado;
+  async atualizar(produto: Produto): Promise<Produto> {
+    const response = await api.put(`/produtos/id/${produto.id}`);
+
+    return response.data;
+  },
+
+  async excluir(produto: Produto): Promise<void> {
+    await api.delete(`/produto/id/${produto.id}`);
   },
 };
 
