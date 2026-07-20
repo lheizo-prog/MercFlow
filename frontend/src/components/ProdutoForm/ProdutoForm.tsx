@@ -12,7 +12,7 @@ function ProdutoForm({ produto, onSalvar }: ProdutoFormProps) {
   const [salvando, setSalvando] = useState(false);
 
   const [form, setForm] = useState<Produto>({
-    id: produto?.id,
+    id: produto?.id ?? 0,
     nome: produto?.nome ?? "",
     codigo: produto?.codigo ?? "",
   });
@@ -36,9 +36,10 @@ function ProdutoForm({ produto, onSalvar }: ProdutoFormProps) {
       });
 
       setForm({
+        id: 0,
         nome: "",
         codigo: "",
-      } as Produto);
+      });
     } catch {
       setErro("Não foi possível salvar o produto.");
     } finally {

@@ -3,9 +3,9 @@ import api from "./api";
 
 const produtoService = {
   async buscarTodos() {
-    const response = await api.get("/produtos");
+    const response = await api.get<Produto[]>("/produtos");
 
-    return response;
+    return response.data;
   },
 
   async criar(produto: Produto): Promise<Produto> {

@@ -14,6 +14,14 @@ function ProdutosPage() {
   >();
 
   const [pesquisa, setPesquisa] = useState("");
+  const produtosFiltrados = produtos.filter((produto) => {
+    const termo = pesquisa.toLocaleLowerCase();
+
+    return (
+      produto.nome.toLowerCase().includes(termo) ||
+      produto.codigo.toLowerCase().includes(termo)
+    );
+  });
 
   async function carregarProdutos() {
     try {
@@ -46,16 +54,17 @@ function ProdutosPage() {
   }
 
   async function atualizarProduto(produto: Produto) {
-    try {
-      await produtoService.atualizar(produto);
+    console.log(produto);
 
-      await carregarProdutos();
+    await produtoService.atualizar(produto);
 
-      setProdutoSelecionado(undefined);
-      setMostrarModal(false);
-    } catch (error) {
-      console.error(error);
-    }
+    console.log(produto);
+    console.log(`/produto/id/${produto.id}`);
+
+    await carregarProdutos();
+
+    setProdutoSelecionado(undefined);
+    setMostrarModal(false);
   }
 
   async function excluirProduto(id: number) {
@@ -126,7 +135,7 @@ function ProdutosPage() {
       </div>
 
       <TabelaProdutos
-        produtos={produtos}
+        produtos={produtosFiltrados}
         onEditar={editarProduto}
         onExcluir={excluirProduto}
       />

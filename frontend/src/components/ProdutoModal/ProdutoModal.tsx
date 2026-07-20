@@ -39,7 +39,11 @@ function ProdutoModal({
             </div>
 
             <div className="modal-body">
-              <ProdutoForm produto={produto} onSalvar={salvarProduto} />
+              <ProdutoForm
+                key={produto?.id ?? "novo"}
+                produto={produto}
+                onSalvar={salvarProduto}
+              />
             </div>
 
             <div className="modal-footer">
