@@ -15,13 +15,16 @@ const produtoService = {
   },
 
   async atualizar(produto: Produto): Promise<Produto> {
-    const response = await api.put(`/produtos/id/${produto.id}`);
+    const response = await api.put<Produto>(
+      `/produtos/id/${produto.id}`,
+      produto,
+    );
 
     return response.data;
   },
 
-  async excluir(produto: Produto): Promise<void> {
-    await api.delete(`/produto/id/${produto.id}`);
+  async excluir(id: number): Promise<void> {
+    return api.delete(`/produtos/id/${id}`);
   },
 };
 

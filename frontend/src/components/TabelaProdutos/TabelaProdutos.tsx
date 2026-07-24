@@ -11,6 +11,11 @@ function TabelaProdutos({
   onEditar,
   onExcluir,
 }: TabelaProdutosProps) {
+  {
+    produtos.map((produto) => {
+      console.log(produto);
+    });
+  }
   return (
     <table className="table table-striped mt-4">
       <thead>
@@ -48,6 +53,7 @@ function TabelaProdutos({
                   <button
                     className="btn btn-sm btn-danger"
                     onClick={() => {
+                      console.log("ID Clicado: ", produto.id);
                       if (window.confirm(`Deseja excluir "${produto.nome}"?`)) {
                         onExcluir(produto.id!);
                       }
