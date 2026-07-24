@@ -36,6 +36,14 @@ func (r *PostgresProdutoRepository)Adicionar(p *models.Produto) (*models.Produto
 }
 
 func (r *PostgresProdutoRepository)RemoverID(id int) error{
+	response, err := r.db.Exec(context.Background(), "DELETE FROM produtos WHERE id = $1",id)
+
+	if err != nil{
+		return err
+	}
+	if response.RowsAffected() == 0{
+		return errors.New("Produto não encontrado")
+	}
 	return nil
 }
 func (r *PostgresProdutoRepository)BuscarProdutoID(id int) (*models.Produto, error){
