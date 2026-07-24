@@ -59,13 +59,10 @@ function ProdutosPage() {
   async function excluirProduto(id: number) {
     const confirmar = window.confirm("Deseja realmente excluir este produto?");
 
-    if (!confirmar) {
-      return;
-    }
+    if (!confirmar) return;
 
     try {
       await produtoService.excluir(id);
-
       await carregarProdutos();
     } catch (error) {
       console.error(error);
