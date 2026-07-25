@@ -6,7 +6,7 @@ type Produto struct {
 	Codigo_Geral string `json:"codigo"`
 }
 
-func CriarProduto(id int, nome, codigo_geral string) *Produto {
+func NovoProduto(id int, nome, codigo_geral string) *Produto {
 	return &Produto{
 		ID:           id,
 		Nome:         nome,

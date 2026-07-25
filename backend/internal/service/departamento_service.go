@@ -2,70 +2,69 @@ package service
 
 import (
 	"MercFlow/internal/models"
-	"MercFlow/internal/repository"
-
+	repository "MercFlow/internal/repository/departamento"
 	"errors"
+	"strings"
 )
 
 type DepartamentoService struct {
-	repository *repository.MemoryDepartamentoRepository
+	repo repository.DepartamentoRepository
 }
 
-func NovoDepartamentoService(repo *repository.MemoryDepartamentoRepository) *DepartamentoService{
+func NovoDepartamentoService(repo repository.DepartamentoRepository) *DepartamentoService{
 	return &DepartamentoService{
-		repository: repo,
+		repo: repo,
 	}
 }
 
-func (s *DepartamentoService)CriarDepartamento(id int, nome string, codigos []*models.Produto) error{
-	if id <= 0 || nome == ""{
-		return errors.New("Parâmetro(s) inválido(s).")
-	}
-	_, err := s.BuscarID(id)
-
-	if err != nil{
-		return err
+func (s *DepartamentoService)Criar(d *models.Departamento) (*models.Departamento, error){
+	if s.ValidarDepartamento(d) != nil{
+		return nil, s.ValidarDepartamento(d)
 	}
 
-	models.CriarDepartamento(id, nome, codigos)
-	return nil
-}
-
-func (s *DepartamentoService)Adicionar(d *models.Departamento) error{
-	if s.repository.BuscarID(d.ID) != nil{
-		return errors.New("Já há um setor com o reespectivo ID.")
-	}
-	s.repository.Adicionar(d)
-	return nil
+	return s.repo.Criar(d)
 }
 
 func (s *DepartamentoService)RemoverID(id int) error{
-	if s.repository.BuscarID(id) == nil {
-		return errors.New("Não foi possível encontrar  um produto com o reespectivo ID.")
+	if id <= 0 {
+		return errors.New("ID inválido")
 	}
-	s.repository.RemoverID(id)
-	return nil
+
+	return s.repo.RemoverID(id)
 }
 
-func (s *DepartamentoService)Atualizar(d *models.Departamento) error{
-	if s.repository.BuscarID(d.ID) == nil{
-		return errors.New("Não foi possível encontrar algum produto com o reespectivo ID.")
+func (s *DepartamentoService)Atualizar(d *models.Departamento) (*models.Departamento, error){
+	if s.ValidarDepartamento(d) != nil{
+		return nil, s.ValidarDepartamento(d)
 	}
-	s.repository.Atualizar(d)
-	return nil
-}
-
-func (s *DepartamentoService)BuscarID(id int) (*models.Departamento, error){
-	if s.repository.BuscarID(id) != nil{
-		return s.repository.BuscarID(id), nil
-	}
-	return nil, errors.New("ID do setor não foi encontrado.")
+	return s.repo.Atualizar(d)
 }
 
 func (s *DepartamentoService)Listar() ([]*models.Departamento, error){
-	setores := s.repository.Listar()
-	if len(setores) == 0{
-		return nil, errors.New("Não há elementos no repositório.")
+	departamentos, err := s.repo.Listar()
+	
+	if err != nil{
+		return nil, err
 	}
-	return s.repository.Listar(), nil
+	return departamentos, nil
+}
+
+func (s *DepartamentoService)BuscarID(id int) (*models.Departamento, error){
+	departamento, err := s.repo.BuscarID(id)
+
+	if err != nil{
+		return nil, err
+	}
+	return departamento, nil
+}
+
+
+func (s *DepartamentoService)ValidarDepartamento(d *models.Departamento) error{
+	if strings.TrimSpace(d.Nome) == ""{
+		return errors.New("Nome do departamento é obirgatório")
+	}
+	if d == nil{
+		return errors.New("Departamento inválido")
+	}
+	return nil
 }

@@ -2,7 +2,7 @@ package service
 
 import (
 	"MercFlow/internal/models"
-	"MercFlow/internal/repository"
+	repository "MercFlow/internal/repository/produto"
 	"errors"
 	"strings"
 )
@@ -11,9 +11,9 @@ type ProdutoService struct {
 	repo repository.ProdutoRepository
 }
 
-func NovoProdutoService(r repository.ProdutoRepository) *ProdutoService{
+func NovoProdutoService(repo repository.ProdutoRepository) *ProdutoService{
 	return &ProdutoService{
-		repo: r,
+		repo: repo,
 	}
 }
 
@@ -21,7 +21,7 @@ func (s *ProdutoService) Criar(p *models.Produto) (*models.Produto, error){
 	if s.ValidarProduto(p) != nil{
 		return nil, s.ValidarProduto(p)
 	}
-	return s.repo.Adicionar(p)
+	return s.repo.Criar(p)
 }
 
 func (s *ProdutoService)Atualizar(p *models.Produto) (*models.Produto, error){

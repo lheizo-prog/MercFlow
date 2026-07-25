@@ -3,7 +3,10 @@ package handlers
 import (
 	"MercFlow/internal/models"
 	"MercFlow/internal/service"
-	"fmt"
+	"net/http"
+	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 type DepartamentoHandler struct {
@@ -16,75 +19,121 @@ func NovoDepartamentoHandler(s *service.DepartamentoService) *DepartamentoHandle
 	}
 }
 
-func (h *DepartamentoHandler)CriarDepartamento(id int, nome string, codigos []*models.Produto) *models.Departamento{
-	if h.service.CriarDepartamento(id, nome, codigos) == nil{
-		fmt.Println(h.service.CriarDepartamento(id, nome, codigos))
-	}
-	fmt.Printf(
-		"\nCriando setor: %s \n",
-		nome,
-	)
-	return models.CriarDepartamento(id, nome, codigos)
+func (h *DepartamentoHandler) HandleDepartamentos(router *gin.Engine){
+	departamentos := router.Group("/departamentos")
+
+	departamentos.GET("",h.Listar)
+	departamentos.POST("",h.Criar)
+	departamentos.GET("/:id",h.BuscarID)
+	departamentos.PUT("/id/:id",h.Atualizar)
+	departamentos.DELETE("/id/:id",h.RemoverID)
 }
 
-func (h *DepartamentoHandler)Adicionar(d * models.Departamento){
-	if h.service.Adicionar(d) == nil{
-		fmt.Println(h.service.Adicionar(d))
+func (h *DepartamentoHandler)Criar(ctx *gin.Context){
+	var departamento models.Departamento
+
+	err := ctx.BindJSON(&departamento)
+	if err != nil{
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro":err.Error(),
+		})
 		return
 	}
-	fmt.Println("Adicionando setor ao repositório... ")
-	h.service.Adicionar(d)
-}
-
-func (h *DepartamentoHandler)RemoverID(id int){
-	if h.service.RemoverID(id) != nil{
-		fmt.Println("Removendo setor do repositório... ")
-		h.service.RemoverID(id)
+	departamentoCriado, err := h.service.Criar(&departamento)
+	if err != nil{
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro":err.Error(),
+		})
 		return
 	}
-	fmt.Println(h.service.RemoverID(id))
+
+	ctx.JSON(201, departamentoCriado)
 }
 
-func (h *DepartamentoHandler)Atualizar(d *models.Departamento){
-	if h.service.Atualizar(d) != nil{
-		fmt.Printf(
-			"\nAtualizando setor: %s\n",
-			d.Nome,
-		)
-		h.service.Atualizar(d)
-	}
-}
+func (h *DepartamentoHandler)Atualizar(ctx *gin.Context){
+	idParam := ctx.Param("id")
 
-func (h *DepartamentoHandler)BuscarID(id int) *models.Departamento{
-	res, err := h.service.BuscarID(id)
-	
+	id, err := strconv.Atoi(idParam)
 	if err != nil{
-		fmt.Println("Procurando ID... ")
-		fmt.Printf(
-			"\nID: %d | Nome: %s\n",
-			res.ID,
-			res.Nome,
-		)
-		return res
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro":"ID inválido",
+		})
+		return
 	}
-	fmt.Println(err)
-	return nil
-}
+	var departamento models.Departamento
 
-func (h *DepartamentoHandler)Listar() []*models.Departamento{
-	res, err := h.service.Listar()
+	if err := ctx.BindJSON(&departamento); err != nil{
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro":"JSON inválido",
+		})
+		return
+	}
+	departamento.ID = id
 
+	departamentoAtualizado, err := h.service.Atualizar(&departamento)
 	if err != nil{
-		fmt.Println("Carregando lista... ")
-		for _, p := range res{
-			fmt.Printf(
-				"\n| ID: %d | Nome: %s |\n",
-				p.ID,
-				p.Nome,
-			)
-		}
-		return res
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro":err.Error(),
+		})
+		return
 	}
-	fmt.Println(err)
-	return nil
+
+	ctx.JSON(200, departamentoAtualizado)
 }
+
+func (h *DepartamentoHandler)RemoverID(ctx *gin.Context){
+	idParam := ctx.Param("id")
+
+	id, err := strconv.Atoi(idParam)
+	if err != nil{
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro":"ID Inválido",
+		})
+		return
+	}
+
+	err = h.service.RemoverID(id)
+	if err != nil{
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro":err.Error(),
+		})
+		return
+	}
+	ctx.JSON(200, gin.H{
+		"message":"Produto removido com sucesso",
+	})
+}
+
+func (h *DepartamentoHandler)Listar(ctx *gin.Context){
+	lista, err := h.service.Listar()
+	if err != nil{
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro": err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(200, lista)
+}
+
+func (h *DepartamentoHandler)BuscarID(ctx *gin.Context){
+	str := ctx.Param("id")
+	id, err := strconv.Atoi(str)
+	if err != nil{
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro":"ID Inválido",
+		})
+		return
+	}
+
+	departamento, err := h.service.BuscarID(id)
+	if err != nil{
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro":err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(200, departamento)
+}
+

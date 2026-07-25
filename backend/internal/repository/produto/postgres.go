@@ -1,4 +1,4 @@
-package repository
+package produto
 
 import (
 	"MercFlow/internal/models"
@@ -20,7 +20,7 @@ func NovoPostgresProdutoRepository(db *pgxpool.Pool) *PostgresProdutoRepository{
 	}
 }
 
-func (r *PostgresProdutoRepository)Adicionar(p *models.Produto) (*models.Produto, error){
+func (r *PostgresProdutoRepository)Criar(p *models.Produto) (*models.Produto, error){
 	fmt.Println(">>> Entrou em Adicionar()")
 	fmt.Printf("Pool: %p\n",r.db)
 

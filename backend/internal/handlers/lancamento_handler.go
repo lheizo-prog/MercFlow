@@ -28,7 +28,7 @@ func (h *LancamentoHandler)NovoLancamento(id int, tipo models.TipoLancamento,tem
 	return res, nil
 }
 
-func (h *LancamentoHandler)NovoItem(setor *models.Departamento, produto *models.Produto, codigoBase string, codigoSetor string, quantidade float64) (*models.ItemLancamento, error){
+/* func (h *LancamentoHandler)NovoItem(setor *models.Departamento, produto *models.Produto, codigoBase string, codigoSetor string, quantidade float64) (*models.ItemLancamento, error){
 	res, err := h.service.NovoItem(setor, produto, quantidade)
 	if err != nil{
 		fmt.Println(err)
@@ -37,6 +37,7 @@ func (h *LancamentoHandler)NovoItem(setor *models.Departamento, produto *models.
 	fmt.Println("Criando novo item para lançamento...")
 	return res, nil
 }
+*/
 
 func(h *LancamentoHandler)NovoSliceTemporario() []*models.ItemLancamento{
 	return h.service.NovoSliceTemporario()

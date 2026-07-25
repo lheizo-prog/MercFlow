@@ -2,7 +2,7 @@ package service
 
 import (
 	"MercFlow/internal/models"
-	"MercFlow/internal/repository"
+	repository "MercFlow/internal/repository/lancamento"
 	"errors"
 	"time"
 )
@@ -26,7 +26,7 @@ func (s *LancamentoService)NovoLancamento(id int, tipo models.TipoLancamento, te
 	return nil, errors.New("Há um lançamento com o mesmo ID")
 }
 
-func (s *LancamentoService)NovoItem(setor *models.Departamento, produto *models.Produto, quantidade float64) (*models.ItemLancamento, error){
+/* func (s *LancamentoService)NovoItem(setor *models.Departamento, produto *models.Produto, quantidade float64) (*models.ItemLancamento, error){
 	res := s.repository.NovoItem(setor, produto,quantidade)
 	if quantidade <= 0{
 		return nil, errors.New("Quantidade inválida para lançamento")
@@ -36,7 +36,7 @@ func (s *LancamentoService)NovoItem(setor *models.Departamento, produto *models.
 	}
 	return res, nil
 }
-
+*/
 func (s *LancamentoService)NovoSliceTemporario() []*models.ItemLancamento{
 	return s.repository.NovoSliceTemporario()
 }

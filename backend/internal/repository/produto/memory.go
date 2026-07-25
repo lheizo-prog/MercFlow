@@ -1,4 +1,4 @@
-package repository
+package produto
 
 import (
 	"MercFlow/internal/models"
@@ -12,14 +12,15 @@ type MemoryProdutoRepository struct {
 func NovoMemoryProdutoRepository() *MemoryProdutoRepository {
 	return &MemoryProdutoRepository{
 		produtos: []*models.Produto{
-			models.CriarProduto(1, "Arroz", "12345"),
-			models.CriarProduto(2, "Feijão", "12346"),
+			models.NovoProduto(1, "Arroz", "12345"),
+			models.NovoProduto(2, "Feijão", "12346"),
 		},
 	}
 }
 
-func (r *MemoryProdutoRepository) Adicionar(p *models.Produto) {
+func (r *MemoryProdutoRepository) Criar(p *models.Produto) (*models.Produto, error){
 	r.produtos = append(r.produtos, p)
+	return p, nil
 }
 
 func (r *MemoryProdutoRepository) RemoverID(id int) {
