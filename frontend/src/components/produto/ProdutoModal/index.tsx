@@ -1,5 +1,5 @@
-import type { Produto } from "../../types/Produto";
-import ProdutoForm from "../ProdutoForm/ProdutoForm";
+import type { Produto } from "../../../types/Produto";
+import ProdutoForm from "../ProdutoForm";
 
 interface ProdutoModalProps {
   aberto: boolean;

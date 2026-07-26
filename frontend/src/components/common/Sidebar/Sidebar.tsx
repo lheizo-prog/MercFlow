@@ -11,7 +11,7 @@ function Sidebar() {
           <Link to="/produtos">Produtos</Link>
         </div>
         <div>
-          <Link to="/setores">Setores</Link>
+          <Link to="/departamentos">Departamentos</Link>
         </div>
       </div>
     </>

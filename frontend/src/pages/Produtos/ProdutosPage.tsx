@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import produtoService from "../../services/produtoService";
 import type { Produto } from "../../types/Produto";
-import TabelaProdutos from "../../components/TabelaProdutos/TabelaProdutos";
-import ProdutoModal from "../../components/ProdutoModal/ProdutoModal";
+import TabelaProdutos from "../../components/produto/TabelaProdutos";
+import ProdutoModal from "../../components/produto/ProdutoModal";
 
 function ProdutosPage() {
   const [produtos, setProdutos] = useState<Produto[]>([]);

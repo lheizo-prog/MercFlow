@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { SubmitEventHandler } from "react";
-import type { Produto } from "../../types/Produto";
+import type { Produto } from "../../../types/Produto";
 
 interface ProdutoFormProps {
   produto?: Produto;
