@@ -1,1 +1,0 @@
-DROP TABLE produtos_departamento;
