@@ -46,16 +46,13 @@ func (r *PostgresProdutoRepository)RemoverID(id int) error{
 	}
 	return nil
 }
-func (r *PostgresProdutoRepository)BuscarProdutoID(id int) (*models.Produto, error){
-	return nil, nil
-}
-func (r *PostgresProdutoRepository)Atualizar(produto *models.Produto) (*models.Produto, error){
+func (r *PostgresProdutoRepository)Atualizar(p *models.Produto) (*models.Produto, error){
 	response, err := r.db.Exec(
 		context.Background(),
 		"UPDATE produtos SET nome = $1, codigo = $2 WHERE id = $3",
-		produto.Nome,
-		produto.Codigo_Geral,
-		produto.ID,
+		p.Nome,
+		p.Codigo_Geral,
+		p.ID,
 	)
 
 	if err != nil {
@@ -66,7 +63,7 @@ func (r *PostgresProdutoRepository)Atualizar(produto *models.Produto) (*models.P
 		return nil, errors.New("produto não encontrado")
 	}
 
-	return produto, nil
+	return p, nil
 }
 func (r *PostgresProdutoRepository)Listar() ([]*models.Produto, error){
 	rows, err := r.db.Query(context.Background(), "SELECT id, nome, codigo FROM produtos ORDER BY nome;")
@@ -103,7 +100,7 @@ func (r *PostgresProdutoRepository)BuscarID(id int) (*models.Produto, error){
 	)
 	
 	if errors.Is(err, pgx.ErrNoRows){
-		return nil, errors.New("Produto não encontrado")
+		return nil, errors.New("produto não encontrado")
 	}
 	if err != nil{
 		return nil, err
