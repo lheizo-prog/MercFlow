@@ -65,7 +65,7 @@ func (r *PostgresDepartamentoRepository)Listar() ([]*models.Departamento, error)
 	}
 	defer rows.Close()
 
-	var lista []*models.Departamento
+	lista := []*models.Departamento{}
 
 	for rows.Next(){
 		departamento := &models.Departamento{}

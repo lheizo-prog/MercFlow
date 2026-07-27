@@ -75,7 +75,7 @@ func (r *PostgresProdutoRepository)Listar() ([]*models.Produto, error){
 	}
 	defer rows.Close()
 
-	var lista []*models.Produto
+	lista := []*models.Produto{}
 	
 	for rows.Next() {
 		produto := &models.Produto{}

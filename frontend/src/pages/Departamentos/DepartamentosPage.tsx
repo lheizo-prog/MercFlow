@@ -19,7 +19,7 @@ function DepartamentosPage() {
       setLoading(true);
 
       const lista = await departamentoService.buscarTodos();
-
+      console.log(lista);
       setDepartamentos(lista);
     } catch (error) {
       console.error(error);
