@@ -18,15 +18,15 @@ func NovoProdutoService(repo repository.ProdutoRepository) *ProdutoService{
 }
 
 func (s *ProdutoService) Criar(p *models.Produto) (*models.Produto, error){
-	if s.ValidarProduto(p) != nil{
-		return nil, s.ValidarProduto(p)
+	if err:=  s.ValidarProduto(p); err != nil{
+		return nil, err
 	}
 	return s.repo.Criar(p)
 }
 
 func (s *ProdutoService)Atualizar(p *models.Produto) (*models.Produto, error){
-	if s.ValidarProduto(p) != nil{
-		return nil, s.ValidarProduto(p)
+	if err:=  s.ValidarProduto(p); err != nil{
+		return nil, err
 	}
 	return s.repo.Atualizar(p)
 }
@@ -64,14 +64,15 @@ func (s *ProdutoService) BuscarCodigo(codigo string) (*models.Produto, error){
 }
 
 func (s *ProdutoService)ValidarProduto(p *models.Produto) error{
+	if p == nil{
+		return errors.New("produto inválido")
+	}
+	
 	if strings.TrimSpace(p.Nome) == ""{
-		return errors.New("Nome do produto é obrigatório")
+		return errors.New("nome do produto é obrigatório")
 	}
 	if strings.TrimSpace(p.Codigo_Geral) == ""{
-		return errors.New("Código do produto é obrigatório")
-	}
-	if p == nil{
-		return errors.New("Produto inválido")
+		return errors.New("código do produto é obrigatório")
 	}
 	
 	return nil

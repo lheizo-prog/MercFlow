@@ -9,35 +9,37 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type ProdutoHandler struct {
-	service *service.ProdutoService
+type ProdutoDepartamentoHandler struct{
+	service *service.ProdutoDepartamentoService
 }
 
-func NovoProdutoHandler(s *service.ProdutoService) *ProdutoHandler{
-	return &ProdutoHandler{
+func NovoProdutoDepartamentoHandler(s *service.ProdutoDepartamentoService) *ProdutoDepartamentoHandler{
+	return &ProdutoDepartamentoHandler{
 		service: s,
 	}
 }
-func (h *ProdutoHandler) HandleProdutos(router *gin.Engine){
-	produtos := router.Group("/produtos")
 
-	produtos.GET("",h.Listar)
-	produtos.POST("", h.Criar)
-	produtos.GET("/:id", h.BuscarID)
-	produtos.GET("/codigo/:codigo",h.BuscarCodigo)
-	produtos.PUT("/id/:id",h.Atualizar)
-	produtos.DELETE("/id/:id",h.RemoverID)
+func(h *ProdutoDepartamentoHandler) HandleProdutosDepartamento(router *gin.Engine){
+	produtos_departamento := router.Group("/produtos_d")
+
+	produtos_departamento.GET("",h.Listar)
+	produtos_departamento.POST("",h.Criar)
+	produtos_departamento.GET("/:id",h.BuscarID)
+	produtos_departamento.GET("/codigo/:codigo",h.BuscarCodigo)
+	produtos_departamento.PUT("/id/:id",h.Atualizar)
+	produtos_departamento.DELETE("/id/:id",h.RemoverID)
+
 }
 
-func (h *ProdutoHandler) Criar(ctx *gin.Context) {
-	var produto models.Produto
+func(h *ProdutoDepartamentoHandler)Criar(ctx *gin.Context){
+	var produto models.ProdutoDepartamento
 
-	err := ctx.BindJSON(&produto)
-	if err != nil{
+	err := ctx.BindJSON(&produto); if err != nil{
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"erro":err.Error(),
 		})
 		return
+	
 	}
 	produtoCriado, err := h.service.Criar(&produto)
 	if err != nil{
@@ -46,11 +48,11 @@ func (h *ProdutoHandler) Criar(ctx *gin.Context) {
 		})
 		return
 	}
-	ctx.JSON(201, produtoCriado)
 
+	ctx.JSON(201, produtoCriado)
 }
 
-func (h *ProdutoHandler)Atualizar(ctx *gin.Context){
+func (h *ProdutoDepartamentoHandler)Atualizar(ctx *gin.Context){
 	idParam := ctx.Param("id")
 
 	id, err := strconv.Atoi(idParam)
@@ -61,8 +63,8 @@ func (h *ProdutoHandler)Atualizar(ctx *gin.Context){
 		return
 	}
 
-	var produto models.Produto
-	
+	var produto models.ProdutoDepartamento
+
 	if err := ctx.BindJSON(&produto); err != nil{
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"erro":"JSON inválido",
@@ -82,11 +84,10 @@ func (h *ProdutoHandler)Atualizar(ctx *gin.Context){
 	ctx.JSON(200, produtoAtualizado)
 }
 
-func (h *ProdutoHandler)RemoverID(ctx *gin.Context){
+func(h *ProdutoDepartamentoHandler)RemoverID(ctx *gin.Context){
 	idParam := ctx.Param("id")
 
 	id, err := strconv.Atoi(idParam)
-
 	if err != nil{
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"erro":"ID inválido",
@@ -94,9 +95,8 @@ func (h *ProdutoHandler)RemoverID(ctx *gin.Context){
 		return
 	}
 	err = h.service.RemoverID(id)
-
 	if err != nil{
-		ctx.JSON(http.StatusBadRequest, gin.H{
+		ctx.JSON(http.StatusBadGateway, gin.H{
 			"erro":err.Error(),
 		})
 		return
@@ -107,11 +107,10 @@ func (h *ProdutoHandler)RemoverID(ctx *gin.Context){
 	})
 }
 
-func (h *ProdutoHandler) Listar(ctx *gin.Context){
+func(h *ProdutoDepartamentoHandler)Listar(ctx *gin.Context){
 	lista, err := h.service.Listar()
-
 	if err != nil{
-		ctx.JSON(http.StatusInternalServerError, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"erro":err.Error(),
 		})
 		return
@@ -120,15 +119,17 @@ func (h *ProdutoHandler) Listar(ctx *gin.Context){
 	ctx.JSON(200, lista)
 }
 
-func (h *ProdutoHandler)BuscarID(ctx *gin.Context){
+func(h *ProdutoDepartamentoHandler)BuscarID(ctx *gin.Context){
 	str := ctx.Param("id")
+
 	id, err := strconv.Atoi(str)
 	if err != nil{
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"erro":err.Error(),
+			"erro":"ID inválido",
 		})
 		return
 	}
+
 	produto, err := h.service.BuscarID(id)
 	if err != nil{
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -136,12 +137,13 @@ func (h *ProdutoHandler)BuscarID(ctx *gin.Context){
 		})
 		return
 	}
+
 	ctx.JSON(200, produto)
 }
 
-func (h *ProdutoHandler)BuscarCodigo(ctx *gin.Context){
+func(h *ProdutoDepartamentoHandler)BuscarCodigo(ctx *gin.Context){
 	codigo := ctx.Param("codigo")
-
+	
 	produto, err := h.service.BuscarCodigo(codigo)
 	if err != nil{
 		ctx.JSON(http.StatusBadRequest, gin.H{
