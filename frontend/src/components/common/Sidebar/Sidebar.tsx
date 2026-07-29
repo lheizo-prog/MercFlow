@@ -13,6 +13,9 @@ function Sidebar() {
         <div>
           <Link to="/departamentos">Departamentos</Link>
         </div>
+        <div>
+          <Link to="/produtos_departamento">Produtos Departamento</Link>
+        </div>
       </div>
     </>
   );
