@@ -10,7 +10,7 @@ const produtoDService = {
 
   async criar(produto: ProdutoDepartamento): Promise<ProdutoDepartamento> {
     const response = await api.post("/produtos_d", produto);
-
+    console.log("Produto criado:", response.data);
     return response.data;
   },
 

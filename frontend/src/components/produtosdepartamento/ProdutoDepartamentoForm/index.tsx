@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 
-import type { Produto } from "../../../types/Produto";
+import type { ProdutoGenerico } from "../../../types/ProdutoGenerico";
 import type { Departamento } from "../../../types/Departamento";
 import type { ProdutoDepartamento } from "../../../types/ProdutoDepartamento";
 
 interface ProdutoDepartamentoFormProps {
   produto?: ProdutoDepartamento;
 
-  produtosBase: Produto[];
+  produtosGenericos: ProdutoGenerico[];
 
   departamentos: Departamento[];
 
@@ -16,18 +16,18 @@ interface ProdutoDepartamentoFormProps {
 
 function ProdutoDepartamentoForm({
   produto,
-  produtosBase,
+  produtosGenericos,
   departamentos,
   onSalvar,
 }: ProdutoDepartamentoFormProps) {
   const [form, setForm] = useState<ProdutoDepartamento>({
-    produto_base_id: 0,
+    produto_generico_id: 0,
     departamento_id: 0,
 
     nome: "",
     codigo: "",
 
-    unidade: "",
+    unidade_medida: "",
 
     fator_conversao: 1,
   });
@@ -37,13 +37,13 @@ function ProdutoDepartamentoForm({
       setForm(produto);
     } else {
       setForm({
-        produto_base_id: 0,
+        produto_generico_id: 0,
         departamento_id: 0,
 
         nome: "",
         codigo: "",
 
-        unidade: "",
+        unidade_medida: "",
 
         fator_conversao: 1,
       });
@@ -55,23 +55,12 @@ function ProdutoDepartamentoForm({
   ) {
     const { name, value } = e.target;
 
-    if (name === "produto_base_id") {
-      const id = Number(value);
-
-      setForm((anterior) => ({
-        ...anterior,
-
-        produto_base_id: id,
-      }));
-
-      return;
-    }
-
     setForm((anterior) => ({
       ...anterior,
-
       [name]:
-        name === "departamento_id" || name === "fator_conversao"
+        name === "produto_generico_id" ||
+        name === "departamento_id" ||
+        name === "fator_conversao"
           ? Number(value)
           : value,
     }));
@@ -86,18 +75,18 @@ function ProdutoDepartamentoForm({
   return (
     <form onSubmit={handleSubmit}>
       <div className="mb-3">
-        <label className="form-label">Produto Base</label>
+        <label className="form-label">Produto Genérico</label>
 
         <select
           className="form-select"
-          name="produto_base_id"
-          value={form.produto_base_id}
+          name="produto_generico_id"
+          value={form.produto_generico_id}
           onChange={handleChange}
           required
         >
           <option value={0}>Selecione...</option>
 
-          {produtosBase.map((produto) => (
+          {produtosGenericos.map((produto) => (
             <option key={produto.id} value={produto.id}>
               {produto.nome}
             </option>
@@ -154,8 +143,8 @@ function ProdutoDepartamentoForm({
 
         <input
           className="form-control"
-          name="unidade"
-          value={form.unidade}
+          name="unidade_medida"
+          value={form.unidade_medida}
           onChange={handleChange}
           required
         />

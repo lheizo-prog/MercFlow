@@ -89,7 +89,7 @@ func (r *PostgresProdutoDepartamentoRepository)Atualizar(p *models.ProdutoDepart
 func (r *PostgresProdutoDepartamentoRepository)Listar() ([]*models.ProdutoDepartamento, error){
 	rows, err := r.db.Query(
 		context.Background(),
-		"SELECT id, produto_generico_id, departamento_id, nome, codigo, unidade_medida, fator_conversao, ativo FROM produtos_departamento WHERE ativo = TRUE",
+		"SELECT pd.id, pd.produto_generico_id, pg.nome, pd.departamento_id, d.nome, pd.nome, pd.codigo, pd.unidade_medida, pd.fator_conversao, pd.ativo FROM produtos_departamento pd INNER JOIN produtos_genericos pg ON pg.id = pd.produto_generico_id INNER JOIN departamentos d ON d.id = pd.departamento_id WHERE ativo = TRUE",
 	)
 	if err != nil{
 		return nil, err
@@ -103,7 +103,9 @@ func (r *PostgresProdutoDepartamentoRepository)Listar() ([]*models.ProdutoDepart
 		if err:= rows.Scan(
 			&produto.ID,
 			&produto.ProdutoGenericoID,
+			&produto.ProdutoGenericoNome,
 			&produto.DepartamentoID,
+			&produto.DepartamentoNome,
 			&produto.Nome,
 			&produto.Codigo,	
 			&produto.UnidadeMedida,
@@ -126,14 +128,16 @@ func (r *PostgresProdutoDepartamentoRepository)BuscarID(id int) (*models.Produto
 
 	row := r.db.QueryRow(
 		context.Background(),
-		"SELECT id, produto_generico_id, departamento_id, nome, codigo, unidade_medida, fator_conversao, ativo FROM produtos_departamento WHERE ativo = TRUE AND id = $1",
+		"SELECT pd.id, pd.produto_generico_id, pg.nome, pd.departamento_id, d.nome, pd.nome, pd.codigo, pd.unidade_medida, pd.fator_conversao, pd.ativo FROM produtos_departamento pd INNER JOIN produtos_genericos pg ON pg.id = pd.produto_generico_id INNER JOIN departamentos d ON d.id = pd.departamento_id WHERE ativo = TRUE AND pd.id = $1;",
 		id,
 	)
 
 	err := row.Scan(
 		&produto.ID,
 		&produto.ProdutoGenericoID,
+		&produto.ProdutoGenericoNome,
 		&produto.DepartamentoID,
+		&produto.DepartamentoNome,
 		&produto.Nome,
 		&produto.Codigo,
 		&produto.UnidadeMedida,
@@ -155,14 +159,16 @@ func (r *PostgresProdutoDepartamentoRepository)BuscarCodigo(codigo string) (*mod
 
 	row := r.db.QueryRow(
 		context.Background(),
-		"SELECT id, produto_base_id, departamento_id, nome, codigo, unidade_medida, fator_conversao, ativo FROM produtos_departamento WHERE ativo = TRUE AND codigo = $1",
+		"SELECT pd.id, pd.produto_generico_id, pg.nome, pd.departamento_id, d.nome, pd.nome, pd.codigo, pd.unidade_medida, pd.fator_conversao, pd.ativo FROM produtos_departamento pd INNER JOIN produtos_genericos pg ON pg.id = pd.produto_generico_id INNER JOIN departamentos d ON d.id = pd.departamento_id WHERE ativo = TRUE AND pd.codigo = $1;",
 		codigo,
 	)
 
 	err := row.Scan(
 		&produto.ID,
 		&produto.ProdutoGenericoID,
+		&produto.ProdutoGenericoNome,
 		&produto.DepartamentoID,
+		&produto.DepartamentoNome,	
 		&produto.Nome,
 		&produto.Codigo,
 		&produto.UnidadeMedida,

@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 
 import produtoDepartamentoService from "../../services/produtoDepartamento";
-import produtoService from "../../services/produtoService";
+import produtoService from "../../services/produtoGenericoService";
 import departamentoService from "../../services/departamentoService";
 
 import type { ProdutoDepartamento } from "../../types/ProdutoDepartamento";
-import type { Produto } from "../../types/Produto";
+import type { ProdutoGenerico } from "../../types/ProdutoGenerico";
 import type { Departamento } from "../../types/Departamento";
 
 import ProdutoDepartamentoModal from "../../components/produtosdepartamento/ProdutoDepartamentoModal";
@@ -22,7 +22,9 @@ function ProdutoDepartamentoPage() {
     useState<ProdutoDepartamento>();
 
   const [pesquisa, setPesquisa] = useState("");
-  const [produtosBase, setProdutosBase] = useState<Produto[]>([]);
+  const [produtosGenericos, setProdutosGenericos] = useState<ProdutoGenerico[]>(
+    [],
+  );
   const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
 
   async function carregarProdutosDepartamento() {
@@ -30,6 +32,9 @@ function ProdutoDepartamentoPage() {
       setLoading(true);
 
       const lista = await produtoDepartamentoService.buscarTodos();
+
+      console.log("Produtos do Departamento:", lista);
+      console.log(lista[0]);
 
       setProdutosDepartamento(lista);
     } catch (error) {
@@ -42,7 +47,7 @@ function ProdutoDepartamentoPage() {
   async function carregarProdutosBase() {
     try {
       const lista = await produtoService.buscarTodos();
-      setProdutosBase(lista);
+      setProdutosGenericos(lista);
     } catch (error) {
       console.error(error);
     }
@@ -127,7 +132,7 @@ function ProdutoDepartamentoPage() {
   });
 
   const mapaProdutos = new Map(
-    produtosBase.map((produto) => [produto.id, produto.nome]),
+    produtosGenericos.map((produto) => [produto.id, produto.nome]),
   );
 
   const mapaDepartamentos = new Map(
@@ -137,8 +142,8 @@ function ProdutoDepartamentoPage() {
   const produtosExibicao = produtosFiltrados.map((produto) => ({
     ...produto,
 
-    produto_base_nome:
-      mapaProdutos.get(produto.produto_base_id) ?? "Produto não encontrado",
+    produto_generico_nome:
+      mapaProdutos.get(produto.produto_generico_id) ?? "Produto não encontrado",
 
     departamento_nome:
       mapaDepartamentos.get(produto.departamento_id) ??
@@ -171,7 +176,7 @@ function ProdutoDepartamentoPage() {
       <ProdutoDepartamentoModal
         aberto={mostrarModal}
         produto={produtoSelecionado}
-        produtosBase={produtosBase}
+        produtosGenericos={produtosGenericos}
         departamentos={departamentos}
         onFechar={() => {
           setMostrarModal(false);

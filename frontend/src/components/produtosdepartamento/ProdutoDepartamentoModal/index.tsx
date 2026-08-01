@@ -1,4 +1,4 @@
-import type { Produto } from "../../../types/Produto";
+import type { ProdutoGenerico } from "../../../types/ProdutoGenerico";
 import type { Departamento } from "../../../types/Departamento";
 import type { ProdutoDepartamento } from "../../../types/ProdutoDepartamento";
 
@@ -9,7 +9,7 @@ interface ProdutoDepartamentoModalProps {
 
   produto?: ProdutoDepartamento;
 
-  produtosBase: Produto[];
+  produtosGenericos: ProdutoGenerico[];
 
   departamentos: Departamento[];
 
@@ -21,7 +21,7 @@ interface ProdutoDepartamentoModalProps {
 function ProdutoDepartamentoModal({
   aberto,
   produto,
-  produtosBase,
+  produtosGenericos,
   departamentos,
   onFechar,
   onSalvar,
@@ -60,7 +60,7 @@ function ProdutoDepartamentoModal({
             <div className="modal-body">
               <ProdutoDepartamentoForm
                 produto={produto}
-                produtosBase={produtosBase}
+                produtosGenericos={produtosGenericos}
                 departamentos={departamentos}
                 onSalvar={salvarProdutoDepartamento}
               />
