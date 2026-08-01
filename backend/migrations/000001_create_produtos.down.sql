@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS produtos;
+DROP TABLE IF EXISTS produtos_genericos;

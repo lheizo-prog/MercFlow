@@ -3,21 +3,21 @@ package service
 import (
 	"MercFlow/internal/models"
 	"MercFlow/internal/repository/departamento"
-	"MercFlow/internal/repository/produto"
 	produtodepartamento "MercFlow/internal/repository/produto-departamento"
+	produtogenerico "MercFlow/internal/repository/produto-generico"
 	"errors"
 	"strings"
 )
 
 type ProdutoDepartamentoService struct{
 	ProdutoDepartamentoRepo produtodepartamento.ProdutoDepartamentoRepository
-	ProdutoRepo produto.ProdutoRepository
+	ProdutoRepo produtogenerico.ProdutoGenericoRepository
 	DepartamentoRepo departamento.DepartamentoRepository
 }
 
 func NovoProdutoDepartamentoService(
 	produtoDepartamentoRepo produtodepartamento.ProdutoDepartamentoRepository,
-	produtoRepo produto.ProdutoRepository,
+	produtoRepo produtogenerico.ProdutoGenericoRepository,
 	departamentoRepo departamento.DepartamentoRepository,
 
 	) *ProdutoDepartamentoService{
@@ -91,8 +91,8 @@ func(s *ProdutoDepartamentoService) ValidarProdutoD(p *models.ProdutoDepartament
 	if strings.TrimSpace(p.Codigo) == ""{
 		return errors.New("código do produto é obrigatório")
 	}
-	if p.ProdutoBaseID <= 0 || p.DepartamentoID <= 0{
-		return errors.New("ID do produto base e/ou do departamento inválido(s)")
+	if p.ProdutoGenericoID <= 0 || p.DepartamentoID <= 0{
+		return errors.New("ID do produto genérico e/ou do departamento inválido(s)")
 	}
 	if !p.UnidadeMedida.Valido() {
 		return errors.New("unidade de medida inválida")
@@ -102,7 +102,7 @@ func(s *ProdutoDepartamentoService) ValidarProdutoD(p *models.ProdutoDepartament
 	}
 
 	//Verificador dos repositórios do produto 
-	_, err := pS.BuscarID(p.ProdutoBaseID)
+	_, err := pS.BuscarID(p.ProdutoGenericoID)
 	if err != nil{
 		return errors.New("ID do produto base não encontrado")
 	}

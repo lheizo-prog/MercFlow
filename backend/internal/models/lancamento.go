@@ -11,7 +11,7 @@ type Lancamento struct {
 
 type ItemLancamento struct{
 	Setor Departamento
-	Produto Produto
+	Produto ProdutoGenerico
 	CodigoBase string
 	CodigoSetor string
 	Quantidade float64

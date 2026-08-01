@@ -1,6 +1,6 @@
 CREATE TABLE produtos_departamento(
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    produto_base_id INT NOT NULL,
+    produto_generico_id INT NOT NULL,
     departamento_id INT NOT NULL,
     nome VARCHAR(120) NOT NULL,
     codigo VARCHAR(50) NOT NULL,
@@ -9,8 +9,8 @@ CREATE TABLE produtos_departamento(
     ativo BOOLEAN NOT NULL DEFAULT TRUE,
 
     CONSTRAINT fk_produto_departamento_produto
-        FOREIGN KEY (produto_base_id)
-        REFERENCES produtos(id)
+        FOREIGN KEY (produto_generico_id)
+        REFERENCES produtos_genericos(id)
         ON DELETE RESTRICT,
 
     CONSTRAINT fk_produto_departamento_departamento
@@ -22,5 +22,5 @@ CREATE TABLE produtos_departamento(
         UNIQUE (departamento_id, codigo),
 
     CONSTRAINT uk_produto_departamento
-        UNIQUE (produto_base_id, departamento_id)
+        UNIQUE (produto_generico_id, departamento_id)
 );

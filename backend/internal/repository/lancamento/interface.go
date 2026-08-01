@@ -2,7 +2,7 @@ package lancamento
 
 import (
 	"MercFlow/internal/models"
-	repository "MercFlow/internal/repository/produto"
+	repository "MercFlow/internal/repository/produto-generico"
 )
 
 type LancamentoRepository interface{

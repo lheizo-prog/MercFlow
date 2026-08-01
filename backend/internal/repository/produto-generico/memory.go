@@ -1,4 +1,4 @@
-package produto
+package produto_generico
 
 import (
 	"MercFlow/internal/models"
@@ -6,19 +6,19 @@ import (
 )
 
 type MemoryProdutoRepository struct {
-	produtos []*models.Produto
+	produtos []*models.ProdutoGenerico
 }
 
 func NovoMemoryProdutoRepository() *MemoryProdutoRepository {
 	return &MemoryProdutoRepository{
-		produtos: []*models.Produto{
-			models.NovoProduto(1, "Arroz", "12345"),
-			models.NovoProduto(2, "Feijão", "12346"),
+		produtos: []*models.ProdutoGenerico{
+			models.NovoProdutoGenerico(1, "Arroz", "12345"),
+			models.NovoProdutoGenerico(2, "Feijão", "12346"),
 		},
 	}
 }
 
-func (r *MemoryProdutoRepository) Criar(p *models.Produto) (*models.Produto, error){
+func (r *MemoryProdutoRepository) Criar(p *models.ProdutoGenerico) (*models.ProdutoGenerico, error){
 	r.produtos = append(r.produtos, p)
 	return p, nil
 }
@@ -32,7 +32,7 @@ func (r *MemoryProdutoRepository) RemoverID(id int) {
 
 }
 
-func (r *MemoryProdutoRepository) BuscarID(id int) (*models.Produto, error) {
+func (r *MemoryProdutoRepository) BuscarID(id int) (*models.ProdutoGenerico, error) {
 	for _, p := range r.produtos {
 		if p.ID == id {
 			return p, nil
@@ -41,7 +41,7 @@ func (r *MemoryProdutoRepository) BuscarID(id int) (*models.Produto, error) {
 	return nil, errors.New("Produto não encontrado")
 }
 
-func (r *MemoryProdutoRepository) BuscarProdutoCodigo(codigo string) *models.Produto {
+func (r *MemoryProdutoRepository) BuscarProdutoCodigo(codigo string) *models.ProdutoGenerico {
 	for _, p := range r.produtos {
 		if p.Codigo_Geral == codigo {
 			return p
@@ -50,7 +50,7 @@ func (r *MemoryProdutoRepository) BuscarProdutoCodigo(codigo string) *models.Pro
 	return nil
 }
 
-func (r *MemoryProdutoRepository) Atualizar(p *models.Produto) {
+func (r *MemoryProdutoRepository) Atualizar(p *models.ProdutoGenerico) {
 	for i, x := range r.produtos {
 		if x.ID == p.ID {
 			r.produtos[i] = p
@@ -58,6 +58,6 @@ func (r *MemoryProdutoRepository) Atualizar(p *models.Produto) {
 	}
 }
 
-func (r *MemoryProdutoRepository) Listar() []*models.Produto {
+func (r *MemoryProdutoRepository) Listar() []*models.ProdutoGenerico {
 	return r.produtos
 }

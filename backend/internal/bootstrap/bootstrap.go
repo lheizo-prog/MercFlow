@@ -6,8 +6,8 @@ import (
 	"MercFlow/internal/handlers"
 	"MercFlow/internal/middleware"
 	"MercFlow/internal/repository/departamento"
-	"MercFlow/internal/repository/produto"
 	produtodepartamento "MercFlow/internal/repository/produto-departamento"
+	produtogenerico "MercFlow/internal/repository/produto-generico"
 	"MercFlow/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -36,10 +36,10 @@ func New() (*Application, error){
 		return nil, err
 	}
 
-	produtoRepo := produto.NovoPostgresProdutoRepository(db)
+	produtoRepo := produtogenerico.NovoPostgresProdutoGenericoRepository(db)
 	produtoService := service.NovoProdutoService(produtoRepo)
-	produtoHandler := handlers.NovoProdutoHandler(produtoService)
-	produtoHandler.HandleProdutos(router)
+	produtoHandler := handlers.NovoProdutoGenericoHandler(produtoService)
+	produtoHandler.HandleProdutosGenericos(router)
 
 	departamentoRepo := departamento.NovoPostgresDepartamentoRepository(db)
 	departamentoService := service.NovoDepartamentoService(departamentoRepo)

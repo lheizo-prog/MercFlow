@@ -11,10 +11,10 @@ const (
 
 const (
 	Un UnidadeMedida = "UN"
-	Kg UnidadeMedida = "Kg"
-	Gr UnidadeMedida = "Gg"
+	Kg UnidadeMedida = "KG"
+	Gr UnidadeMedida = "GR"
 	L UnidadeMedida = "L"
-	Ml UnidadeMedida = "Ml"
+	Ml UnidadeMedida = "ML"
 )
 
 func (u UnidadeMedida)Valido() bool{

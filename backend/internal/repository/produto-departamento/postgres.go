@@ -20,10 +20,20 @@ func NovoPostgresProdutoDepartamentoRepository(db *pgxpool.Pool) *PostgresProdut
 }
 
 func (r *PostgresProdutoDepartamentoRepository)Criar(p *models.ProdutoDepartamento) (*models.ProdutoDepartamento, error){
-	err := r.db.QueryRow(
+	_, err := r.BuscarInativo(p.DepartamentoID, p.Codigo)
+	if err == nil{
+		r.Reativar(p.ID)
+		produto, err := r.Atualizar(p)
+		if err != nil{
+			return nil, err
+		}
+		return produto, nil
+	}
+
+	err = r.db.QueryRow(
 		context.Background(),
-		"INSERT INTO produtos_departamento (produto_base_id, departamento_id, nome, codigo, unidade_medida, fator_conversao, ativo ) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id",
-		p.ProdutoBaseID,
+		"INSERT INTO produtos_departamento (produto_generico_id, departamento_id, nome, codigo, unidade_medida, fator_conversao, ativo ) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id",
+		p.ProdutoGenericoID,
 		p.DepartamentoID,
 		p.Nome,
 		p.Codigo,
@@ -55,8 +65,8 @@ func (r *PostgresProdutoDepartamentoRepository)RemoverID(id int) error{
 func (r *PostgresProdutoDepartamentoRepository)Atualizar(p *models.ProdutoDepartamento) (*models.ProdutoDepartamento, error){
 	response, err := r.db.Exec(
 		context.Background(),
-		"UPDATE produtos_departamento SET produto_base_id = $1, departamento_id = $2, nome = $3, codigo = $4, unidade_medida = $5, fator_conversao = $6, ativo = $7 WHERE id = $8",
-		p.ProdutoBaseID,
+		"UPDATE produtos_departamento SET produto_generico_id = $1, departamento_id = $2, nome = $3, codigo = $4, unidade_medida = $5, fator_conversao = $6, ativo = $7 WHERE id = $8",
+		p.ProdutoGenericoID,
 		p.DepartamentoID,
 		p.Nome,
 		p.Codigo,
@@ -79,7 +89,7 @@ func (r *PostgresProdutoDepartamentoRepository)Atualizar(p *models.ProdutoDepart
 func (r *PostgresProdutoDepartamentoRepository)Listar() ([]*models.ProdutoDepartamento, error){
 	rows, err := r.db.Query(
 		context.Background(),
-		"SELECT id, produto_base_id, departamento_id, nome, codigo, unidade_medida, fator_conversao, ativo FROM produtos_departamento WHERE ativo = TRUE",
+		"SELECT id, produto_generico_id, departamento_id, nome, codigo, unidade_medida, fator_conversao, ativo FROM produtos_departamento WHERE ativo = TRUE",
 	)
 	if err != nil{
 		return nil, err
@@ -92,7 +102,7 @@ func (r *PostgresProdutoDepartamentoRepository)Listar() ([]*models.ProdutoDepart
 		produto := &models.ProdutoDepartamento{}
 		if err:= rows.Scan(
 			&produto.ID,
-			&produto.ProdutoBaseID,
+			&produto.ProdutoGenericoID,
 			&produto.DepartamentoID,
 			&produto.Nome,
 			&produto.Codigo,	
@@ -116,13 +126,13 @@ func (r *PostgresProdutoDepartamentoRepository)BuscarID(id int) (*models.Produto
 
 	row := r.db.QueryRow(
 		context.Background(),
-		"SELECT id, produto_base_id, departamento_id, nome, codigo, unidade_medida, fator_conversao, ativo FROM produtos_departamento WHERE ativo = TRUE AND id = $1",
+		"SELECT id, produto_generico_id, departamento_id, nome, codigo, unidade_medida, fator_conversao, ativo FROM produtos_departamento WHERE ativo = TRUE AND id = $1",
 		id,
 	)
 
 	err := row.Scan(
 		&produto.ID,
-		&produto.ProdutoBaseID,
+		&produto.ProdutoGenericoID,
 		&produto.DepartamentoID,
 		&produto.Nome,
 		&produto.Codigo,
@@ -151,7 +161,7 @@ func (r *PostgresProdutoDepartamentoRepository)BuscarCodigo(codigo string) (*mod
 
 	err := row.Scan(
 		&produto.ID,
-		&produto.ProdutoBaseID,
+		&produto.ProdutoGenericoID,
 		&produto.DepartamentoID,
 		&produto.Nome,
 		&produto.Codigo,
@@ -168,4 +178,50 @@ func (r *PostgresProdutoDepartamentoRepository)BuscarCodigo(codigo string) (*mod
 	}
 
 	return produto, nil
+}
+
+func (r *PostgresProdutoDepartamentoRepository)BuscarInativo(departamentoID int, codigo string) (*models.ProdutoDepartamento, error){
+	produto := &models.ProdutoDepartamento{}
+	
+	row := r.db.QueryRow(
+		context.Background(),
+		"SELECT id, produto_generico_id, departamento_id, nome, codigo, unidade_medida, fator_conversao, ativo FROM produtos_departamento WHERE ativo = FALSE AND departamento_id = $1 AND codigo = $2",
+		departamentoID,
+		codigo,
+	)
+
+	err := row.Scan(
+		&produto.ID,
+		&produto.ProdutoGenericoID,
+		&produto.DepartamentoID,
+		&produto.Nome,
+		&produto.Codigo,
+		&produto.UnidadeMedida,
+		&produto.FatorConversao,
+		&produto.Ativo,
+	)
+	if errors.Is(err, pgx.ErrNoRows){
+		return nil, errors.New("produto não encontrado")
+	}
+	if err != nil{
+		return nil, err
+	}
+
+	return produto, nil
+}
+
+func (r *PostgresProdutoDepartamentoRepository)Reativar(id int) error{
+	response, err := r.db.Exec(
+		context.Background(),
+		"UPDATE produtos_departamento SET ativo = TRUE WHERE id = $1",
+		id,
+	)
+	if err != nil{
+		return err
+	}
+	if response.RowsAffected() == 0{
+		return errors.New("produto não encontrado")
+	}
+
+	return nil
 }

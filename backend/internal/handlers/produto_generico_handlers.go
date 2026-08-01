@@ -13,13 +13,13 @@ type ProdutoHandler struct {
 	service *service.ProdutoService
 }
 
-func NovoProdutoHandler(s *service.ProdutoService) *ProdutoHandler{
+func NovoProdutoGenericoHandler(s *service.ProdutoService) *ProdutoHandler{
 	return &ProdutoHandler{
 		service: s,
 	}
 }
-func (h *ProdutoHandler) HandleProdutos(router *gin.Engine){
-	produtos := router.Group("/produtos")
+func (h *ProdutoHandler) HandleProdutosGenericos(router *gin.Engine){
+	produtos := router.Group("/produtos_g")
 
 	produtos.GET("",h.Listar)
 	produtos.POST("", h.Criar)
@@ -30,7 +30,7 @@ func (h *ProdutoHandler) HandleProdutos(router *gin.Engine){
 }
 
 func (h *ProdutoHandler) Criar(ctx *gin.Context) {
-	var produto models.Produto
+	var produto models.ProdutoGenerico
 
 	err := ctx.BindJSON(&produto)
 	if err != nil{
@@ -61,7 +61,7 @@ func (h *ProdutoHandler)Atualizar(ctx *gin.Context){
 		return
 	}
 
-	var produto models.Produto
+	var produto models.ProdutoGenerico
 	
 	if err := ctx.BindJSON(&produto); err != nil{
 		ctx.JSON(http.StatusBadRequest, gin.H{

@@ -1,13 +1,13 @@
 package models
 
-type Produto struct {
+type ProdutoGenerico struct {
 	ID           int `json:"id"`
 	Nome         string `json:"nome"`
 	Codigo_Geral string `json:"codigo"`
 }
 
-func NovoProduto(id int, nome, codigo_geral string) *Produto {
-	return &Produto{
+func NovoProdutoGenerico(id int, nome, codigo_geral string) *ProdutoGenerico {
+	return &ProdutoGenerico{
 		ID:           id,
 		Nome:         nome,
 		Codigo_Geral: codigo_geral,
