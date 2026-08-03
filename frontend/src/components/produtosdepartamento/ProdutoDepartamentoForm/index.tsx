@@ -166,7 +166,11 @@ function ProdutoDepartamentoForm({
       </div>
 
       <div className="text-end">
-        <button className="btn btn-primary" type="submit">
+        <button
+          className="btn btn-primary"
+          type="submit"
+          onClick={() => console.log(form)}
+        >
           Salvar
         </button>
       </div>

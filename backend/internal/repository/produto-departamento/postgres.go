@@ -4,6 +4,7 @@ import (
 	"MercFlow/internal/models"
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -20,28 +21,18 @@ func NovoPostgresProdutoDepartamentoRepository(db *pgxpool.Pool) *PostgresProdut
 }
 
 func (r *PostgresProdutoDepartamentoRepository)Criar(p *models.ProdutoDepartamento) (*models.ProdutoDepartamento, error){
-	_, err := r.BuscarInativo(p.DepartamentoID, p.Codigo)
-	if err == nil{
-		r.Reativar(p.ID)
-		produto, err := r.Atualizar(p)
-		if err != nil{
-			return nil, err
-		}
-		return produto, nil
-	}
-
-	err = r.db.QueryRow(
+	err := r.db.QueryRow(
 		context.Background(),
-		"INSERT INTO produtos_departamento (produto_generico_id, departamento_id, nome, codigo, unidade_medida, fator_conversao, ativo ) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id",
+		"INSERT INTO produtos_departamento (produto_generico_id, departamento_id, nome, codigo, unidade_medida, fator_conversao ) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, ativo",
 		p.ProdutoGenericoID,
 		p.DepartamentoID,
 		p.Nome,
 		p.Codigo,
 		p.UnidadeMedida,
 		p.FatorConversao,
-		p.Ativo,
-	).Scan(&p.ID)
+	).Scan(&p.ID, &p.Ativo)
 	if err != nil{
+		fmt.Println("Erro ao criar produto departamento:", err)
 		return nil, err
 	}
 	return p, nil
@@ -186,12 +177,15 @@ func (r *PostgresProdutoDepartamentoRepository)BuscarCodigo(codigo string) (*mod
 	return produto, nil
 }
 
-func (r *PostgresProdutoDepartamentoRepository)BuscarInativo(departamentoID int, codigo string) (*models.ProdutoDepartamento, error){
+func (r *PostgresProdutoDepartamentoRepository)BuscarInativo(produtoGenericoID, departamentoID int, codigo string) (*models.ProdutoDepartamento, error){
 	produto := &models.ProdutoDepartamento{}
 	
+	fmt.Println(departamentoID, produtoGenericoID, codigo)
+
 	row := r.db.QueryRow(
 		context.Background(),
-		"SELECT id, produto_generico_id, departamento_id, nome, codigo, unidade_medida, fator_conversao, ativo FROM produtos_departamento WHERE ativo = FALSE AND departamento_id = $1 AND codigo = $2",
+		"SELECT id, produto_generico_id, departamento_id, nome, codigo, unidade_medida, fator_conversao, ativo FROM produtos_departamento WHERE ativo = FALSE AND produto_generico_id = $1 AND departamento_id = $2 AND codigo = $3",
+		produtoGenericoID,
 		departamentoID,
 		codigo,
 	)
@@ -207,12 +201,13 @@ func (r *PostgresProdutoDepartamentoRepository)BuscarInativo(departamentoID int,
 		&produto.Ativo,
 	)
 	if errors.Is(err, pgx.ErrNoRows){
-		return nil, errors.New("produto não encontrado")
+		return nil, nil
 	}
 	if err != nil{
 		return nil, err
 	}
 
+	fmt.Println("Produto encontrado", produto)
 	return produto, nil
 }
 
