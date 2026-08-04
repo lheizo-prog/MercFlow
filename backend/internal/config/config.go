@@ -2,7 +2,6 @@ package config
 
 import (
 	"errors"
-	"fmt"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -23,8 +22,6 @@ func Load() (*Config, error) {
 	}
 
 	databaseURL := os.Getenv("DATABASE_URL")
-
-	fmt.Printf("DATABASE_URL = %q\n", databaseURL)
 
 	if databaseURL == "" {
 		return nil, errors.New("Sem URL do banco de dados")

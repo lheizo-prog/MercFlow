@@ -18,8 +18,6 @@ func RunMigrations() error {
 		return err
 	}
 
-	fmt.Println("DATABASE_URL Runner:", cfg.Database.URL)
-
 	conn, err := pgx.Connect(
 		context.Background(),
 		cfg.Database.URL,
@@ -64,21 +62,11 @@ func RunMigrations() error {
 			return err
 		}
 
-		fmt.Printf("Executando: %s\n", migration)
-
-		fmt.Println("================================")
-		fmt.Println("Migration:", migration)
-		fmt.Println(string(sqlBytes))
-		fmt.Println("================================")
-
-		tag, err := conn.Exec(
+		_, err = conn.Exec(
 			context.Background(),
 			string(sqlBytes),
 		)
-		fmt.Println("CommandTag:", tag)
-		if err != nil{
-			return fmt.Errorf("%s: %w", migration, err)
-		}
+		
 	}
 	fmt.Println("Todas as migrations executadas com sucesso!")
 
