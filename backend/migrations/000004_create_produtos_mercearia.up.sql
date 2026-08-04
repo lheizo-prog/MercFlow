@@ -1,6 +1,6 @@
 CREATE TABLE produtos_mercearia (
     id int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    produto_departamento_id int NOT NULL,
+    produto_generico_id int NOT NULL,
     sku VARCHAR(30) NOT NULL,
     marca VARCHAR(100) NOT NULL,
     descricao VARCHAR(150) NOT NULL,
@@ -10,8 +10,8 @@ CREATE TABLE produtos_mercearia (
     ativo BOOLEAN NOT NULL DEFAULT TRUE,
 
     CONSTRAINT fk_produto_mercearia_departamento
-        FOREIGN KEY (produto_departamento_id)
-        REFERENCES produtos_departamento(id)
+        FOREIGN KEY (produto_generico_id)
+        REFERENCES produtos_genericos(id)
         ON DELETE RESTRICT,
 
     CONSTRAINT uk_produto_mercearia_sku

@@ -17,7 +17,7 @@ type DatabaseConfig struct {
 }
 
 func Load() (*Config, error) {
-	err := godotenv.Load("../../../.env")
+	err := godotenv.Load()
 	if err != nil {
 		return nil, err
 	}

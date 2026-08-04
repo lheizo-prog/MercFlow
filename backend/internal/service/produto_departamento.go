@@ -59,6 +59,7 @@ func(s *ProdutoDepartamentoService)RemoverID(id int) error{
 	if id <= 0{
 		return errors.New("ID inválido")
 	}
+
 	return s.ProdutoDepartamentoRepo.RemoverID(id)
 }
 
@@ -67,6 +68,7 @@ func (s *ProdutoDepartamentoService)Listar() ([]*models.ProdutoDepartamento, err
 	if err != nil{
 		return nil, err
 	}
+
 	return produtos, nil 
 }
 
@@ -75,6 +77,7 @@ func (s *ProdutoDepartamentoService)BuscarID(id int) (*models.ProdutoDepartament
 	if err != nil{
 		return nil, err
 	}
+	
 	return produto, nil
 }
 
@@ -108,15 +111,13 @@ func(s *ProdutoDepartamentoService) ValidarProdutoD(p *models.ProdutoDepartament
 	if !p.UnidadeMedida.Valido() {
 		return errors.New("unidade de medida inválida")
 	}
-	if p.FatorConversao <= 0{
-		return errors.New("fator de conversão inválido")
-	}
 
-	//Verificador dos repositórios do produto 
+	//Verificador dos repositórios do produto genérico
 	_, err := pS.BuscarID(p.ProdutoGenericoID)
 	if err != nil{
 		return errors.New("ID do produto genérico não encontrado")
 	}
+
 	//Verficador dos repositórios do departamento 
 	_, err = dS.BuscarID(p.DepartamentoID)
 	if err != nil{

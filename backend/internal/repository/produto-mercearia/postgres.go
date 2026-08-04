@@ -24,8 +24,8 @@ func NovoProdutoMerceariaPostgresRepository(db *pgxpool.Pool) *ProdutoMerceariaP
 func (r *ProdutoMerceariaPostgresRepository) Criar(p *models.ProdutoMercearia) (*models.ProdutoMercearia, error) {
 	err := r.db.QueryRow(
 		context.Background(),
-		"INSERT INTO produtos_mercearia (produto_departamento_id, sku, marca, descricao, codigo_barras, quantidade_embalagem, unidade_medida) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, ativo",
-		p.ProdutoDepartamentoID,
+		"INSERT INTO produtos_mercearia (produto_generico_id, sku, marca, descricao, codigo_barras, quantidade_embalagem, unidade_medida) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, ativo",
+		p.ProdutoGenericoID,
 		p.SKU,
 		p.Marca,
 		p.Descricao,
@@ -43,8 +43,8 @@ func (r *ProdutoMerceariaPostgresRepository) Criar(p *models.ProdutoMercearia) (
 func (r *ProdutoMerceariaPostgresRepository) Atualizar(p *models.ProdutoMercearia) (*models.ProdutoMercearia, error) {
 	response, err := r.db.Exec(
 		context.Background(),
-		"UPDATE produtos_mercearia SET produto_departamento_id = $1, sku = $2, marca = $3, descricao = $4, codigo_barras = $5, quantidade_embalagem = $6, unidade_medida = $7, ativo = $8 WHERE id = $9",
-		p.ProdutoDepartamentoID,
+		"UPDATE produtos_mercearia produto_generico_id = $1, sku = $2, marca = $3, descricao = $4, codigo_barras = $5, quantidade_embalagem = $6, unidade_medida = $7, ativo = $8 WHERE id = $9",
+		p.ProdutoGenericoID,
 		p.SKU,
 		p.Marca,
 		p.Descricao,
@@ -67,7 +67,7 @@ func (r *ProdutoMerceariaPostgresRepository) Atualizar(p *models.ProdutoMerceari
 func (r *ProdutoMerceariaPostgresRepository) Listar() ([]*models.ProdutoMercearia, error) {
 	rows, err := r.db.Query(
 		context.Background(),
-		"SELECT pm.id, pm.produto_departamento_id, pd.nome, pm.sku, pm.marca, pm.descricao, pm.codigo_barras, pm.quantidade_embalagem, pm.unidade_medida, pm.ativo FROM produtos_mercearia pm JOIN produtos_departamento pd ON pm.produto_departamento_id = pd.id",
+		"SELECT pm.id, pm.produto_generico_id, pg.nome, pm.sku, pm.marca, pm.descricao, pm.codigo_barras, pm.quantidade_embalagem, pm.unidade_medida, pm.ativo FROM produtos_mercearia pm JOIN produtos_genericos pg ON pm.produto_generico_id = pg.id",
 	)
 	if err != nil {
 		return nil, err
@@ -80,8 +80,8 @@ func (r *ProdutoMerceariaPostgresRepository) Listar() ([]*models.ProdutoMerceari
 		produto := &models.ProdutoMercearia{}
 		err := rows.Scan(
 			&produto.ID,
-			&produto.ProdutoDepartamentoID,
-			&produto.ProdutoDepartamentoNome,
+			&produto.ProdutoGenericoID,
+			&produto.ProdutoGenericoNome,
 			&produto.SKU,
 			&produto.Marca,
 			&produto.Descricao,
@@ -123,14 +123,14 @@ func (r *ProdutoMerceariaPostgresRepository) BuscarID(id int) (*models.ProdutoMe
 
 	row := r.db.QueryRow(
 		context.Background(),
-		"SELECT pm.id, pm.produto_departamento_id, pd.nome, pm.sku, pm.marca, pm.descricao, pm.codigo_barras, pm.quantidade_embalagem, pm.unidade_medida, pm.ativo FROM produtos_mercearia pm JOIN produtos_departamento pd ON pm.produto_departamento_id = pd.id WHERE pm.id = $1;",
+		"SELECT pm.id, pm.produto_generico_id, pg.nome, pm.sku, pm.marca, pm.descricao, pm.codigo_barras, pm.quantidade_embalagem, pm.unidade_medida, pm.ativo FROM produtos_mercearia pm JOIN produtos_genericos pg ON pm.produto_generico_id = pg.id WHERE pm.id = $1;",
 		id,
 	)
 
 	err := row.Scan(
 		&produto.ID,
-		&produto.ProdutoDepartamentoID,
-		&produto.ProdutoDepartamentoNome,
+		&produto.ProdutoGenericoID,
+		&produto.ProdutoGenericoNome,
 		&produto.SKU,
 		&produto.Marca,
 		&produto.Descricao,
@@ -154,14 +154,14 @@ func (r *ProdutoMerceariaPostgresRepository) BuscarSKU(sku string) (*models.Prod
 
 	row := r.db.QueryRow(
 		context.Background(),
-		"SELECT pm.id, pm.produto_departamento_id, pd.nome, pm.sku, pm.marca, pm.descricao, pm.codigo_barras, pm.quantidade_embalagem, pm.unidade_medida, pm.ativo FROM produtos_mercearia pm JOIN produtos_departamento pd ON pm.produto_departamento_id = pd.id WHERE pm.sku = $1;",
+		"SELECT pm.id, pm.produto_generico_id, pg.nome, pm.sku, pm.marca, pm.descricao, pm.codigo_barras, pm.quantidade_embalagem, pm.unidade_medida, pm.ativo FROM produtos_mercearia pm JOIN produtos_genericos pg ON pm.produto_generico_id = pg.id WHERE pm.sku = $1;",
 		sku,
 	)
 
 	err := row.Scan(
 		&produto.ID,
-		&produto.ProdutoDepartamentoID,
-		&produto.ProdutoDepartamentoNome,
+		&produto.ProdutoGenericoID,
+		&produto.ProdutoGenericoNome,
 		&produto.SKU,
 		&produto.Marca,
 		&produto.Descricao,
@@ -185,14 +185,14 @@ func (r *ProdutoMerceariaPostgresRepository) BuscarCodigoBarras(codigoBarras str
 
 	row := r.db.QueryRow(
 		context.Background(),
-		"SELECT pm.id, pm.produto_departamento_id, pd.nome, pm.sku, pm.marca, pm.descricao, pm.codigo_barras, pm.quantidade_embalagem, pm.unidade_medida, pm.ativo FROM produtos_mercearia pm JOIN produtos_departamento pd ON pm.produto_departamento_id = pd.id WHERE pm.codigo_barras = $1;",
+		"SELECT pm.id, pm.produto_generico_id, pg.nome, pm.sku, pm.marca, pm.descricao, pm.codigo_barras, pm.quantidade_embalagem, pm.unidade_medida, pm.ativo FROM produtos_mercearia pm JOIN produtos_genericos pg ON pm.produto_generico_id = pg.id WHERE pm.codigo_barras = $1;",
 		codigoBarras,
 	)
 
 	err := row.Scan(
 		&produto.ID,
-		&produto.ProdutoDepartamentoID,
-		&produto.ProdutoDepartamentoNome,
+		&produto.ProdutoGenericoID,
+		&produto.ProdutoGenericoNome,
 		&produto.SKU,
 		&produto.Marca,
 		&produto.Descricao,
@@ -216,7 +216,7 @@ func (r *ProdutoMerceariaPostgresRepository) Buscar(texto string) ([]*models.Pro
 
 	rows, err := r.db.Query(
 		context.Background(),
-		"SELECT pm.id, pm.produto_departamento_id, pd.nome, pm.sku, pm.marca, pm.descricao, pm.codigo_barras, pm.quantidade_embalagem, pm.unidade_medida, pm.ativo FROM produtos_mercearia pm JOIN produtos_departamento pd ON pm.produto_departamento_id = pd.id WHERE pm.ativo = TRUE AND (LOWER(pm.sku) LIKE '%' || $1 || '%' OR LOWER(pm.marca) LIKE '%' || $1 || '%' OR LOWER(pm.descricao) LIKE '%' || $1 || '%' OR LOWER(pm.codigo_barras) LIKE '%' || $1 || '%') ORDER BY CASE WHEN LOWER(pm.sku) = $1 THEN 1 WHEN LOWER(pm.codigo_barras) = $1 THEN 2 ELSE 3 END, pm.marca;",
+		"SELECT pm.id, pm.produto_generico_id,pg.nome, pm.sku, pm.marca, pm.descricao, pm.codigo_barras, pm.quantidade_embalagem, pm.unidade_medida, pm.ativo FROM produtos_mercearia pm JOIN produtos_genericos pg ON pm.produto_generico_id = pg.id WHERE pm.ativo = TRUE AND (LOWER(pm.sku) LIKE '%' || $1 || '%' OR LOWER(pm.marca) LIKE '%' || $1 || '%' OR LOWER(pm.descricao) LIKE '%' || $1 || '%' OR LOWER(pm.codigo_barras) LIKE '%' || $1 || '%') ORDER BY CASE WHEN LOWER(pm.sku) = $1 THEN 1 WHEN LOWER(pm.codigo_barras) = $1 THEN 2 ELSE 3 END, pm.marca;",
 		texto,
 	)
 	if err != nil{
@@ -230,8 +230,8 @@ func (r *ProdutoMerceariaPostgresRepository) Buscar(texto string) ([]*models.Pro
 		produto := &models.ProdutoMercearia{}
 		if err := rows.Scan(
 			&produto.ID,
-			&produto.ProdutoDepartamentoID,
-			&produto.ProdutoDepartamentoNome,
+			&produto.ProdutoGenericoID,
+			&produto.ProdutoGenericoNome,
 			&produto.SKU,
 			&produto.Marca,
 			&produto.Descricao,
@@ -258,14 +258,14 @@ func (r *ProdutoMerceariaPostgresRepository) BuscarInativo(sku string) (*models.
 
 	row := r.db.QueryRow(
 		context.Background(),
-		"SELECT pm.id, pm.produto_departamento_id, pd.nome, pm.sku, pm.marca, pm.descricao, pm.codigo_barras, pm.quantidade_embalagem, pm.unidade_medida, pm.ativo FROM produtos_mercearia pm JOIN produtos_departamento pd ON pm.produto_departamento_id = pd.id WHERE pm.sku = $1 AND pm.ativo = FALSE;",
+		"SELECT pm.id ,pm.produto_generico_id,pg.nome, pm.sku, pm.marca, pm.descricao, pm.codigo_barras, pm.quantidade_embalagem, pm.unidade_medida, pm.ativo FROM produtos_mercearia pm JOIN s pg ON pm.produto_generico_id = pg.id WHERE pm.sku = $1 AND pm.ativo = FALSE;",
 		sku,
 	)
 
 	err := row.Scan(
 		&produto.ID,
-		&produto.ProdutoDepartamentoID,
-		&produto.ProdutoDepartamentoNome,
+		&produto.ProdutoGenericoID,
+		&produto.ProdutoGenericoNome,
 		&produto.SKU,
 		&produto.Marca,
 		&produto.Descricao,

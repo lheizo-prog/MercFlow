@@ -9,28 +9,31 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type ProdutoHandler struct {
-	service *service.ProdutoService
+type ProdutoMerceariaHandler struct {
+	service *service.ProdutoMerceariaService
 }
 
-func NovoProdutoGenericoHandler(s *service.ProdutoService) *ProdutoHandler{
-	return &ProdutoHandler{
+func NovoProdutoMerceariaHandler(s *service.ProdutoMerceariaService) *ProdutoMerceariaHandler{
+	return &ProdutoMerceariaHandler{
 		service: s,
 	}
 }
-func(h *ProdutoHandler)HandleProdutosGenericos(router *gin.Engine){
-	produtos := router.Group("/produtos_g")
 
-	produtos.GET("",h.Listar)
+func (h *ProdutoMerceariaHandler)HandleProdutosMercearia(router *gin.Engine){
+	produtos := router.Group("/produtos_m")
+
+	produtos.GET("", h.Listar)
 	produtos.POST("", h.Criar)
-	produtos.GET("/:id", h.BuscarID)
-	produtos.GET("/codigo/:codigo",h.BuscarCodigo)
-	produtos.PUT("/id/:id",h.Atualizar)
-	produtos.DELETE("/id/:id",h.RemoverID)
+	produtos.PUT(":id", h.Atualizar)
+	produtos.DELETE("/id/:id", h.RemoverID)
+	produtos.GET(":id", h.BuscarID)
+	produtos.GET("/sku/:sku", h.BuscarSKU)
+	produtos.GET("/codigo/:codigo", h.BuscarCodigoBarras)
+	produtos.GET("/buscar/:texto", h.Buscar)
 }
 
-func(h *ProdutoHandler)Criar(ctx *gin.Context) {
-	var produto models.ProdutoGenerico
+func(h *ProdutoMerceariaHandler)Criar(ctx *gin.Context){
+	var produto models.ProdutoMercearia
 
 	err := ctx.BindJSON(&produto)
 	if err != nil{
@@ -51,7 +54,7 @@ func(h *ProdutoHandler)Criar(ctx *gin.Context) {
 	ctx.JSON(201, produtoCriado)
 }
 
-func(h *ProdutoHandler)Atualizar(ctx *gin.Context){
+func(h *ProdutoMerceariaHandler)Atualizar(ctx *gin.Context){
 	idParam := ctx.Param("id")
 
 	id, err := strconv.Atoi(idParam)
@@ -62,8 +65,8 @@ func(h *ProdutoHandler)Atualizar(ctx *gin.Context){
 		return
 	}
 
-	var produto models.ProdutoGenerico
-	
+	var produto models.ProdutoMercearia
+
 	if err := ctx.BindJSON(&produto); err != nil{
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"erro":"JSON inválido",
@@ -84,11 +87,10 @@ func(h *ProdutoHandler)Atualizar(ctx *gin.Context){
 	ctx.JSON(200, produtoAtualizado)
 }
 
-func(h *ProdutoHandler)RemoverID(ctx *gin.Context){
+func(h *ProdutoMerceariaHandler)RemoverID(ctx *gin.Context){
 	idParam := ctx.Param("id")
 
 	id, err := strconv.Atoi(idParam)
-
 	if err != nil{
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"erro":"ID inválido",
@@ -100,7 +102,7 @@ func(h *ProdutoHandler)RemoverID(ctx *gin.Context){
 
 	if err != nil{
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"erro":err.Error(),
+			"erro": err.Error(),
 		})
 		return
 	}
@@ -110,11 +112,10 @@ func(h *ProdutoHandler)RemoverID(ctx *gin.Context){
 	})
 }
 
-func(h *ProdutoHandler)Listar(ctx *gin.Context){
+func(h *ProdutoMerceariaHandler)Listar(ctx *gin.Context){
 	lista, err := h.service.Listar()
-
 	if err != nil{
-		ctx.JSON(http.StatusInternalServerError, gin.H{
+		ctx.JSON(http.StatusBadRequest, gin.H{
 			"erro":err.Error(),
 		})
 		return
@@ -123,13 +124,13 @@ func(h *ProdutoHandler)Listar(ctx *gin.Context){
 	ctx.JSON(200, lista)
 }
 
-func(h *ProdutoHandler)BuscarID(ctx *gin.Context){
+func(h *ProdutoMerceariaHandler)BuscarID(ctx *gin.Context){
 	idParam := ctx.Param("id")
 
 	id, err := strconv.Atoi(idParam)
 	if err != nil{
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"erro":err.Error(),
+			"erro":"ID inválido",
 		})
 		return
 	}
@@ -141,14 +142,14 @@ func(h *ProdutoHandler)BuscarID(ctx *gin.Context){
 		})
 		return
 	}
-	
+
 	ctx.JSON(200, produto)
 }
 
-func(h *ProdutoHandler)BuscarCodigo(ctx *gin.Context){
-	codigo := ctx.Param("codigo")
+func(h *ProdutoMerceariaHandler)BuscarSKU(ctx *gin.Context){
+	sku := ctx.Param("sku")
 
-	produto, err := h.service.BuscarCodigo(codigo)
+	produto, err := h.service.ProdutoMerceariaRepo.BuscarSKU(sku)
 	if err != nil{
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"erro":err.Error(),
@@ -157,4 +158,32 @@ func(h *ProdutoHandler)BuscarCodigo(ctx *gin.Context){
 	}
 
 	ctx.JSON(200, produto)
+}
+
+func(h *ProdutoMerceariaHandler)BuscarCodigoBarras(ctx *gin.Context){
+	codigo_barras := ctx.Param("codigo")
+
+	produto, err := h.service.ProdutoMerceariaRepo.BuscarCodigoBarras(codigo_barras)
+	if err != nil{
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro":err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(200, produto)
+}
+
+func(h *ProdutoMerceariaHandler)Buscar(ctx *gin.Context){
+	texto := ctx.Param("texto")
+
+	produtos, err := h.service.ProdutoMerceariaRepo.Buscar(texto)
+	if err != nil{
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro": err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(200, produtos)
 }
