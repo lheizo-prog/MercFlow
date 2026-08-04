@@ -201,13 +201,13 @@ func (r *PostgresProdutoDepartamentoRepository)BuscarInativo(produtoGenericoID, 
 		&produto.Ativo,
 	)
 	if errors.Is(err, pgx.ErrNoRows){
-		return nil, nil
+		return nil, errors.New("produto não encontrado")
 	}
 	if err != nil{
 		return nil, err
 	}
 
-	fmt.Println("Produto encontrado", produto)
+	fmt.Println("produto encontrado", produto)
 	return produto, nil
 }
 
