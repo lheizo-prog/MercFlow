@@ -12,5 +12,4 @@ type ProdutoMerceariaRepository interface {
 	BuscarCodigoBarras(codigoBarras string) (*models.ProdutoMercearia, error)
 	Buscar(texto string) ([]*models.ProdutoMercearia, error)
 	BuscarInativo(sku string) (*models.ProdutoMercearia, error)
-	Reativar(id int) error
 }
