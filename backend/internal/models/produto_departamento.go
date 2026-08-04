@@ -9,7 +9,6 @@ type ProdutoDepartamento struct {
 	Nome                string        `json:"nome"`
 	Codigo              string        `json:"codigo"`
 	UnidadeMedida       UnidadeMedida `json:"unidade_medida"`
-	FatorConversao      int           `json:"fator_conversao"`
 	Ativo               bool          `json:"ativo"`
 }
 
@@ -23,7 +22,6 @@ func NovoProdutoDepartamento(id, departamentoID, produtoGenericoID, fatorConvers
 		Nome:                nome,
 		Codigo:              codigo,
 		UnidadeMedida:       unidade,
-		FatorConversao:      fatorConversao,
 		Ativo:               ativo,
 	}
 }

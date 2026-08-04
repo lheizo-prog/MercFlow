@@ -5,7 +5,6 @@ CREATE TABLE produtos_departamento(
     nome VARCHAR(120) NOT NULL,
     codigo VARCHAR(50) NOT NULL,
     unidade_medida VARCHAR(20) NOT NULL,
-    fator_conversao NUMERIC(10,4) NOT NULL DEFAULT 1,
     ativo BOOLEAN NOT NULL DEFAULT TRUE,
 
     CONSTRAINT fk_produto_departamento_produto

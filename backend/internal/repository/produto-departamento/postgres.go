@@ -23,13 +23,12 @@ func NovoPostgresProdutoDepartamentoRepository(db *pgxpool.Pool) *PostgresProdut
 func (r *PostgresProdutoDepartamentoRepository)Criar(p *models.ProdutoDepartamento) (*models.ProdutoDepartamento, error){
 	err := r.db.QueryRow(
 		context.Background(),
-		"INSERT INTO produtos_departamento (produto_generico_id, departamento_id, nome, codigo, unidade_medida, fator_conversao ) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, ativo",
+		"INSERT INTO produtos_departamento (produto_generico_id, departamento_id, nome, codigo, unidade_medida) VALUES ($1, $2, $3, $4, $5) RETURNING id, ativo",
 		p.ProdutoGenericoID,
 		p.DepartamentoID,
 		p.Nome,
 		p.Codigo,
 		p.UnidadeMedida,
-		p.FatorConversao,
 	).Scan(&p.ID, &p.Ativo)
 	if err != nil{
 		fmt.Println("Erro ao criar produto departamento:", err)
@@ -56,13 +55,12 @@ func (r *PostgresProdutoDepartamentoRepository)RemoverID(id int) error{
 func (r *PostgresProdutoDepartamentoRepository)Atualizar(p *models.ProdutoDepartamento) (*models.ProdutoDepartamento, error){
 	response, err := r.db.Exec(
 		context.Background(),
-		"UPDATE produtos_departamento SET produto_generico_id = $1, departamento_id = $2, nome = $3, codigo = $4, unidade_medida = $5, fator_conversao = $6, ativo = $7 WHERE id = $8",
+		"UPDATE produtos_departamento SET produto_generico_id = $1, departamento_id = $2, nome = $3, codigo = $4, unidade_medida = $5, ativo = $6 WHERE id = $7",
 		p.ProdutoGenericoID,
 		p.DepartamentoID,
 		p.Nome,
 		p.Codigo,
 		p.UnidadeMedida,
-		p.FatorConversao,
 		p.Ativo,
 		p.ID,
 	)
@@ -80,7 +78,7 @@ func (r *PostgresProdutoDepartamentoRepository)Atualizar(p *models.ProdutoDepart
 func (r *PostgresProdutoDepartamentoRepository)Listar() ([]*models.ProdutoDepartamento, error){
 	rows, err := r.db.Query(
 		context.Background(),
-		"SELECT pd.id, pd.produto_generico_id, pg.nome, pd.departamento_id, d.nome, pd.nome, pd.codigo, pd.unidade_medida, pd.fator_conversao, pd.ativo FROM produtos_departamento pd INNER JOIN produtos_genericos pg ON pg.id = pd.produto_generico_id INNER JOIN departamentos d ON d.id = pd.departamento_id WHERE ativo = TRUE",
+		"SELECT pd.id, pd.produto_generico_id, pg.nome, pd.departamento_id, d.nome, pd.nome, pd.codigo, pd.unidade_medida, pd.ativo FROM produtos_departamento pd INNER JOIN produtos_genericos pg ON pg.id = pd.produto_generico_id INNER JOIN departamentos d ON d.id = pd.departamento_id WHERE ativo = TRUE",
 	)
 	if err != nil{
 		return nil, err
@@ -100,7 +98,6 @@ func (r *PostgresProdutoDepartamentoRepository)Listar() ([]*models.ProdutoDepart
 			&produto.Nome,
 			&produto.Codigo,	
 			&produto.UnidadeMedida,
-			&produto.FatorConversao,
 			&produto.Ativo,
 		); err != nil{
 			return nil, err
@@ -119,7 +116,7 @@ func (r *PostgresProdutoDepartamentoRepository)BuscarID(id int) (*models.Produto
 
 	row := r.db.QueryRow(
 		context.Background(),
-		"SELECT pd.id, pd.produto_generico_id, pg.nome, pd.departamento_id, d.nome, pd.nome, pd.codigo, pd.unidade_medida, pd.fator_conversao, pd.ativo FROM produtos_departamento pd INNER JOIN produtos_genericos pg ON pg.id = pd.produto_generico_id INNER JOIN departamentos d ON d.id = pd.departamento_id WHERE ativo = TRUE AND pd.id = $1;",
+		"SELECT pd.id, pd.produto_generico_id, pg.nome, pd.departamento_id, d.nome, pd.nome, pd.codigo, pd.unidade_medida, pd.ativo FROM produtos_departamento pd INNER JOIN produtos_genericos pg ON pg.id = pd.produto_generico_id INNER JOIN departamentos d ON d.id = pd.departamento_id WHERE ativo = TRUE AND pd.id = $1;",
 		id,
 	)
 
@@ -132,7 +129,6 @@ func (r *PostgresProdutoDepartamentoRepository)BuscarID(id int) (*models.Produto
 		&produto.Nome,
 		&produto.Codigo,
 		&produto.UnidadeMedida,
-		&produto.FatorConversao,
 		&produto.Ativo,
 	)
 	if errors.Is(err, pgx.ErrNoRows){
@@ -150,7 +146,7 @@ func (r *PostgresProdutoDepartamentoRepository)BuscarCodigo(codigo string) (*mod
 
 	row := r.db.QueryRow(
 		context.Background(),
-		"SELECT pd.id, pd.produto_generico_id, pg.nome, pd.departamento_id, d.nome, pd.nome, pd.codigo, pd.unidade_medida, pd.fator_conversao, pd.ativo FROM produtos_departamento pd INNER JOIN produtos_genericos pg ON pg.id = pd.produto_generico_id INNER JOIN departamentos d ON d.id = pd.departamento_id WHERE ativo = TRUE AND pd.codigo = $1;",
+		"SELECT pd.id, pd.produto_generico_id, pg.nome, pd.departamento_id, d.nome, pd.nome, pd.codigo, pd.unidade_medida, pd.ativo FROM produtos_departamento pd INNER JOIN produtos_genericos pg ON pg.id = pd.produto_generico_id INNER JOIN departamentos d ON d.id = pd.departamento_id WHERE ativo = TRUE AND pd.codigo = $1;",
 		codigo,
 	)
 
@@ -163,7 +159,6 @@ func (r *PostgresProdutoDepartamentoRepository)BuscarCodigo(codigo string) (*mod
 		&produto.Nome,
 		&produto.Codigo,
 		&produto.UnidadeMedida,
-		&produto.FatorConversao,
 		&produto.Ativo,
 	)
 	if errors.Is(err, pgx.ErrNoRows){
@@ -184,7 +179,7 @@ func (r *PostgresProdutoDepartamentoRepository)BuscarInativo(produtoGenericoID, 
 
 	row := r.db.QueryRow(
 		context.Background(),
-		"SELECT id, produto_generico_id, departamento_id, nome, codigo, unidade_medida, fator_conversao, ativo FROM produtos_departamento WHERE ativo = FALSE AND produto_generico_id = $1 AND departamento_id = $2 AND codigo = $3",
+		"SELECT id, produto_generico_id, departamento_id, nome, codigo, unidade_medida, ativo FROM produtos_departamento WHERE ativo = FALSE AND produto_generico_id = $1 AND departamento_id = $2 AND codigo = $3",
 		produtoGenericoID,
 		departamentoID,
 		codigo,
@@ -197,7 +192,6 @@ func (r *PostgresProdutoDepartamentoRepository)BuscarInativo(produtoGenericoID, 
 		&produto.Nome,
 		&produto.Codigo,
 		&produto.UnidadeMedida,
-		&produto.FatorConversao,
 		&produto.Ativo,
 	)
 	if errors.Is(err, pgx.ErrNoRows){
