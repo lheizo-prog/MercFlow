@@ -16,6 +16,9 @@ function Sidebar() {
         <div>
           <Link to="/produtos_departamento">Produtos Departamento</Link>
         </div>
+        <div>
+          <Link to={"/produtos_mercearia"}>Produtos Mercearia</Link>
+        </div>
       </div>
     </>
   );

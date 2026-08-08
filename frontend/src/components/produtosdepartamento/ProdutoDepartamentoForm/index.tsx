@@ -28,8 +28,6 @@ function ProdutoDepartamentoForm({
     codigo: "",
 
     unidade_medida: "",
-
-    fator_conversao: 1,
   });
 
   useEffect(() => {
@@ -44,8 +42,6 @@ function ProdutoDepartamentoForm({
         codigo: "",
 
         unidade_medida: "",
-
-        fator_conversao: 1,
       });
     }
   }, [produto]);
@@ -58,15 +54,13 @@ function ProdutoDepartamentoForm({
     setForm((anterior) => ({
       ...anterior,
       [name]:
-        name === "produto_generico_id" ||
-        name === "departamento_id" ||
-        name === "fator_conversao"
+        name === "produto_generico_id" || name === "departamento_id"
           ? Number(value)
           : value,
     }));
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
 
     await onSalvar(form);
@@ -150,27 +144,8 @@ function ProdutoDepartamentoForm({
         />
       </div>
 
-      <div className="mb-4">
-        <label className="form-label">Fator de Conversão</label>
-
-        <input
-          type="number"
-          className="form-control"
-          name="fator_conversao"
-          step="0.0001"
-          min="0.0001"
-          value={form.fator_conversao}
-          onChange={handleChange}
-          required
-        />
-      </div>
-
       <div className="text-end">
-        <button
-          className="btn btn-primary"
-          type="submit"
-          onClick={() => console.log(form)}
-        >
+        <button className="btn btn-primary" type="submit">
           Salvar
         </button>
       </div>

@@ -28,7 +28,6 @@ function TabelaProdutosDepartamento({
           <th>Nome</th>
           <th>Código</th>
           <th>Unidade</th>
-          <th>Conversão</th>
           <th style={{ width: "170px" }}>Ações</th>
         </tr>
       </thead>
@@ -41,7 +40,6 @@ function TabelaProdutosDepartamento({
             <td>{produto.nome}</td>
             <td>{produto.codigo}</td>
             <td>{String(produto.unidade_medida)}</td>
-            <td>{produto.fator_conversao}</td>
             <td>
               <button
                 className="btn btn-warning btn-sm me-2"

@@ -7,5 +7,5 @@ export interface ProdutoDepartamento {
   nome: string;
   codigo: string;
   unidade_medida: string;
-  fator_conversao: number;
+  ativo?: boolean;
 }

@@ -24,9 +24,9 @@ func (h *ProdutoMerceariaHandler)HandleProdutosMercearia(router *gin.Engine){
 
 	produtos.GET("", h.Listar)
 	produtos.POST("", h.Criar)
-	produtos.PUT(":id", h.Atualizar)
+	produtos.PUT("/id/:id", h.Atualizar)
 	produtos.DELETE("/id/:id", h.RemoverID)
-	produtos.GET(":id", h.BuscarID)
+	produtos.GET("/:id", h.BuscarID)
 	produtos.GET("/sku/:sku", h.BuscarSKU)
 	produtos.GET("/codigo/:codigo", h.BuscarCodigoBarras)
 	produtos.GET("/buscar/:texto", h.Buscar)

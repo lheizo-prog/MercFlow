@@ -43,7 +43,7 @@ func (r *ProdutoMerceariaPostgresRepository) Criar(p *models.ProdutoMercearia) (
 func (r *ProdutoMerceariaPostgresRepository) Atualizar(p *models.ProdutoMercearia) (*models.ProdutoMercearia, error) {
 	response, err := r.db.Exec(
 		context.Background(),
-		"UPDATE produtos_mercearia produto_generico_id = $1, sku = $2, marca = $3, descricao = $4, codigo_barras = $5, quantidade_embalagem = $6, unidade_medida = $7, ativo = $8 WHERE id = $9",
+		"UPDATE produtos_mercearia SET produto_generico_id = $1, sku = $2, marca = $3, descricao = $4, codigo_barras = $5, quantidade_embalagem = $6, unidade_medida = $7, ativo = $8 WHERE id = $9",
 		p.ProdutoGenericoID,
 		p.SKU,
 		p.Marca,
