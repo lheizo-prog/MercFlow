@@ -2,7 +2,7 @@ package service
 
 import (
 	request "MercFlow/internal/models/requests"
-	"MercFlow/internal/models/response"
+	response "MercFlow/internal/models/response"
 	"MercFlow/internal/repository/lancamento"
 	produtodepartamento "MercFlow/internal/repository/produto-departamento"
 	produtomercearia "MercFlow/internal/repository/produto-mercearia"
@@ -87,10 +87,16 @@ func (s*LancamentoService)criarTransferencia(request *request.LancamentoRequest)
 	return response, nil
 }
 func (s *LancamentoService)criarQuebra(request *request.LancamentoRequest) (*response.LancamentoResponse, error){
-	response := &response.LancamentoResponse{
+	observacao := ""
+	
+	if request.Observacao != nil{
+		observacao = *request.Observacao
+	}
+
+	lancamentoResponse := &response.LancamentoResponse{
 		DepartamentoID: request.DepartamentoID,
 		Tipo: string(request.Tipo),
-		Observacao: *request.Observacao,
+		Observacao: observacao,
 		Itens: make([]response.LancamentoItemResponse, 0),
 	}
 	
@@ -106,9 +112,40 @@ func (s *LancamentoService)criarQuebra(request *request.LancamentoRequest) (*res
 		if item.ProdutoMerceariaID != nil && item.ProdutoDepartamentoID != nil{
 			return nil, errors.New("quebra deve possuir apenas um produto")
 		}
+		
+			var itemResponse *response.LancamentoItemResponse
+		
+			if item.ProdutoMerceariaID != nil{
+				produto, err := s.produtoMRepo.BuscarID(*item.ProdutoMerceariaID)
+				if err != nil {
+					return nil, err
+				}
+
+				itemResponse = &response.LancamentoItemResponse{
+					ProdutoMerceariaID: produto.ID,
+					Quantidade: item.Quantidade,
+					UnidadeMercearia: string(produto.UnidadeMedida),
+					TotalLancado: item.Quantidade,
+				}
+			}
+
+			if item.ProdutoDepartamentoID != nil{
+				produto, err := s.produtoDRepo.BuscarID(*item.ProdutoDepartamentoID)
+				if err != nil{
+					return nil, err
+				}
+
+				itemResponse = &response.LancamentoItemResponse{
+					ProdutoDepartamentoID: produto.ID,
+					Quantidade: item.Quantidade,
+					UnidadeDepartamento: string(produto.UnidadeMedida),
+					TotalLancado: item.Quantidade,
+				}
+			}
+			lancamentoResponse.Itens = append(lancamentoResponse.Itens, *itemResponse)
 	}
 
-	return response, nil
+	return lancamentoResponse, nil
 }
 
 func (s *LancamentoService)processarItemTransferencia(item request.LancamentoItem) (*response.LancamentoItemResponse, error){
