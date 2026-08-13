@@ -26,7 +26,9 @@ func (r *LancamentoPostgresRepository)Criar(lancamento *models.Lancamento) (*mod
 	}
 
 	defer func() {
-		_ = tx.Rollback(context.Background())
+		if err != nil{
+			_ = tx.Rollback(context.Background())
+		}
 	}()
 
 	err = tx.QueryRow(
@@ -51,7 +53,7 @@ func (r *LancamentoPostgresRepository)Criar(lancamento *models.Lancamento) (*mod
 
 		err = tx.QueryRow(
 			context.Background(),
-			`INSERT INTO lancamento_itens (lancamennto_id, produto_mercearia_id, produto_departamento_id, quantidade) VALUES ($1, $2, $3, $4) RETURNING id`,
+			`INSERT INTO lancamento_itens (lancamento_id, produto_mercearia_id, produto_departamento_id, quantidade) VALUES ($1, $2, $3, $4) RETURNING id`,
 			lancamento.ID,
 			item.ProdutoMerceariaID,
 			item.ProdutoDepartamentoID,
@@ -86,8 +88,8 @@ func (r *LancamentoPostgresRepository)BuscarID(id int) (*models.Lancamento, erro
 		id,
 	).Scan(
 		&lancamento.ID,
-		&lancamento.DepartamentoID,
 		&lancamento.Tipo,
+		&lancamento.DepartamentoID,
 		&lancamento.Data,
 		&lancamento.Observacao,
 	)

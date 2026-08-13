@@ -6,6 +6,7 @@ import (
 	"MercFlow/internal/handlers"
 	"MercFlow/internal/middleware"
 	"MercFlow/internal/repository/departamento"
+	"MercFlow/internal/repository/lancamento"
 	produtodepartamento "MercFlow/internal/repository/produto-departamento"
 	produtogenerico "MercFlow/internal/repository/produto-generico"
 	produtomercearia "MercFlow/internal/repository/produto-mercearia"
@@ -56,6 +57,11 @@ func New() (*Application, error){
 	produto_mService := service.NovoProdutoMerceariaService(produto_mRepo, produtoRepo)
 	produto_mHandler := handlers.NovoProdutoMerceariaHandler(produto_mService)
 	produto_mHandler.HandleProdutosMercearia(router)
+
+	lancamentoRepo := lancamento.NovoLancamentoPostgresRepositoy(db)
+	lancamentoService := service.NovoLancamentoService(lancamentoRepo, produto_mRepo, produto_dRepo)
+	lancamentoHandler := handlers.NovoLancamentoHandler(lancamentoService)
+	lancamentoHandler.HandleLancamentos(router)
 
 	return &Application{
 		Router: router,

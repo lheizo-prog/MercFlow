@@ -1,6 +1,7 @@
 package service
 
 import (
+	"MercFlow/internal/models"
 	request "MercFlow/internal/models/requests"
 	response "MercFlow/internal/models/response"
 	"MercFlow/internal/repository/lancamento"
@@ -50,15 +51,40 @@ func (s *LancamentoService)Criar(request *request.LancamentoRequest) (*response.
 	}
 }
 
+func (s *LancamentoService)Listar() ([]*models.Lancamento, error){
+	lancamentos, err := s.Listar()
+	if err != nil{
+		return nil, err
+	}
+
+	return lancamentos, nil
+}
+
+func (s *LancamentoService)BuscarID(id int) (*models.Lancamento, error){
+	lancamento, err := s.BuscarID(id)
+	if err != nil{
+		return nil, err
+	}
+
+	return lancamento, nil
+}
+
 func (s*LancamentoService)criarTransferencia(request *request.LancamentoRequest) (*response.LancamentoResponse, error){
 	observacao := ""
+
 	if request.Observacao != nil{
 		observacao = *request.Observacao
 	}
 	
-	response := &response.LancamentoResponse{
+	lancamentoModel := &models.Lancamento{
+		Tipo: models.TipoLancamento(request.Tipo),
 		DepartamentoID: request.DepartamentoID,
+		Observacao: request.Observacao,
+	}
+
+	lancamentoResponse := &response.LancamentoResponse{
 		Tipo: string(request.Tipo),
+		DepartamentoID: request.DepartamentoID,
 		Observacao: observacao,
 		Itens: make([]response.LancamentoItemResponse,0),
 	}
@@ -81,16 +107,36 @@ func (s*LancamentoService)criarTransferencia(request *request.LancamentoRequest)
 			return nil, err
 		}
 
-		response.Itens = append(response.Itens, *itemResponse)
+		lancamentoResponse.Itens = append(lancamentoResponse.Itens, *itemResponse)
+
+		lancamentoModel.Itens = append(lancamentoModel.Itens, models.LancamentoItem{
+			ProdutoMerceariaID: item.ProdutoMerceariaID,
+			ProdutoDepartamentoID: item.ProdutoDepartamentoID,
+			Quantidade: item.Quantidade,
+		})
 	}
 
-	return response, nil
+	lancamentoCriado, err := s.lancamentoRepo.Criar(lancamentoModel)
+	if err != nil{
+		return nil, err
+	}
+	
+	lancamentoResponse.ID = lancamentoCriado.ID
+	lancamentoResponse.Data = lancamentoCriado.Data
+
+	return lancamentoResponse, nil
 }
 func (s *LancamentoService)criarQuebra(request *request.LancamentoRequest) (*response.LancamentoResponse, error){
 	observacao := ""
 	
 	if request.Observacao != nil{
 		observacao = *request.Observacao
+	}
+
+	lancamentoModel := &models.Lancamento{
+		Tipo: models.TipoLancamento(request.Tipo),
+		DepartamentoID: request.DepartamentoID,
+		Observacao: request.Observacao,
 	}
 
 	lancamentoResponse := &response.LancamentoResponse{
@@ -143,7 +189,21 @@ func (s *LancamentoService)criarQuebra(request *request.LancamentoRequest) (*res
 				}
 			}
 			lancamentoResponse.Itens = append(lancamentoResponse.Itens, *itemResponse)
+
+			lancamentoModel.Itens = append(lancamentoModel.Itens, models.LancamentoItem{
+				ProdutoMerceariaID: item.ProdutoMerceariaID,
+				ProdutoDepartamentoID: item.ProdutoDepartamentoID,
+				Quantidade: item.Quantidade,
+			})
 	}
+
+	lancamentoCriado, err := s.lancamentoRepo.Criar(lancamentoModel)
+	if err != nil{
+		return nil, err
+	} 
+
+	lancamentoResponse.ID = lancamentoCriado.ID
+	lancamentoResponse.Data = lancamentoCriado.Data
 
 	return lancamentoResponse, nil
 }
