@@ -14,6 +14,6 @@ CREATE TABLE lancamentos(
     
     CONSTRAINT fk_lancamento_departamento
         FOREIGN KEY(departamento_id)
-        REFERENCES (departamentos(id))
+        REFERENCES departamentos(id)
         ON DELETE RESTRICT
 )

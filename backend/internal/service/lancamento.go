@@ -51,8 +51,8 @@ func (s *LancamentoService)Criar(request *request.LancamentoRequest) (*response.
 	}
 }
 
-func (s *LancamentoService)Listar() ([]*models.Lancamento, error){
-	lancamentos, err := s.Listar()
+func (s *LancamentoService)Listar() ([]models.Lancamento, error){
+	lancamentos, err := s.lancamentoRepo.Listar()
 	if err != nil{
 		return nil, err
 	}
@@ -279,11 +279,11 @@ func calcularFatorConversao(
 
 	switch origem{
 		case "kg":
-			if destino == "g"{
+			if destino == "gr"{
 				return 1000, nil
 			}
 		
-		case "g":
+		case "gr":
 			if destino == "kg"{
 				return 0.001, nil
 			}

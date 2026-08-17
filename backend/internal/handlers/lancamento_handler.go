@@ -20,7 +20,7 @@ func NovoLancamentoHandler(s *service.LancamentoService) *LancamentoHandler{
 }
 
 func(h *LancamentoHandler)HandleLancamentos(router *gin.Engine){
-	lancamentos := router.Group("/produtos_g")
+	lancamentos := router.Group("/lancamentos")
 
 	lancamentos.GET("",h.Listar)
 	lancamentos.POST("",h.Criar)
@@ -39,7 +39,13 @@ func(h *LancamentoHandler)Criar(ctx *gin.Context){
 	}
 
 	lancamentoCriado, err := h.service.Criar(&lancamento)
-
+	if err != nil{
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro":err.Error(),
+		})
+		return
+	}
+	
 	ctx.JSON(201, lancamentoCriado)
 }
 

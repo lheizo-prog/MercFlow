@@ -1,4 +1,4 @@
-CREATE TABLE lancamentos_itens (
+CREATE TABLE lancamento_itens (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 
     lancamento_id INT NOT NULL,
@@ -25,7 +25,7 @@ CREATE TABLE lancamentos_itens (
         ON DELETE RESTRICT,
 
     CONSTRAINT ck_lancamento_item_quantidade
-        CHECK (quantidade > 0)
+        CHECK (quantidade > 0),
     
     CONSTRAINT ck_lancamento_item_produto
         CHECK(
