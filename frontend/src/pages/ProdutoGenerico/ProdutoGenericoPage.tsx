@@ -105,9 +105,14 @@ function ProdutosPage() {
   }
 
   return (
-    <div className="container">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1>Produtos</h1>
+    <div className="container-fluid px-0">
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 border-bottom pb-3 mb-4">
+        <div>
+          <h1 className="h2 mb-1">Produtos genéricos</h1>
+          <p className="text-body-secondary mb-0">
+            Base central de itens comercializados.
+          </p>
+        </div>
 
         <button className="btn btn-primary" onClick={abrirNovoProduto}>
           Novo Produto
@@ -124,15 +129,22 @@ function ProdutosPage() {
         onSalvar={produtoSelecionado ? atualizarProduto : criarProduto}
       />
 
-      <div className="mb-4">
-        <label className="form-label">Pesquisar Produto</label>
-
-        <input
-          className="form-control"
-          placeholder="Digite ID, nome ou código..."
-          value={pesquisa}
-          onChange={(e) => setPesquisa(e.target.value)}
-        />
+      <div className="card border-0 shadow-sm mb-4">
+        <div className="card-body">
+          <label
+            className="form-label fw-semibold"
+            htmlFor="pesquisa-produto-generico"
+          >
+            Pesquisar produto
+          </label>
+          <input
+            id="pesquisa-produto-generico"
+            className="form-control"
+            placeholder="Digite ID, nome ou código..."
+            value={pesquisa}
+            onChange={(e) => setPesquisa(e.target.value)}
+          />
+        </div>
       </div>
 
       <TabelaProdutos

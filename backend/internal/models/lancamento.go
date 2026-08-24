@@ -4,23 +4,10 @@ import "time"
 
 type Lancamento struct {
 	ID         int `json:"id"`
-	Data       time.Time `json:"data"`
 	Tipo       TipoLancamento `json:"tipo"`
-	Itens []*ItemLancamento `json:"itens"`
-}
+	DepartamentoID int `json:"departamentos_id"`
+	Data       time.Time `json:"data_lancamento"`
+	Observacao *string `json:"observacao,omitempty"`
 
-type ItemLancamento struct{
-	Setor Departamento
-	Produto ProdutoGenerico
-	CodigoBase string
-	CodigoSetor string
-	Quantidade float64
-}
-func NovoLancamento(id int, tipo TipoLancamento, data time.Time, itens []*ItemLancamento) *Lancamento {
-	return &Lancamento{
-		ID:         id,
-		Data:       data,
-		Tipo:       tipo,
-		Itens: itens,
-	}
+	Itens []LancamentoItem `json:"itens"`
 }

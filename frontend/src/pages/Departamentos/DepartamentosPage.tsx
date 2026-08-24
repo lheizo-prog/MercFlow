@@ -105,9 +105,14 @@ function DepartamentosPage() {
   }
 
   return (
-    <div className="container">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1>Departamentos</h1>
+    <div className="container-fluid px-0">
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 border-bottom pb-3 mb-4">
+        <div>
+          <h1 className="h2 mb-1">Departamentos</h1>
+          <p className="text-body-secondary mb-0">
+            Organize os setores da operação.
+          </p>
+        </div>
 
         <button className="btn btn-primary" onClick={abrirNovoDepartamento}>
           Novo Departamento
@@ -125,15 +130,22 @@ function DepartamentosPage() {
           departamentoSelecionado ? atualizarDepartamento : criarDepartamento
         }
       />
-      <div className="mb-4">
-        <label className="form-label">Pesquisar Departamento</label>
-
-        <input
-          className="form-control"
-          placeholder="Digite ID ou nome..."
-          value={pesquisa}
-          onChange={(e) => setPesquisa(e.target.value)}
-        />
+      <div className="card border-0 shadow-sm mb-4">
+        <div className="card-body">
+          <label
+            className="form-label fw-semibold"
+            htmlFor="pesquisa-departamento"
+          >
+            Pesquisar departamento
+          </label>
+          <input
+            id="pesquisa-departamento"
+            className="form-control"
+            placeholder="Digite ID ou nome..."
+            value={pesquisa}
+            onChange={(e) => setPesquisa(e.target.value)}
+          />
+        </div>
       </div>
       <TabelaDepartamentos
         departamentos={departamentosFiltrados}

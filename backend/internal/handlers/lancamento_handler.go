@@ -1,10 +1,12 @@
 package handlers
 
 import (
-	"MercFlow/internal/models"
+	request "MercFlow/internal/models/requests"
 	"MercFlow/internal/service"
-	"fmt"
-	"time"
+	"net/http"
+	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 type LancamentoHandler struct {
@@ -17,153 +19,100 @@ func NovoLancamentoHandler(s *service.LancamentoService) *LancamentoHandler{
 	}
 }
 
-func (h *LancamentoHandler)NovoLancamento(id int, tipo models.TipoLancamento,tempo time.Time ,item []*models.ItemLancamento,) (*models.Lancamento, error){
-	res, err := h.service.NovoLancamento(id, tipo, tempo, item)
+func(h *LancamentoHandler)HandleLancamentos(router *gin.Engine){
+	lancamentos := router.Group("/lancamentos")
+
+	lancamentos.GET("",h.Listar)
+	lancamentos.POST("",h.Criar)
+	lancamentos.GET("/conversao",h.CalcularConversao)
+	lancamentos.GET("/:id",h.BuscarID)
+}
+
+func(h *LancamentoHandler)Criar(ctx *gin.Context){
+	var lancamento request.LancamentoRequest
+
+	err := ctx.BindJSON(&lancamento)
+	if err != nil{
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro":"JSON inválido",
+		})
+		return
+	}
+
+	lancamentoCriado, err := h.service.Criar(&lancamento)
+	if err != nil{
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro":err.Error(),
+		})
+		return
+	}
 	
+	ctx.JSON(201, lancamentoCriado)
+}
+
+func(h *LancamentoHandler)Listar(ctx *gin.Context){
+	lista, err := h.service.Listar()
 	if err != nil{
-		fmt.Println(err)
-		return nil, err
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro":err.Error(),
+		})
+		return
 	}
-	fmt.Println("Lançando produto...")
-	return res, nil
+
+	ctx.JSON(200, lista)
 }
 
-/* func (h *LancamentoHandler)NovoItem(setor *models.Departamento, produto *models.Produto, codigoBase string, codigoSetor string, quantidade float64) (*models.ItemLancamento, error){
-	res, err := h.service.NovoItem(setor, produto, quantidade)
+func(h *LancamentoHandler)BuscarID(ctx *gin.Context){
+	idParam := ctx.Param("id")
+
+	id, err := strconv.Atoi(idParam)
 	if err != nil{
-		fmt.Println(err)
-		return nil, err
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro":"ID inválido",
+		})
+		return
 	}
-	fmt.Println("Criando novo item para lançamento...")
-	return res, nil
-}
-*/
 
-func(h *LancamentoHandler)NovoSliceTemporario() []*models.ItemLancamento{
-	return h.service.NovoSliceTemporario()
-}
-
-func (h *LancamentoHandler)AdicionarST(slice []*models.ItemLancamento, item *models.ItemLancamento) ([]*models.ItemLancamento, error){
-	res, err := h.service.AdicionarST(slice, item)
-
+	lancamento, err := h.service.BuscarID(id)
 	if err != nil{
-		fmt.Println(err)
-		return nil, err
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro":err.Error(),
+		})
+		return
 	}
-	fmt.Println("Adicionando Item ao Slice temporário")
-	return res, nil
+
+	ctx.JSON(200, lancamento)
 }
 
-func (h *LancamentoHandler)Adicionar(lanca *models.Lancamento) error{
-	if h.service.AdicionarL(lanca) != nil{
-		fmt.Println(h.service.AdicionarL(lanca))
-		return h.service.AdicionarL(lanca)
-	}
-
-	fmt.Println("Adicionando lançamento ao repositório")
-	for _, p := range lanca.Itens{
-		fmt.Printf(
-			"\n\nID: %d | Setor: %s | Produto: %s | Quantidade: %f\n",
-			lanca.ID,
-			lanca.Tipo,
-			p.Produto.Nome,
-			p.Quantidade,
-		)
-	}
-	h.service.AdicionarL(lanca)
-	return nil
-}
-
-func (h *LancamentoHandler)RemoverID(id int) error{
-	if h.service.RemoverID(id) != nil{
-		fmt.Println(h.service.RemoverID(id))
-		return h.service.RemoverID(id)
-	}
-	h.service.RemoverID(id)
-	return nil
-}
-
-func (h *LancamentoHandler)BuscarID(id int) error{
-	res, err := h.service.BuscarID(id)
+func(h *LancamentoHandler)CalcularConversao(ctx *gin.Context) {
+	produtoMID, err := strconv.Atoi(ctx.Query("produto_m_id"))
 	if err != nil{
-		fmt.Println(err)
-		return err
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro":"produto_m_id inválido",
+		})
+		return
 	}
-	fmt.Println("Lançamento Encontrado!")
-	for _, p := range res.Itens{
-		fmt.Printf(
-		"\n\nID: %d | Setor: %s | Produto: %s | Quantidade: %f\n",
-		res.ID,
-		res.Tipo,
-		p.Produto.Nome,
-		p.Quantidade,
-		)
-	}
-	return nil
-}
-
-func (h *LancamentoHandler)FiltrarTipo(tipo models.TipoLancamento) ([]*models.Lancamento, error){
-	res, err := h.service.FiltrarTipo(tipo)
-
+	
+	produtoDID, err := strconv.Atoi(ctx.Query("produto_d_id"))
 	if err != nil{
-		fmt.Println(err)
-		return nil, err
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro":"produto_d_id inválido",
+		})
+		return
 	}
-	fmt.Println("Filtrando lançamentos pelo setor")
-	for _, p := range res{
-		for _, q := range p.Itens{
-			fmt.Printf(
-			"\n\nID: %d | Setor: %s | Produto: %s | Quantidade: %f\n",
-			p.ID,
-			p.Tipo,
-			q.Produto.Nome,
-			q.Quantidade,
-			)
-		}
+
+	item := request.LancamentoItem{
+		ProdutoMerceariaID: &produtoMID,
+		ProdutoDepartamentoID: &produtoDID,
 	}
-	return res, nil
-}
 
-func (h *LancamentoHandler)Listar() ([]*models.Lancamento, error){
-	res, err := h.service.Listar()
-
+	resultado, err := h.service.CalcularConversao(item)
 	if err != nil{
-		fmt.Println(err)
-		return nil, err
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro":err.Error(),
+		})
+		return
 	}
-	fmt.Println("Lista de Lançamentos:")
-	for _, p := range res{
-		for _, q := range p.Itens{
-			fmt.Printf(
-				"\n|Setor: %s | Produto: %s | Código Base: %s | Código Setor: %s | Quantidade: %f |\n",
-				q.Setor.Nome,
-				q.Produto.Nome,
-				q.CodigoBase,
-				q.CodigoSetor,
-				q.Quantidade,
-			)
-		}
-	}
-	return res, nil
-}
 
-func (h *LancamentoHandler)ListarCodigoSetor() ([]*models.ItemLancamento, error){
-	res, err := h.service.ListarCodigoSetor()
-
-	fmt.Printf("\nLista de Lançamentos: \n")
-	if err != nil{
-		fmt.Println(err)
-		return nil, err
-	}
-	for _, p := range res{
-		fmt.Printf(
-			"\n| Produto: %s | Setor: %s | Codigo geral: %s  | Código setor: %s | Quantidade: %.2f|\n",
-			p.Produto.Nome,
-			p.Setor.Nome,
-			p.CodigoBase,
-			p.CodigoSetor,
-			p.Quantidade,
-		)
-	}
-	return res, nil
+	ctx.JSON(200, resultado)
 }

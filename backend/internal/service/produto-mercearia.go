@@ -50,6 +50,7 @@ func (s *ProdutoMerceariaService)Listar() ([]*models.ProdutoMercearia, error){
 	if err != nil{
 		return nil, err
 	}
+	
 	return produtos, nil
 }
 

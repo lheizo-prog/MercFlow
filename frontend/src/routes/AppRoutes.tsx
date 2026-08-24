@@ -6,6 +6,7 @@ import DepartamentosPage from "../pages/Departamentos/DepartamentosPage";
 import ProdutoGenericoPage from "../pages/ProdutoGenerico/ProdutoGenericoPage";
 import ProdutoDepartamentoPage from "../pages/ProdutoDepartamento/ProdutoDepartamentoPage";
 import ProdutoMerceariaPage from "../pages/ProdutoMercearia/ProdutoMerceariaPage";
+import LancamentoPage from "../pages/Lancamento/LancamentoPage";
 
 function AppRoutes() {
   return (
@@ -20,6 +21,7 @@ function AppRoutes() {
             element={<ProdutoDepartamentoPage />}
           />
           <Route path="produtos_mercearia" element={<ProdutoMerceariaPage />} />
+          <Route path="lancamentos" element={<LancamentoPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
