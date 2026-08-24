@@ -4,7 +4,6 @@ import api from "./api";
 const departamentoService = {
   async buscarTodos() {
     const response = await api.get<Departamento[]>("/departamentos");
-
     return response.data;
   },
 

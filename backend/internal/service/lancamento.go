@@ -69,6 +69,17 @@ func (s *LancamentoService)BuscarID(id int) (*models.Lancamento, error){
 	return lancamento, nil
 }
 
+func (s *LancamentoService)CalcularConversao(item request.LancamentoItem) (*response.LancamentoItemResponse, error){
+	if item.ProdutoMerceariaID == nil{
+		return nil, errors.New("produto da mercearia não informado")
+	}
+	if item.ProdutoDepartamentoID == nil{
+		return nil, errors.New("produto do departamento não encontrado")
+	}
+
+	return s.processarItemTransferencia(item)
+}
+
 func (s*LancamentoService)criarTransferencia(request *request.LancamentoRequest) (*response.LancamentoResponse, error){
 	observacao := ""
 

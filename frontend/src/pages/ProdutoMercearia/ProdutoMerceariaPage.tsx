@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import produtoMerceariaService from "../../services/produtoMercearia";
+import produtoMerceariaService from "../../services/produtoMerceariaService";
 import produtoService from "../../services/produtoGenericoService";
 
 import type { ProdutoMercearia } from "../../types/ProdutoMercearia";
@@ -162,12 +162,16 @@ function ProdutoMerceariaPage() {
   }
 
   return (
-    <div className="container mt-4">
+    <div className="container-fluid px-0">
       {" "}
-      <div className="d-flex justify-content-between align-items-center mb-4">
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 border-bottom pb-3 mb-4">
         {" "}
-        <h1>Produtos da Mercearia</h1>
-        ```
+        <div>
+          <h1 className="h2 mb-1">Produtos da mercearia</h1>
+          <p className="text-body-secondary mb-0">
+            Gerencie SKUs, marcas e embalagens.
+          </p>
+        </div>
         <button className="btn btn-primary" onClick={abrirNovoProdutoMercearia}>
           Novo Produto
         </button>
@@ -184,24 +188,31 @@ function ProdutoMerceariaPage() {
           produtoSelecionado ? atualizarProdutoMercearia : criarProdutoMercearia
         }
       />
-      <div className="mb-4">
-        <label className="form-label">Pesquisar Produto</label>
+      <div className="card border-0 shadow-sm mb-4">
+        <div className="card-body">
+          <label
+            className="form-label fw-semibold"
+            htmlFor="pesquisa-produto-mercearia"
+          >
+            Pesquisar produto
+          </label>
+          <input
+            id="pesquisa-produto-mercearia"
+            className="form-control"
+            placeholder="Digite SKU, marca, descrição ou código de barras..."
+            value={pesquisa}
+            onChange={(e) => {
+              const texto = e.target.value;
 
-        <input
-          className="form-control"
-          placeholder="Digite SKU, marca, descrição ou código de barras..."
-          value={pesquisa}
-          onChange={(e) => {
-            const texto = e.target.value;
+              if (texto.trim() === "") {
+                limparPesquisa();
+                return;
+              }
 
-            if (texto.trim() === "") {
-              limparPesquisa();
-              return;
-            }
-
-            pesquisarProdutos(texto);
-          }}
-        />
+              pesquisarProdutos(texto);
+            }}
+          />
+        </div>
       </div>
       <TabelaProdutoMercearia
         produtos={produtosExibicao}

@@ -13,23 +13,25 @@ function TabelaProdutoMercearia({
 }: TabelaProdutoMerceariaProps) {
   if (produtos.length === 0) {
     return (
-      <div className="alert alert-secondary">Nenhum produto encontrado. </div>
+      <div className="alert alert-light border text-body-secondary">
+        Nenhum produto da mercearia encontrado.
+      </div>
     );
   }
 
   return (
-    <div className="table-responsive">
-      {" "}
-      <table className="table table-striped table-hover align-middle">
-        {" "}
-        <thead>
-          {" "}
+    <div className="table-responsive bg-white rounded shadow-sm">
+      <table className="table table-hover align-middle mb-0">
+        <thead className="table-light">
           <tr>
-            {" "}
-            <th>Produto Base</th> <th>SKU</th> <th>Marca</th> <th>Descrição</th>{" "}
-            <th>Código de Barras</th> <th>Embalagem</th>{" "}
-            <th className="text-end">Ações</th>{" "}
-          </tr>{" "}
+            <th>Produto base</th>
+            <th>SKU</th>
+            <th>Marca</th>
+            <th>Descrição</th>
+            <th>Código de barras</th>
+            <th>Embalagem</th>
+            <th className="text-end">Ações</th>
+          </tr>
         </thead>
         <tbody>
           {produtos.map((produto) => (
@@ -51,25 +53,27 @@ function TabelaProdutoMercearia({
               </td>
 
               <td className="text-end">
-                <button
-                  type="button"
-                  className="btn btn-sm btn-outline-primary me-2"
-                  onClick={() => onEditar(produto)}
-                >
-                  Editar
-                </button>
+                <div className="d-flex justify-content-end gap-2 text-nowrap">
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline-primary"
+                    onClick={() => onEditar(produto)}
+                  >
+                    Editar
+                  </button>
 
-                <button
-                  type="button"
-                  className="btn btn-sm btn-outline-danger"
-                  onClick={() => {
-                    if (produto.id !== undefined) {
-                      onExcluir(produto.id);
-                    }
-                  }}
-                >
-                  Excluir
-                </button>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline-danger"
+                    onClick={() => {
+                      if (produto.id !== undefined) {
+                        onExcluir(produto.id);
+                      }
+                    }}
+                  >
+                    Excluir
+                  </button>
+                </div>
               </td>
             </tr>
           ))}

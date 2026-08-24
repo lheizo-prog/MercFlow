@@ -15,8 +15,8 @@ type LancamentoResponse struct {
 type LancamentoItemResponse struct{
 	ProdutoMerceariaID int `json:"produto_mercearia_id"`
 	ProdutoDepartamentoID int `json:"produto_departamento_id"`
-	Quantidade float64 `json:"quantidade"`
 
+	Quantidade float64 `json:"quantidade"`
 	UnidadeMercearia string `json:"unidade_mercearia"`
 	UnidadeDepartamento string `json:"unidade_departamento"`
 	

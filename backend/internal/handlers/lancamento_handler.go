@@ -24,6 +24,7 @@ func(h *LancamentoHandler)HandleLancamentos(router *gin.Engine){
 
 	lancamentos.GET("",h.Listar)
 	lancamentos.POST("",h.Criar)
+	lancamentos.GET("/conversao",h.CalcularConversao)
 	lancamentos.GET("/:id",h.BuscarID)
 }
 
@@ -81,4 +82,37 @@ func(h *LancamentoHandler)BuscarID(ctx *gin.Context){
 	}
 
 	ctx.JSON(200, lancamento)
+}
+
+func(h *LancamentoHandler)CalcularConversao(ctx *gin.Context) {
+	produtoMID, err := strconv.Atoi(ctx.Query("produto_m_id"))
+	if err != nil{
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro":"produto_m_id inválido",
+		})
+		return
+	}
+	
+	produtoDID, err := strconv.Atoi(ctx.Query("produto_d_id"))
+	if err != nil{
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro":"produto_d_id inválido",
+		})
+		return
+	}
+
+	item := request.LancamentoItem{
+		ProdutoMerceariaID: &produtoMID,
+		ProdutoDepartamentoID: &produtoDID,
+	}
+
+	resultado, err := h.service.CalcularConversao(item)
+	if err != nil{
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro":err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(200, resultado)
 }

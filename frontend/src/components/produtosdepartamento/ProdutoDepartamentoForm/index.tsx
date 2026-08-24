@@ -8,7 +8,6 @@ interface ProdutoDepartamentoFormProps {
   produto?: ProdutoDepartamento;
 
   produtosGenericos: ProdutoGenerico[];
-
   departamentos: Departamento[];
 
   onSalvar: (produto: ProdutoDepartamento) => Promise<void>;
