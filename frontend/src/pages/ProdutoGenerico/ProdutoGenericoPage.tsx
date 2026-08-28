@@ -108,7 +108,7 @@ function ProdutosPage() {
     <div className="container-fluid px-0">
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 border-bottom pb-3 mb-4">
         <div>
-          <h1 className="h2 mb-1">Produtos genéricos</h1>
+          <h1 className="h2 mb-1">Produtos Base</h1>
           <p className="text-body-secondary mb-0">
             Base central de itens comercializados.
           </p>

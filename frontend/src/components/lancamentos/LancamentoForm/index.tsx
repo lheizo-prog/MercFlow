@@ -583,7 +583,11 @@ function LancamentoForm({
       setProdutoDepartamentoBusca("");
       setMostrarSugestoesDepartamento(false);
       setTipoMensagem("sucesso");
-      setMensagem("Transferência registrada com sucesso.");
+      setMensagem(
+        isQuebra
+          ? "Quebra registrada com sucesso"
+          : "Transferência registrada com sucesso",
+      );
     } catch (error) {
       console.error("Erro ao criar lançamento:", error);
       setTipoMensagem("erro");
@@ -897,7 +901,9 @@ function LancamentoForm({
           {/* Lista dos itens */}
           <div className="col-12">
             <div className="d-flex justify-content-between align-items-center mt-3 mb-3">
-              <h4 className="h5 mb-0">Itens do lançamento</h4>
+              <h4 className="h5 mb-0">
+                Itens {isQuebra ? "da Quebra" : "da Transferência"}
+              </h4>
               <span className="badge text-bg-secondary">
                 {form.itens.length} {form.itens.length === 1 ? "item" : "itens"}
               </span>
@@ -961,7 +967,11 @@ function LancamentoForm({
             className="btn btn-success btn-lg"
             disabled={salvando}
           >
-            {salvando ? "Registrando..." : "Registrar transferência"}
+            {salvando
+              ? "Registrando..."
+              : isQuebra
+                ? "Registrar quebra"
+                : "Registrar transferência"}
           </button>
         </div>
 
