@@ -28,7 +28,7 @@ function Sidebar({ aberto, onNavegar }: SidebarProps) {
 
   const links = [
     { to: "/", label: "Dashboard" },
-    { to: "/produtos_genericos", label: "Produtos Genéricos" },
+    { to: "/produtos_genericos", label: "Produtos Base" },
     { to: "/departamentos", label: "Departamentos" },
     { to: "/produtos_departamento", label: "Produtos Departamento" },
     { to: "/produtos_mercearia", label: "Produtos Mercearia" },

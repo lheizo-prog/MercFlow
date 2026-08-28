@@ -1,10 +1,12 @@
 package bootstrap
 
 import (
+	"MercFlow/internal/auth"
 	"MercFlow/internal/config"
 	"MercFlow/internal/database"
 	"MercFlow/internal/handlers"
 	"MercFlow/internal/middleware"
+	dashboardrepo "MercFlow/internal/repository/dashboard"
 	"MercFlow/internal/repository/departamento"
 	"MercFlow/internal/repository/lancamento"
 	produtodepartamento "MercFlow/internal/repository/produto-departamento"
@@ -16,25 +18,32 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type Application struct{
+type Application struct {
 	Router *gin.Engine
-	DB *pgxpool.Pool
+	DB     *pgxpool.Pool
 	Config *config.Config
 }
 
-func New() (*Application, error){
+func New() (*Application, error) {
 
 	router := gin.Default()
-	
-	router.Use(middleware.CORS()) 
+
+	router.Use(middleware.CORS())
+	router.Use(auth.AuthMiddleware())
+
+	authHandler := handlers.NovoAuthHandler()
+	router.POST("/login", authHandler.Login)
+	router.GET("/health", func(ctx *gin.Context) {
+		ctx.JSON(200, gin.H{"status": "ok"})
+	})
 
 	cfg, err := config.Load()
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 
 	db, err := database.NovaConexao(cfg.Database.URL)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 
@@ -63,9 +72,14 @@ func New() (*Application, error){
 	lancamentoHandler := handlers.NovoLancamentoHandler(lancamentoService)
 	lancamentoHandler.HandleLancamentos(router)
 
+	dashboardRepository := dashboardrepo.NovoDashboardPostgresRepository(db)
+	dashboardService := service.NovoDashboardService(dashboardRepository)
+	dashboardHandler := handlers.NovoDashboardHandler(dashboardService)
+	dashboardHandler.HandleDashboard(router)
+
 	return &Application{
 		Router: router,
-		DB: db,
+		DB:     db,
 		Config: cfg,
 	}, nil
 }

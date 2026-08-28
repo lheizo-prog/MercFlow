@@ -1,0 +1,5 @@
+DROP INDEX IF EXISTS idx_produtos_departamento_dashboard_generico;
+DROP INDEX IF EXISTS idx_produtos_mercearia_dashboard_generico;
+DROP INDEX IF EXISTS idx_lancamento_itens_dashboard_produtos;
+DROP INDEX IF EXISTS idx_lancamento_itens_dashboard_lancamento;
+DROP INDEX IF EXISTS idx_lancamentos_dashboard_filtros;

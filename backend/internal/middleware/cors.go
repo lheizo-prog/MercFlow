@@ -13,13 +13,14 @@ func CORS() gin.HandlerFunc{
 
 		ctx.Header(
 			"Access-Control-Allow-Methods",
-			"GET, POST, PUT, DELETE, OPTIONS",
+			"GET, POST, PUT, PATCH, DELETE, OPTIONS",
 		)
 
 		ctx.Header(
 			"Access-Control-Allow-Headers",
 			"Content-Type, Authorization",
 		)
+		ctx.Header("Vary", "Origin")
 
 		if ctx.Request.Method == "OPTIONS"{
 			ctx.AbortWithStatus(204)

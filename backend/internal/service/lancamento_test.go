@@ -5,6 +5,7 @@ import (
 	request "MercFlow/internal/models/requests"
 	"errors"
 	"testing"
+	"time"
 )
 
 type produtoMerceariaRepositoryMock struct {
@@ -101,15 +102,15 @@ func (l *lancamentoRepositoryMock)Listar() ([]models.Lancamento, error){
 func TestCriarQuebraProdutoMercearia(t *testing.T) {
 
 	produtoMercearia := &models.ProdutoMercearia{
-		ID:                10,
-		ProdutoGenericoID: 5,
-		SKU:               "ARROZ-001",
-		Marca:             "Marca Teste",
-		Descricao:         "Arroz teste",
-		CodigoBarras:      "123456789",
+		ID:                  10,
+		ProdutoGenericoID:   5,
+		SKU:                 "ARROZ-001",
+		Marca:               "Marca Teste",
+		Descricao:           "Arroz teste",
+		CodigoBarras:        "123456789",
 		QuantidadeEmbalagem: 1,
-		UnidadeMedida:     "kg",
-		Ativo:             true,
+		UnidadeMedida:       "kg",
+		Ativo:               true,
 	}
 
 	produtoMRepo := &produtoMerceariaRepositoryMock{
@@ -118,15 +119,25 @@ func TestCriarQuebraProdutoMercearia(t *testing.T) {
 
 	produtoDRepo := &produtoDepartamentoRepositoryMock{}
 
-	lancamentoRepo := &lancamentoRepositoryMock{}
+	quantidade := 2.0
+	lancamentoRepo := &lancamentoRepositoryMock{
+		lancamento: &models.Lancamento{
+			ID:             77,
+			Tipo:           models.TipoLancamento("QUEBRA"),
+			DepartamentoID: 1,
+			Data:           time.Now(),
+			Itens: []models.LancamentoItem{{
+				ProdutoMerceariaID: &produtoMercearia.ID,
+				Quantidade:         quantidade,
+			}},
+		},
+	}
 
 	service := NovoLancamentoService(
 		lancamentoRepo,
 		produtoMRepo,
 		produtoDRepo,
 	)
-
-	quantidade := 2.0
 
 	req := &request.LancamentoRequest{
 		Tipo:           "QUEBRA",
@@ -206,15 +217,25 @@ func TestCriarQuebraProdutoDepartamento(t *testing.T) {
 
 	produtoMRepo := &produtoMerceariaRepositoryMock{}
 
-	lancamentoRepo := &lancamentoRepositoryMock{}
+	quantidade := 3.0
+	lancamentoRepo := &lancamentoRepositoryMock{
+		lancamento: &models.Lancamento{
+			ID:             88,
+			Tipo:           models.TipoLancamento("QUEBRA"),
+			DepartamentoID: 1,
+			Data:           time.Now(),
+			Itens: []models.LancamentoItem{{
+				ProdutoDepartamentoID: &produtoDepartamento.ID,
+				Quantidade:            quantidade,
+			}},
+		},
+	}
 
 	service := NovoLancamentoService(
 		lancamentoRepo,
 		produtoMRepo,
 		produtoDRepo,
 	)
-
-	quantidade := 3.0
 
 	req := &request.LancamentoRequest{
 		Tipo:           "QUEBRA",
@@ -347,15 +368,26 @@ func TestCriarTransferencia(t *testing.T) {
 		produto: produtoDepartamento,
 	}
 
-	lancamentoRepo := &lancamentoRepositoryMock{}
+	quantidade := 3.0
+	lancamentoRepo := &lancamentoRepositoryMock{
+		lancamento: &models.Lancamento{
+			ID:             99,
+			Tipo:           models.TipoLancamento("TRANSFERENCIA"),
+			DepartamentoID: 1,
+			Data:           time.Now(),
+			Itens: []models.LancamentoItem{{
+				ProdutoMerceariaID:    &produtoMercearia.ID,
+				ProdutoDepartamentoID: &produtoDepartamento.ID,
+				Quantidade:            quantidade,
+			}},
+		},
+	}
 
 	service := NovoLancamentoService(
 		lancamentoRepo,
 		produtoMRepo,
 		produtoDRepo,
 	)
-
-	quantidade := 3.0
 
 	req := &request.LancamentoRequest{
 		Tipo:           "TRANSFERENCIA",

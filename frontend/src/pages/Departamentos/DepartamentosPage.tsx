@@ -19,8 +19,15 @@ function DepartamentosPage() {
       setLoading(true);
 
       const lista = await departamentoService.buscarTodos();
-      console.log(lista);
-      setDepartamentos(lista);
+      const listaSemDuplicatas = lista.filter(
+        (departamento, index, departamentos) =>
+          departamentos.findIndex(
+            (item) =>
+              item.nome.trim().toLowerCase() ===
+              departamento.nome.trim().toLowerCase(),
+          ) === index,
+      );
+      setDepartamentos(listaSemDuplicatas);
     } catch (error) {
       console.error(error);
     } finally {
