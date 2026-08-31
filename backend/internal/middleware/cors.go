@@ -9,15 +9,29 @@ import (
 
 func CORS() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		origin := strings.TrimSpace(os.Getenv("FRONTEND_URL"))
-		if origin == "" {
-			origin = strings.TrimSpace(os.Getenv("VERCEL_PROJECT_PRODUCTION_URL"))
-		}
-		if origin == "" {
-			origin = "http://localhost:5173"
+		origin := strings.TrimSpace(ctx.GetHeader("Origin"))
+		allowedOrigins := map[string]struct{}{
+			"http://localhost:5173": {},
+			"http://localhost:3000": {},
+			"http://localhost:8080": {},
 		}
 
-		ctx.Header("Access-Control-Allow-Origin", origin)
+		for _, envKey := range []string{"FRONTEND_URL", "VERCEL_PROJECT_PRODUCTION_URL", "VERCEL_URL"} {
+			if value := strings.TrimSpace(os.Getenv(envKey)); value != "" {
+				allowedOrigins[value] = struct{}{}
+			}
+		}
+
+		if origin != "" {
+			if _, ok := allowedOrigins[origin]; ok {
+				ctx.Header("Access-Control-Allow-Origin", origin)
+			}
+		} else if frontendURL := strings.TrimSpace(os.Getenv("FRONTEND_URL")); frontendURL != "" {
+			ctx.Header("Access-Control-Allow-Origin", frontendURL)
+		} else {
+			ctx.Header("Access-Control-Allow-Origin", "http://localhost:5173")
+		}
+
 		ctx.Header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 		ctx.Header("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		ctx.Header("Vary", "Origin")
