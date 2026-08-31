@@ -186,9 +186,10 @@ function GraficoRanking({
 }
 
 function DashboardPage() {
-  const [dashboard, setDashboard] = useState(dashboardVazio);
+  const [dashboard, setDashboard] =
+    useState<DashboardLancamentoResponse>(dashboardVazio);
   const [dashboardComparacao, setDashboardComparacao] =
-    useState(dashboardVazio);
+    useState<DashboardLancamentoResponse>(dashboardVazio);
   const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
   const [produtosGenericos, setProdutosGenericos] = useState<ProdutoGenerico[]>(
     [],
@@ -229,20 +230,32 @@ function DashboardPage() {
           ? { produto_generico_id: Number(produtoGenericoID) }
           : {}),
       };
+
       const resultado = await dashboardService.buscarLancamentos({
         ...filtros,
       });
-      setDashboard(resultado);
+
+      const dashboardSegura: DashboardLancamentoResponse = {
+        filtros: resultado?.filtros ?? dashboardVazio.filtros,
+        resumo: resultado?.resumo ?? dashboardVazio.resumo,
+        ranking: resultado?.ranking ?? [],
+      };
+
+      setDashboard(dashboardSegura);
       setAnimacaoGrafico((atual) => atual + 1);
 
       if (dataInicioComparacao && dataFimComparacao) {
-        setDashboardComparacao(
-          await dashboardService.buscarLancamentos({
-            ...filtros,
-            data_inicio: dataInicioComparacao,
-            data_fim: dataFimComparacao,
-          }),
-        );
+        const comparacao = await dashboardService.buscarLancamentos({
+          ...filtros,
+          data_inicio: dataInicioComparacao,
+          data_fim: dataFimComparacao,
+        });
+
+        setDashboardComparacao({
+          filtros: comparacao?.filtros ?? dashboardVazio.filtros,
+          resumo: comparacao?.resumo ?? dashboardVazio.resumo,
+          ranking: comparacao?.ranking ?? [],
+        });
       } else {
         setDashboardComparacao(dashboardVazio);
       }
@@ -292,7 +305,14 @@ function DashboardPage() {
           data_inicio: periodoInicial.inicio,
           data_fim: periodoInicial.fim,
         });
-        setDashboard(resultado);
+
+        const dashboardSegura: DashboardLancamentoResponse = {
+          filtros: resultado?.filtros ?? dashboardVazio.filtros,
+          resumo: resultado?.resumo ?? dashboardVazio.resumo,
+          ranking: resultado?.ranking ?? [],
+        };
+
+        setDashboard(dashboardSegura);
         setAnimacaoGrafico((atual) => atual + 1);
       } catch {
         setErro("Não foi possível carregar os dados do dashboard.");
@@ -336,7 +356,12 @@ function DashboardPage() {
     setCarregando(true);
     setErro("");
     try {
-      setDashboard(await dashboardService.buscarLancamentos({}));
+      const resultado = await dashboardService.buscarLancamentos({});
+      setDashboard({
+        filtros: resultado?.filtros ?? dashboardVazio.filtros,
+        resumo: resultado?.resumo ?? dashboardVazio.resumo,
+        ranking: resultado?.ranking ?? [],
+      });
       setDashboardComparacao(dashboardVazio);
       setAnimacaoGrafico((atual) => atual + 1);
     } catch {
@@ -528,9 +553,10 @@ function DashboardPage() {
                     Quantidade agregada (KG)
                   </p>
                   <strong className="display-6">
-                    {dashboard.resumo.total_quantidade.toLocaleString("pt-BR", {
-                      maximumFractionDigits: 3,
-                    })}
+                    {(dashboard?.resumo?.total_quantidade ?? 0).toLocaleString(
+                      "pt-BR",
+                      { maximumFractionDigits: 3 },
+                    )}
                   </strong>
                 </div>
               </div>
@@ -542,7 +568,7 @@ function DashboardPage() {
                     Lançamentos considerados
                   </p>
                   <strong className="display-6">
-                    {dashboard.resumo.quantidade_registros}
+                    {dashboard?.resumo?.quantidade_registros ?? 0}
                   </strong>
                 </div>
               </div>
@@ -625,10 +651,11 @@ function DashboardPage() {
                           Quantidade agregada
                         </span>
                         <strong>
-                          {dashboardComparacao.resumo.total_quantidade.toLocaleString(
-                            "pt-BR",
-                            { maximumFractionDigits: 3 },
-                          )}{" "}
+                          {(
+                            dashboardComparacao?.resumo?.total_quantidade ?? 0
+                          ).toLocaleString("pt-BR", {
+                            maximumFractionDigits: 3,
+                          })}{" "}
                           kg
                         </strong>
                       </div>
