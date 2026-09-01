@@ -315,6 +315,29 @@ function LancamentoForm({
     return valores.some((valor) => valor.toLowerCase().includes(termo));
   });
 
+  const produtoMerceariaSelecionadoAtual =
+    itemAtual.produtoMerceariaID > 0
+      ? produtosMercearia.find(
+          (produto) => produto.id === itemAtual.produtoMerceariaID,
+        )
+      : undefined;
+
+  const produtoDepartamentoSelecionadoAtual =
+    itemAtual.produtoDepartamentoID > 0
+      ? produtosDepartamento.find(
+          (produto) => produto.id === itemAtual.produtoDepartamentoID,
+        )
+      : undefined;
+
+  const totalCalculadoAtual =
+    itemAtual.quantidade > 0 && produtoMerceariaSelecionadoAtual
+      ? itemAtual.quantidade *
+        produtoMerceariaSelecionadoAtual.quantidade_embalagem *
+        (isQuebra ? 1 : itemAtual.fatorConversao || 1)
+      : itemAtual.quantidade > 0 && produtoDepartamentoSelecionadoAtual
+        ? itemAtual.quantidade
+        : 0;
+
   function selecionarProdutoDepartamento(produtoId: number) {
     const produto = produtosDepartamento.find((item) => item.id === produtoId);
 
@@ -473,6 +496,13 @@ function LancamentoForm({
       return;
     }
 
+    const totalLancadoCalculado =
+      produtoMerceariaSelecionadoAtual && itemAtual.quantidade > 0
+        ? itemAtual.quantidade *
+          produtoMerceariaSelecionadoAtual.quantidade_embalagem *
+          (isQuebra ? 1 : itemAtual.fatorConversao || 1)
+        : itemAtual.quantidade;
+
     setForm((anterior) => {
       const itemExistente = anterior.itens.find(
         (item) =>
@@ -485,7 +515,12 @@ function LancamentoForm({
           ...anterior,
           itens: anterior.itens.map((item) =>
             item === itemExistente
-              ? { ...item, quantidade: item.quantidade + itemAtual.quantidade }
+              ? {
+                  ...item,
+                  quantidade: item.quantidade + itemAtual.quantidade,
+                  totalLancado:
+                    (item.totalLancado || 0) + totalLancadoCalculado,
+                }
               : item,
           ),
         };
@@ -502,7 +537,7 @@ function LancamentoForm({
             unidadeMercearia: itemAtual.unidadeMercearia,
             unidadeDepartamento: itemAtual.unidadeDepartamento,
             fatorConversao: itemAtual.fatorConversao,
-            totalLancado: 0,
+            totalLancado: totalLancadoCalculado,
           },
         ],
       };
@@ -846,7 +881,7 @@ function LancamentoForm({
           {/* Quantidade */}
           <div className="col-12 col-md-4">
             <label htmlFor="quantidade" className="form-label fw-semibold">
-              Quantidade
+              Quantidade de pacotes
             </label>
 
             <input
@@ -874,6 +909,27 @@ function LancamentoForm({
               Adicionar item
             </button>
           </div>
+
+          {produtoMerceariaSelecionadoAtual && itemAtual.quantidade > 0 && (
+            <div className="col-12">
+              <div className="alert alert-secondary border rounded-3 mb-0">
+                <div className="row g-2 align-items-center">
+                  <div className="col-12 col-md-5">
+                    <strong>Conteúdo da embalagem:</strong>{" "}
+                    {produtoMerceariaSelecionadoAtual.quantidade_embalagem}{" "}
+                    {produtoMerceariaSelecionadoAtual.unidade_medida}
+                  </div>
+                  <div className="col-12 col-md-7">
+                    <strong>Total previsto:</strong> {totalCalculadoAtual}{" "}
+                    {isQuebra
+                      ? produtoMerceariaSelecionadoAtual.unidade_medida
+                      : itemAtual.unidadeDepartamento ||
+                        produtoMerceariaSelecionadoAtual.unidade_medida}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Informações retornadas pelo backend */}
           {itemAtual.fatorConversao > 0 && (
@@ -932,7 +988,9 @@ function LancamentoForm({
                       ) : (
                         <th>Produto lançado</th>
                       )}
-                      <th>Quantidade</th>
+                      <th>Qtd. pacotes</th>
+                      <th>Conteúdo da embalagem</th>
+                      <th>Total</th>
                       <th className="text-end">Ação</th>
                     </tr>
                   </thead>
@@ -969,11 +1027,29 @@ function LancamentoForm({
                               {produtoM ? produtoM.sku : produtoD?.codigo}
                             </td>
                           )}
+                          <td>{item.quantidade}</td>
                           <td>
-                            {item.quantidade}
-                            {form.tipo === "TRANSFERENCIA"
-                              ? ` ${item.unidadeMercearia}`
-                              : ` ${item.unidadeMercearia || item.unidadeDepartamento}`}
+                            {produtoM
+                              ? `${produtoM.quantidade_embalagem} ${produtoM.unidade_medida}`
+                              : produtoD
+                                ? `${produtoD.unidade_medida || "-"}`
+                                : "-"}
+                          </td>
+                          <td>
+                            {item.totalLancado > 0
+                              ? `${item.totalLancado} ${
+                                  form.tipo === "TRANSFERENCIA"
+                                    ? item.unidadeDepartamento ||
+                                      item.unidadeMercearia
+                                    : item.unidadeMercearia ||
+                                      item.unidadeDepartamento
+                                }`
+                              : `${item.quantidade} ${
+                                  form.tipo === "TRANSFERENCIA"
+                                    ? item.unidadeMercearia
+                                    : item.unidadeMercearia ||
+                                      item.unidadeDepartamento
+                                }`}
                           </td>
                           <td className="text-end">
                             <button
