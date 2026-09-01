@@ -214,7 +214,65 @@ function LancamentoForm({
         )
       : produtosDepartamento;
 
-  const produtosMerceariaFiltrados = produtosMercearia.filter((produto) => {
+  function calcularSimilaridade(termo: string, valor: string) {
+    const busca = termo.trim().toLowerCase();
+    const texto = valor.toLowerCase();
+
+    if (!busca) {
+      return 0;
+    }
+
+    if (texto === busca) {
+      return 1000;
+    }
+
+    if (texto.startsWith(busca)) {
+      return 900 - texto.length;
+    }
+
+    if (texto.includes(busca)) {
+      return 700 - texto.indexOf(busca);
+    }
+
+    return 0;
+  }
+
+  function ordenarPorSimilaridade<T>(
+    lista: T[],
+    termo: string,
+    obterValores: (item: T) => string[],
+  ) {
+    const busca = termo.trim().toLowerCase();
+
+    if (!busca) {
+      return lista;
+    }
+
+    return [...lista].sort((a, b) => {
+      const valoresA = obterValores(a)
+        .filter((valor): valor is string => Boolean(valor))
+        .map((valor) => calcularSimilaridade(busca, valor));
+      const valoresB = obterValores(b)
+        .filter((valor): valor is string => Boolean(valor))
+        .map((valor) => calcularSimilaridade(busca, valor));
+
+      const melhorA = Math.max(0, ...valoresA);
+      const melhorB = Math.max(0, ...valoresB);
+
+      return melhorB - melhorA;
+    });
+  }
+
+  const produtosMerceariaFiltrados = ordenarPorSimilaridade(
+    produtosMercearia,
+    produtoMerceariaBusca,
+    (produto) => [
+      produto.descricao,
+      produto.sku,
+      produto.codigo_barras,
+      produto.marca,
+    ],
+  ).filter((produto) => {
     const termo = produtoMerceariaBusca.trim().toLowerCase();
 
     if (!termo) {
@@ -231,23 +289,31 @@ function LancamentoForm({
     return valores.some((valor) => valor.toLowerCase().includes(termo));
   });
 
-  const produtosDepartamentoBuscaFiltrados =
-    produtosDepartamentoFiltrados.filter((produto) => {
-      const termo = produtoDepartamentoBusca.trim().toLowerCase();
+  const produtosDepartamentoBuscaFiltrados = ordenarPorSimilaridade(
+    produtosDepartamentoFiltrados,
+    produtoDepartamentoBusca,
+    (produto) => [
+      produto.produto_generico_nome ?? "",
+      produto.nome,
+      produto.codigo,
+      (produto as ProdutoDepartamento & { sku?: string }).sku ?? "",
+    ],
+  ).filter((produto) => {
+    const termo = produtoDepartamentoBusca.trim().toLowerCase();
 
-      if (!termo) {
-        return true;
-      }
+    if (!termo) {
+      return true;
+    }
 
-      const valores = [
-        produto.produto_generico_nome,
-        produto.nome,
-        produto.codigo,
-        (produto as ProdutoDepartamento & { sku?: string }).sku,
-      ].filter((valor): valor is string => Boolean(valor));
+    const valores = [
+      produto.produto_generico_nome ?? "",
+      produto.nome,
+      produto.codigo,
+      (produto as ProdutoDepartamento & { sku?: string }).sku ?? "",
+    ].filter((valor): valor is string => Boolean(valor));
 
-      return valores.some((valor) => valor.toLowerCase().includes(termo));
-    });
+    return valores.some((valor) => valor.toLowerCase().includes(termo));
+  });
 
   function selecionarProdutoDepartamento(produtoId: number) {
     const produto = produtosDepartamento.find((item) => item.id === produtoId);
@@ -619,7 +685,15 @@ function LancamentoForm({
                       <button
                         key={produto.id}
                         type="button"
-                        className="list-group-item list-group-item-action text-start"
+                        className={`list-group-item list-group-item-action text-start ${
+                          (
+                            isProdutoDepartamento(produto)
+                              ? produto.id === itemAtual.produtoDepartamentoID
+                              : produto.id === itemAtual.produtoMerceariaID
+                          )
+                            ? "active"
+                            : ""
+                        }`}
                         onClick={() =>
                           selecionarProdutoMercearia(
                             produto.id ?? 0,
@@ -629,10 +703,19 @@ function LancamentoForm({
                           )
                         }
                       >
-                        <div className="fw-semibold">
-                          {isProdutoDepartamento(produto)
-                            ? produto.nome
-                            : produto.descricao}
+                        <div className="d-flex justify-content-between align-items-center gap-2">
+                          <div className="fw-semibold">
+                            {isProdutoDepartamento(produto)
+                              ? produto.nome
+                              : produto.descricao}
+                          </div>
+                          {(isProdutoDepartamento(produto)
+                            ? produto.id === itemAtual.produtoDepartamentoID
+                            : produto.id === itemAtual.produtoMerceariaID) && (
+                            <span className="badge text-bg-light text-primary">
+                              Selecionado
+                            </span>
+                          )}
                         </div>
                         <small className="text-muted">
                           {isProdutoDepartamento(produto)
@@ -673,12 +756,23 @@ function LancamentoForm({
                     <button
                       key={produto.id}
                       type="button"
-                      className="list-group-item list-group-item-action text-start"
+                      className={`list-group-item list-group-item-action text-start ${
+                        produto.id === itemAtual.produtoMerceariaID
+                          ? "active"
+                          : ""
+                      }`}
                       onClick={() =>
                         selecionarProdutoMercearia(produto.id ?? 0, "mercearia")
                       }
                     >
-                      <div className="fw-semibold">{produto.descricao}</div>
+                      <div className="d-flex justify-content-between align-items-center gap-2">
+                        <div className="fw-semibold">{produto.descricao}</div>
+                        {produto.id === itemAtual.produtoMerceariaID && (
+                          <span className="badge text-bg-light text-primary">
+                            Selecionado
+                          </span>
+                        )}
+                      </div>
                       <small className="text-muted">
                         SKU: {produto.sku} · Código: {produto.codigo_barras}
                       </small>
@@ -722,12 +816,23 @@ function LancamentoForm({
                       <button
                         key={produto.id}
                         type="button"
-                        className="list-group-item list-group-item-action text-start"
+                        className={`list-group-item list-group-item-action text-start ${
+                          produto.id === itemAtual.produtoDepartamentoID
+                            ? "active"
+                            : ""
+                        }`}
                         onClick={() =>
                           selecionarProdutoDepartamento(produto.id ?? 0)
                         }
                       >
-                        <div className="fw-semibold">{produto.nome}</div>
+                        <div className="d-flex justify-content-between align-items-center gap-2">
+                          <div className="fw-semibold">{produto.nome}</div>
+                          {produto.id === itemAtual.produtoDepartamentoID && (
+                            <span className="badge text-bg-light text-primary">
+                              Selecionado
+                            </span>
+                          )}
+                        </div>
                         <small className="text-muted">
                           Código: {produto.codigo} ·{" "}
                           {produto.produto_generico_nome ?? ""}
