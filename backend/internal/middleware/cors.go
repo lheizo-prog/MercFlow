@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"log"
 	"os"
 	"strings"
 
@@ -16,6 +17,8 @@ func CORS() gin.HandlerFunc {
 			"http://localhost:8080": {},
 		}
 
+		log.Printf("DEBUG CORS -> origin recebida: %q", origin)
+		log.Printf("DEBUG CORS -> origens permitidas: %v", allowedOrigins)
 		for _, envKey := range []string{"FRONTEND_URL", "VERCEL_PROJECT_PRODUCTION_URL", "VERCEL_URL"} {
 			if value := strings.TrimSpace(os.Getenv(envKey)); value != "" {
 				allowedOrigins[value] = struct{}{}
