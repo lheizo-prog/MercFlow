@@ -16,7 +16,7 @@ func NovoDashboardHandler(s *service.DashboardService) *DashboardHandler {
 	return &DashboardHandler{service: s}
 }
 
-func (h *DashboardHandler) HandleDashboard(router *gin.Engine) {
+func (h *DashboardHandler) HandleDashboard(router gin.IRouter) {
 	router.GET("/dashboard/lancamentos", h.BuscarLancamentos)
 }
 

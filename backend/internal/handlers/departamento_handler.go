@@ -19,7 +19,7 @@ func NovoDepartamentoHandler(s *service.DepartamentoService) *DepartamentoHandle
 	}
 }
 
-func (h *DepartamentoHandler) HandleDepartamentos(router *gin.Engine){
+func (h *DepartamentoHandler) HandleDepartamentos(router gin.IRouter){
 	departamentos := router.Group("/departamentos")
 
 	departamentos.GET("",h.Listar)

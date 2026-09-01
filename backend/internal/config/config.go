@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"log"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -16,15 +17,14 @@ type DatabaseConfig struct {
 }
 
 func Load() (*Config, error) {
-	err := godotenv.Load()
-	if err != nil {
-		return nil, err
+	if err := godotenv.Load(); err != nil {
+		log.Println("Aviso: .env não encontrado, usando variáveis de ambiente do sistema")
 	}
 
 	databaseURL := os.Getenv("DATABASE_URL")
 
 	if databaseURL == "" {
-		return nil, errors.New("Sem URL do banco de dados")
+		return nil, errors.New("sem URL do banco de dados")
 	}
 	cfg := Config{
 		Database: DatabaseConfig{

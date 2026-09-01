@@ -19,7 +19,7 @@ func NovoProdutoDepartamentoHandler(s *service.ProdutoDepartamentoService) *Prod
 	}
 }
 
-func(h *ProdutoDepartamentoHandler) HandleProdutosDepartamento(router *gin.Engine){
+func(h *ProdutoDepartamentoHandler) HandleProdutosDepartamento(router gin.IRouter){
 	produtos_departamento := router.Group("/produtos_d")
 
 	produtos_departamento.GET("",h.Listar)

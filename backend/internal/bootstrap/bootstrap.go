@@ -27,9 +27,7 @@ type Application struct {
 func New() (*Application, error) {
 
 	router := gin.Default()
-
 	router.Use(middleware.CORS())
-	router.Use(auth.AuthMiddleware())
 
 	authHandler := handlers.NovoAuthHandler()
 	router.POST("/login", authHandler.Login)
@@ -50,32 +48,38 @@ func New() (*Application, error) {
 	produtoRepo := produtogenerico.NovoPostgresProdutoGenericoRepository(db)
 	produtoService := service.NovoProdutoService(produtoRepo)
 	produtoHandler := handlers.NovoProdutoGenericoHandler(produtoService)
-	produtoHandler.HandleProdutosGenericos(router)
 
 	departamentoRepo := departamento.NovoPostgresDepartamentoRepository(db)
 	departamentoService := service.NovoDepartamentoService(departamentoRepo)
 	departamentoHandler := handlers.NovoDepartamentoHandler(departamentoService)
-	departamentoHandler.HandleDepartamentos(router)
 
 	produto_dRepo := produtodepartamento.NovoPostgresProdutoDepartamentoRepository(db)
 	produto_dService := service.NovoProdutoDepartamentoService(produto_dRepo, produtoRepo, departamentoRepo)
 	produto_dHandler := handlers.NovoProdutoDepartamentoHandler(produto_dService)
-	produto_dHandler.HandleProdutosDepartamento(router)
 
 	produto_mRepo := produtomercearia.NovoProdutoMerceariaPostgresRepository(db)
 	produto_mService := service.NovoProdutoMerceariaService(produto_mRepo, produtoRepo)
 	produto_mHandler := handlers.NovoProdutoMerceariaHandler(produto_mService)
-	produto_mHandler.HandleProdutosMercearia(router)
 
 	lancamentoRepo := lancamento.NovoLancamentoPostgresRepositoy(db)
 	lancamentoService := service.NovoLancamentoService(lancamentoRepo, produto_mRepo, produto_dRepo)
 	lancamentoHandler := handlers.NovoLancamentoHandler(lancamentoService)
-	lancamentoHandler.HandleLancamentos(router)
 
 	dashboardRepository := dashboardrepo.NovoDashboardPostgresRepository(db)
 	dashboardService := service.NovoDashboardService(dashboardRepository)
 	dashboardHandler := handlers.NovoDashboardHandler(dashboardService)
-	dashboardHandler.HandleDashboard(router)
+
+	// Grupo protegido — só rotas aqui exigem JWT
+	protected := router.Group("/")
+	protected.Use(auth.AuthMiddleware())
+	{
+		produtoHandler.HandleProdutosGenericos(protected)
+		departamentoHandler.HandleDepartamentos(protected)
+		produto_dHandler.HandleProdutosDepartamento(protected)
+		produto_mHandler.HandleProdutosMercearia(protected)
+		lancamentoHandler.HandleLancamentos(protected)
+		dashboardHandler.HandleDashboard(protected)
+	}
 
 	return &Application{
 		Router: router,

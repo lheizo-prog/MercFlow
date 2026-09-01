@@ -919,7 +919,8 @@ function LancamentoForm({
                   <thead className="table-light">
                     <tr>
                       <th>Produto</th>
-                      <th>Código</th>
+                      <th>Código origem (SKU | C. Barras)</th>
+                      <th>Código destino</th>
                       <th>Quantidade</th>
                       <th className="text-end">Ação</th>
                     </tr>
@@ -932,16 +933,25 @@ function LancamentoForm({
                       const produtoD = produtosDepartamento.find(
                         (produto) => produto.id === item.produtoDepartamentoID,
                       );
-                      const nomeProduto = produtoM?.descricao ?? produtoD?.nome;
-                      const codigoProduto = produtoM
+                      const nomeProdutoO =
+                        produtoM?.descricao ?? produtoD?.nome;
+                      const codigoProdutoO = produtoM
                         ? `${produtoM.sku} · ${produtoM.codigo_barras}`
                         : produtoD?.codigo;
+                      const codigoProdutoD =
+                        form.tipo == "TRANSFERENCIA" ? produtoD?.codigo : "-";
 
                       return (
                         <tr key={index}>
-                          <td className="fw-semibold">{nomeProduto}</td>
-                          <td>{codigoProduto}</td>
-                          <td>{item.quantidade}</td>
+                          <td className="fw-semibold">{nomeProdutoO}</td>
+                          <td>{codigoProdutoO}</td>
+                          <td>{codigoProdutoD}</td>
+                          <td>
+                            {item.quantidade}
+                            {form.tipo == "TRANSFERENCIA"
+                              ? ` ${item.unidadeMercearia}`
+                              : ` ${item.unidadeMercearia}`}
+                          </td>
                           <td className="text-end">
                             <button
                               type="button"

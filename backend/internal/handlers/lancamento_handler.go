@@ -19,7 +19,7 @@ func NovoLancamentoHandler(s *service.LancamentoService) *LancamentoHandler{
 	}
 }
 
-func(h *LancamentoHandler)HandleLancamentos(router *gin.Engine){
+func(h *LancamentoHandler)HandleLancamentos(router gin.IRouter){
 	lancamentos := router.Group("/lancamentos")
 
 	lancamentos.GET("",h.Listar)
