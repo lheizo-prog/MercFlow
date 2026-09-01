@@ -185,7 +185,7 @@ func (s *LancamentoService) criarQuebra(request *request.LancamentoRequest) (*re
 				ProdutoMerceariaID: produto.ID,
 				Quantidade:         item.Quantidade,
 				UnidadeMercearia:   string(produto.UnidadeMedida),
-				TotalLancado:       item.Quantidade,
+				TotalLancado:       item.Quantidade * produto.QuantidadeEmbalagem,
 			}
 		}
 

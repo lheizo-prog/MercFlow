@@ -202,6 +202,57 @@ func TestCriarQuebraProdutoMercearia(t *testing.T) {
 	}
 }
 
+func TestCriarQuebraProdutoMerceariaMultiplicaQuantidadeEmbalagem(t *testing.T) {
+	produtoMercearia := &models.ProdutoMercearia{
+		ID:                  15,
+		ProdutoGenericoID:   7,
+		SKU:                 "PAO-400",
+		Marca:               "Padaria",
+		Descricao:           "Pão de forma",
+		CodigoBarras:        "987654321",
+		QuantidadeEmbalagem: 400,
+		UnidadeMedida:       "GR",
+		Ativo:               true,
+	}
+
+	produtoMRepo := &produtoMerceariaRepositoryMock{produto: produtoMercearia}
+	produtoDRepo := &produtoDepartamentoRepositoryMock{}
+	lancamentoRepo := &lancamentoRepositoryMock{
+		lancamento: &models.Lancamento{
+			ID:             90,
+			Tipo:           models.TipoLancamento("QUEBRA"),
+			DepartamentoID: 2,
+			Data:           time.Now(),
+			Itens: []models.LancamentoItem{{
+				ProdutoMerceariaID: &produtoMercearia.ID,
+				Quantidade:         2,
+			}},
+		},
+	}
+
+	service := NovoLancamentoService(lancamentoRepo, produtoMRepo, produtoDRepo)
+
+	resultado, err := service.Criar(&request.LancamentoRequest{
+		Tipo:           "QUEBRA",
+		DepartamentoID: 2,
+		Itens: []request.LancamentoItem{{
+			ProdutoMerceariaID: &produtoMercearia.ID,
+			Quantidade:         2,
+		}},
+	})
+	if err != nil {
+		t.Fatalf("esperava que não houvesse erro, mas recebeu: %v", err)
+	}
+
+	if len(resultado.Itens) != 1 {
+		t.Fatalf("esperava 1 item, recebeu %d", len(resultado.Itens))
+	}
+
+	if resultado.Itens[0].TotalLancado != 800 {
+		t.Fatalf("esperava total de 800g para 2 embalagens de 400g, recebeu %.2f", resultado.Itens[0].TotalLancado)
+	}
+}
+
 func TestCriarQuebraProdutoDepartamento(t *testing.T) {
 	produtoDepartamento := &models.ProdutoDepartamento{
 		ID:               20,
