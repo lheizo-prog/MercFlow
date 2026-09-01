@@ -881,10 +881,12 @@ function LancamentoForm({
               <div className="alert alert-primary border rounded-3 mb-0">
                 <div className="row g-2">
                   <div className="col-12 col-md-4">
-                    <strong>Origem:</strong> {itemAtual.unidadeMercearia}
+                    <strong>Origem:</strong>{" "}
+                    {itemAtual.unidadeMercearia == "g" ? "GR" : "KG"}
                   </div>
                   <div className="col-12 col-md-4">
-                    <strong>Destino:</strong> {itemAtual.unidadeDepartamento}
+                    <strong>Destino:</strong>{" "}
+                    {itemAtual.unidadeDepartamento == "g" ? "GR" : "KG"}
                   </div>
                   <div className="col-12 col-md-4">
                     <strong>Fator:</strong> {itemAtual.fatorConversao}
