@@ -287,24 +287,6 @@ function LancamentoForm({
       return;
     }
 
-    const produtoCompleto = produtosDepartamentoBuscaFiltrados.find(
-      (produto) => {
-        const valores = [
-          produto.nome,
-          produto.codigo,
-          produto.produto_generico_nome,
-          (produto as ProdutoDepartamento & { sku?: string }).sku,
-        ].filter((valor): valor is string => Boolean(valor));
-
-        return valores.some((valor) => valor.toLowerCase() === termo);
-      },
-    );
-
-    if (produtoCompleto) {
-      selecionarProdutoDepartamento(produtoCompleto.id ?? 0);
-      return;
-    }
-
     setMostrarSugestoesDepartamento(true);
     setItemAtual((anterior) => ({
       ...anterior,
@@ -382,14 +364,6 @@ function LancamentoForm({
 
     setProdutoMerceariaBusca(valor);
 
-    const produtoSelecionadoAtual = produtosMercearia.find(
-      (produto) => produto.id === itemAtual.produtoMerceariaID,
-    );
-
-    const produtoDepartamentoSelecionadoAtual = produtosDepartamento.find(
-      (produto) => produto.id === itemAtual.produtoDepartamentoID,
-    );
-
     if (!termo) {
       setMostrarSugestoesMercearia(false);
       setItemAtual((anterior) => ({
@@ -401,50 +375,6 @@ function LancamentoForm({
         fatorConversao: 0,
         totalLancado: 0,
       }));
-      return;
-    }
-
-    const produtoCompleto =
-      isQuebra && !isDepartamentoMercearia
-        ? produtosDepartamentoPorDepartamento.find((produto) => {
-            const campos = [
-              produto.nome,
-              produto.codigo,
-              produto.produto_generico_nome,
-            ].filter((campo): campo is string => Boolean(campo));
-
-            return campos.some(
-              (campo) => campo.toLowerCase() === termo.toLowerCase(),
-            );
-          })
-        : produtosMerceariaFiltrados.find((produto) => {
-            const campos = [
-              produto.descricao,
-              produto.sku,
-              produto.codigo_barras,
-            ].filter((campo): campo is string => Boolean(campo));
-
-            return campos.some(
-              (campo) => campo.toLowerCase() === termo.toLowerCase(),
-            );
-          });
-
-    if (produtoCompleto) {
-      selecionarProdutoMercearia(
-        produtoCompleto.id ?? 0,
-        isQuebra && !isDepartamentoMercearia ? "departamento" : "mercearia",
-      );
-      setMostrarSugestoesMercearia(false);
-      return;
-    }
-
-    if (
-      (produtoSelecionadoAtual &&
-        produtoSelecionadoAtual.descricao === termo) ||
-      (produtoDepartamentoSelecionadoAtual &&
-        produtoDepartamentoSelecionadoAtual.nome === termo)
-    ) {
-      setMostrarSugestoesMercearia(false);
       return;
     }
 
@@ -670,32 +600,13 @@ function LancamentoForm({
                 placeholder="Buscar por SKU, código ou nome"
                 value={produtoMerceariaBusca}
                 onChange={handleProdutoMerceariaBuscaChange}
-                list="produto-mercearia-suggestions"
+                onFocus={() =>
+                  produtoMerceariaBusca.trim() &&
+                  setMostrarSugestoesMercearia(true)
+                }
+                autoComplete="off"
                 disabled={isQuebra && !isDepartamentoMercearia}
               />
-
-              <datalist id="produto-mercearia-suggestions">
-                {(isQuebra && !isDepartamentoMercearia
-                  ? produtosDepartamentoBuscaFiltrados
-                  : produtosMerceariaFiltrados
-                )
-                  .slice(0, 8)
-                  .map((produto) => (
-                    <option
-                      key={produto.id}
-                      value={
-                        isProdutoDepartamento(produto)
-                          ? produto.nome
-                          : produto.descricao
-                      }
-                      label={
-                        isProdutoDepartamento(produto)
-                          ? `${produto.codigo} · ${produto.produto_generico_nome ?? ""}`
-                          : `${produto.sku} · ${produto.codigo_barras}`
-                      }
-                    />
-                  ))}
-              </datalist>
 
               {mostrarSugestoesMercearia && produtoMerceariaBusca.trim() && (
                 <div className="list-group mt-2">
@@ -749,18 +660,12 @@ function LancamentoForm({
                 placeholder="Buscar por SKU, código ou nome"
                 value={produtoMerceariaBusca}
                 onChange={handleProdutoMerceariaBuscaChange}
-                list="produto-mercearia-suggestions"
+                onFocus={() =>
+                  produtoMerceariaBusca.trim() &&
+                  setMostrarSugestoesMercearia(true)
+                }
+                autoComplete="off"
               />
-
-              <datalist id="produto-mercearia-suggestions">
-                {produtosMerceariaFiltrados.slice(0, 8).map((produto) => (
-                  <option
-                    key={produto.id}
-                    value={produto.descricao}
-                    label={`${produto.sku} · ${produto.codigo_barras}`}
-                  />
-                ))}
-              </datalist>
 
               {mostrarSugestoesMercearia && produtoMerceariaBusca.trim() && (
                 <div className="list-group mt-2">
@@ -800,19 +705,13 @@ function LancamentoForm({
               placeholder="Buscar por nome, SKU ou código"
               value={produtoDepartamentoBusca}
               onChange={handleProdutoDepartamentoBuscaChange}
-              list="produto-departamento-suggestions"
+              onFocus={() =>
+                produtoDepartamentoBusca.trim() &&
+                setMostrarSugestoesDepartamento(true)
+              }
+              autoComplete="off"
               disabled={isQuebra && isDepartamentoMercearia}
             />
-
-            <datalist id="produto-departamento-suggestions">
-              {produtosDepartamentoBuscaFiltrados.slice(0, 8).map((produto) => (
-                <option
-                  key={produto.id}
-                  value={produto.nome}
-                  label={`${produto.codigo} · ${produto.produto_generico_nome ?? ""}`}
-                />
-              ))}
-            </datalist>
 
             {mostrarSugestoesDepartamento &&
               produtoDepartamentoBusca.trim() && (
