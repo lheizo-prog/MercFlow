@@ -360,6 +360,51 @@ func TestCriarTransferencia(t *testing.T) {
 		UnidadeMedida:     "g",
 	}
 
+	t.Run("transferência entre diferentes produtos departamento do mesmo produto base", func(t *testing.T) {
+		produtoDepartamentoDestino := &models.ProdutoDepartamento{
+			ID:                21,
+			ProdutoGenericoID: 5,
+			Nome:              "Arroz Extra",
+			Codigo:            "ARR-02",
+			UnidadeMedida:     "g",
+		}
+
+		repoM := &produtoMerceariaRepositoryMock{produto: produtoMercearia}
+		repoD := &produtoDepartamentoRepositoryMock{produto: produtoDepartamentoDestino}
+		lancamentoRepo := &lancamentoRepositoryMock{
+			lancamento: &models.Lancamento{
+				ID:             77,
+				Tipo:           models.TipoLancamento("TRANSFERENCIA"),
+				DepartamentoID: 1,
+				Data:           time.Now(),
+				Itens: []models.LancamentoItem{{
+					ProdutoMerceariaID:    &produtoMercearia.ID,
+					ProdutoDepartamentoID: &produtoDepartamentoDestino.ID,
+					Quantidade:            2,
+				}},
+			},
+		}
+		service := NovoLancamentoService(lancamentoRepo, repoM, repoD)
+
+		req := &request.LancamentoRequest{
+			Tipo:           "TRANSFERENCIA",
+			DepartamentoID: 1,
+			Itens: []request.LancamentoItem{{
+				ProdutoMerceariaID:   &produtoMercearia.ID,
+				ProdutoDepartamentoID: &produtoDepartamentoDestino.ID,
+				Quantidade:            2,
+			}},
+		}
+
+		resultado, err := service.Criar(req)
+		if err != nil {
+			t.Fatalf("esperava transferência válida para mesmo produto base, mas recebeu erro: %v", err)
+		}
+		if resultado == nil || len(resultado.Itens) != 1 {
+			t.Fatalf("esperava 1 item do lançamento, recebeu %+v", resultado)
+		}
+	})
+
 	produtoMRepo := &produtoMerceariaRepositoryMock{
 		produto: produtoMercearia,
 	}

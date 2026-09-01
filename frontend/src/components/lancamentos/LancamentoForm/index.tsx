@@ -919,8 +919,14 @@ function LancamentoForm({
                   <thead className="table-light">
                     <tr>
                       <th>Produto</th>
-                      <th>Código origem (SKU | C. Barras)</th>
-                      <th>Código destino</th>
+                      {form.tipo === "TRANSFERENCIA" ? (
+                        <>
+                          <th>Código origem (SKU | C. Barras)</th>
+                          <th>Código destino (Código | SKU)</th>
+                        </>
+                      ) : (
+                        <th>Produto lançado</th>
+                      )}
                       <th>Quantidade</th>
                       <th className="text-end">Ação</th>
                     </tr>
@@ -937,20 +943,32 @@ function LancamentoForm({
                         produtoM?.descricao ?? produtoD?.nome;
                       const codigoProdutoO = produtoM
                         ? `${produtoM.sku} · ${produtoM.codigo_barras}`
-                        : produtoD?.codigo;
+                        : (produtoD?.codigo ?? "-");
                       const codigoProdutoD =
-                        form.tipo == "TRANSFERENCIA" ? produtoD?.codigo : "-";
+                        form.tipo === "TRANSFERENCIA"
+                          ? produtoD
+                            ? `${produtoD.codigo} · ${produtoD.nome}`
+                            : "-"
+                          : "-";
 
                       return (
                         <tr key={index}>
                           <td className="fw-semibold">{nomeProdutoO}</td>
-                          <td>{codigoProdutoO}</td>
-                          <td>{codigoProdutoD}</td>
+                          {form.tipo === "TRANSFERENCIA" ? (
+                            <>
+                              <td>{codigoProdutoO}</td>
+                              <td>{codigoProdutoD}</td>
+                            </>
+                          ) : (
+                            <td>
+                              {produtoM ? produtoM.sku : produtoD?.codigo}
+                            </td>
+                          )}
                           <td>
                             {item.quantidade}
-                            {form.tipo == "TRANSFERENCIA"
+                            {form.tipo === "TRANSFERENCIA"
                               ? ` ${item.unidadeMercearia}`
-                              : ` ${item.unidadeMercearia}`}
+                              : ` ${item.unidadeMercearia || item.unidadeDepartamento}`}
                           </td>
                           <td className="text-end">
                             <button
