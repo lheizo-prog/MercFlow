@@ -18,8 +18,5 @@ CREATE TABLE produtos_departamento(
         ON DELETE RESTRICT,
 
     CONSTRAINT uk_departamento_codigo
-        UNIQUE (departamento_id, codigo),
-
-    CONSTRAINT uk_produto_departamento
-        UNIQUE (produto_generico_id, departamento_id)
+        UNIQUE (departamento_id, codigo)
 );
