@@ -1,5 +1,7 @@
 package models
 
+import "strings"
+
 type UnidadeMedida string
 
 type TipoLancamento string
@@ -17,10 +19,25 @@ const (
 	Ml UnidadeMedida = "ML"
 )
 
-func (u UnidadeMedida)Valido() bool{
-	switch u{
-	case Un, Kg, Gr, L, Ml:
-		return true
+func (u UnidadeMedida) Valido() bool {
+	return u.Normalizado() != ""
+}
+
+func (u UnidadeMedida) Normalizado() UnidadeMedida {
+	valor := strings.ToUpper(strings.TrimSpace(string(u)))
+
+	switch valor {
+	case "UN", "U", "UNIDADE":
+		return Un
+	case "KG", "KILO", "KILOGRAMA":
+		return Kg
+	case "G", "GR", "GRAMA":
+		return Gr
+	case "L", "LT", "LITRO":
+		return L
+	case "ML", "MILLILITRO":
+		return Ml
+	default:
+		return ""
 	}
-	return false
 }

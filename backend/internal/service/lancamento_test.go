@@ -339,6 +339,14 @@ func TestCriarQuebraProdutoDepartamento(t *testing.T) {
 	}
 }
 
+func TestUnidadeMedidaValidoAceitaMinusculo(t *testing.T) {
+	for _, valor := range []string{"kg", "g", "gr", "l", "ml", "un"} {
+		if !models.UnidadeMedida(valor).Valido() {
+			t.Fatalf("esperava que %q fosse uma unidade válida", valor)
+		}
+	}
+}
+
 func TestCriarTransferencia(t *testing.T) {
 	produtoMercearia := &models.ProdutoMercearia{
 		ID:                  10,

@@ -98,6 +98,8 @@ func(s *ProdutoDepartamentoService) ValidarProdutoD(p *models.ProdutoDepartament
 		return errors.New("produto inválido")
 	}
 
+	p.UnidadeMedida = p.UnidadeMedida.Normalizado()
+
 	//Verificadores dos parâmetros do produto departamento
 	if strings.TrimSpace(p.Nome) == ""{
 		return errors.New("nome do produto é obrigatório")
