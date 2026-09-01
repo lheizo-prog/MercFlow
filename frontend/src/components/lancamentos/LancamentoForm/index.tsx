@@ -885,8 +885,7 @@ function LancamentoForm({
                     {itemAtual.unidadeMercearia == "g" ? "GR" : "KG"}
                   </div>
                   <div className="col-12 col-md-4">
-                    <strong>Destino:</strong>{" "}
-                    {itemAtual.unidadeDepartamento == "g" ? "GR" : "KG"}
+                    <strong>Destino:</strong> {itemAtual.unidadeDepartamento}
                   </div>
                   <div className="col-12 col-md-4">
                     <strong>Fator:</strong> {itemAtual.fatorConversao}
