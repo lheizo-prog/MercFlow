@@ -1,3 +1,5 @@
+import { useMemo, useState } from "react";
+
 import type { ProdutoMercearia } from "../../../types/ProdutoMercearia";
 
 interface TabelaProdutoMerceariaProps {
@@ -5,12 +7,68 @@ interface TabelaProdutoMerceariaProps {
   onEditar: (produto: ProdutoMercearia) => void;
   onExcluir: (id: number) => void;
 }
+type OrdenacaoDirecao = "asc" | "desc";
+type OrdenacaoCampo =
+  | "produto_generico_nome"
+  | "sku"
+  | "marca"
+  | "descricao"
+  | "codigo_barras"
+  | "quantidade_embalagem";
 
 function TabelaProdutoMercearia({
   produtos,
   onEditar,
   onExcluir,
 }: TabelaProdutoMerceariaProps) {
+  const [ordenacao, setOrdenacao] = useState<{
+    campo: OrdenacaoCampo;
+    direcao: OrdenacaoDirecao;
+  } | null>(null);
+
+  const produtosOrdenados = useMemo(() => {
+    if (!ordenacao) {
+      return produtos;
+    }
+
+    const copia = [...produtos];
+    const direcao = ordenacao.direcao === "asc" ? 1 : -1;
+
+    copia.sort((a, b) => {
+      const valorA = (a[ordenacao.campo] ?? "").toString();
+      const valorB = (b[ordenacao.campo] ?? "").toString();
+
+      return (
+        valorA.localeCompare(valorB, "pt-BR", {
+          sensitivity: "base",
+        }) * direcao
+      );
+    });
+
+    return copia;
+  }, [produtos, ordenacao]);
+
+  function handleOrdenar(campo: OrdenacaoCampo) {
+    setOrdenacao((atual) => {
+      if (!atual || atual.campo !== campo) {
+        return { campo, direcao: "asc" };
+      }
+
+      return {
+        campo,
+        direcao: atual.direcao === "asc" ? "desc" : "asc",
+      };
+    });
+  }
+
+  function renderSeta(campo: OrdenacaoCampo) {
+    if (!ordenacao || ordenacao.campo !== campo) {
+      return "↕";
+    }
+
+    return ordenacao.direcao === "asc" ? "↑" : "↓";
+  }
+
   if (produtos.length === 0) {
     return (
       <div className="alert alert-light border text-body-secondary">
@@ -24,17 +82,65 @@ function TabelaProdutoMercearia({
       <table className="table table-hover align-middle mb-0">
         <thead className="table-light">
           <tr>
-            <th>Produto base</th>
-            <th>SKU</th>
-            <th>Marca</th>
-            <th>Descrição</th>
-            <th>Código de barras</th>
-            <th>Embalagem</th>
+            <th>
+              <button
+                type="button"
+                className="btn btn-link p-0 text-decoration-none text-reset fw-semibold"
+                onClick={() => handleOrdenar("produto_generico_nome")}
+              >
+                Produto base {renderSeta("produto_generico_nome")}
+              </button>
+            </th>
+            <th>
+              <button
+                type="button"
+                className="btn btn-link p-0 text-decoration-none text-reset fw-semibold"
+                onClick={() => handleOrdenar("sku")}
+              >
+                SKU {renderSeta("sku")}
+              </button>
+            </th>
+            <th>
+              <button
+                type="button"
+                className="btn btn-link p-0 text-decoration-none text-reset fw-semibold"
+                onClick={() => handleOrdenar("marca")}
+              >
+                Marca {renderSeta("marca")}
+              </button>
+            </th>
+            <th>
+              <button
+                type="button"
+                className="btn btn-link p-0 text-decoration-none text-reset fw-semibold"
+                onClick={() => handleOrdenar("descricao")}
+              >
+                Descrição {renderSeta("descricao")}
+              </button>
+            </th>
+            <th>
+              <button
+                type="button"
+                className="btn btn-link p-0 text-decoration-none text-reset fw-semibold"
+                onClick={() => handleOrdenar("codigo_barras")}
+              >
+                Código de barras {renderSeta("codigo_barras")}
+              </button>
+            </th>
+            <th>
+              <button
+                type="button"
+                className="btn btn-link p-0 text-decoration-none text-reset fw-semibold"
+                onClick={() => handleOrdenar("quantidade_embalagem")}
+              >
+                Embalagem {renderSeta("quantidade_embalagem")}
+              </button>
+            </th>
             <th className="text-end">Ações</th>
           </tr>
         </thead>
         <tbody>
-          {produtos.map((produto) => (
+          {produtosOrdenados.map((produto) => (
             <tr key={produto.id}>
               <td>{produto.produto_generico_nome}</td>
 

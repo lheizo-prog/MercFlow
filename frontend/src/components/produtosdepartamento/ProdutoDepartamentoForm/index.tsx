@@ -68,7 +68,7 @@ function ProdutoDepartamentoForm({
   return (
     <form onSubmit={handleSubmit}>
       <div className="mb-3">
-        <label className="form-label">Produto Genérico</label>
+        <label className="form-label">Produto Base</label>
 
         <select
           className="form-select"

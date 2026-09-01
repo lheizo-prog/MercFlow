@@ -1,3 +1,5 @@
+import { useMemo, useState } from "react";
+
 import type { ProdutoGenerico } from "../../../types/ProdutoGenerico";
 
 interface TabelaProdutosProps {
@@ -6,32 +8,113 @@ interface TabelaProdutosProps {
   onExcluir: (id: number) => void;
 }
 
+type OrdenacaoDirecao = "asc" | "desc";
+type OrdenacaoCampo = "id" | "nome" | "codigo";
+
 function TabelaProdutos({
   produtos,
   onEditar,
   onExcluir,
 }: TabelaProdutosProps) {
+  const [ordenacao, setOrdenacao] = useState<{
+    campo: OrdenacaoCampo;
+    direcao: OrdenacaoDirecao;
+  } | null>(null);
+
+  const produtosOrdenados = useMemo(() => {
+    if (!ordenacao) {
+      return produtos;
+    }
+
+    const copia = [...produtos];
+    const direcao = ordenacao.direcao === "asc" ? 1 : -1;
+
+    copia.sort((a, b) => {
+      const valorA =
+        ordenacao.campo === "id"
+          ? String(a.id ?? "")
+          : (a[ordenacao.campo] ?? "").toString();
+      const valorB =
+        ordenacao.campo === "id"
+          ? String(b.id ?? "")
+          : (b[ordenacao.campo] ?? "").toString();
+
+      return (
+        valorA.localeCompare(valorB, "pt-BR", {
+          sensitivity: "base",
+        }) * direcao
+      );
+    });
+
+    return copia;
+  }, [produtos, ordenacao]);
+
+  function handleOrdenar(campo: OrdenacaoCampo) {
+    setOrdenacao((atual) => {
+      if (!atual || atual.campo !== campo) {
+        return { campo, direcao: "asc" };
+      }
+
+      return {
+        campo,
+        direcao: atual.direcao === "asc" ? "desc" : "asc",
+      };
+    });
+  }
+
+  function renderSeta(campo: OrdenacaoCampo) {
+    if (!ordenacao || ordenacao.campo !== campo) {
+      return "↕";
+    }
+
+    return ordenacao.direcao === "asc" ? "↑" : "↓";
+  }
+
   return (
     <div className="table-responsive bg-white rounded shadow-sm">
       <table className="table table-hover align-middle mb-0">
         <thead className="table-light">
           <tr>
-            <th>ID</th>
-            <th>Nome</th>
-            <th>Código</th>
+            <th>
+              <button
+                type="button"
+                className="btn btn-link p-0 text-decoration-none text-reset fw-semibold"
+                onClick={() => handleOrdenar("id")}
+              >
+                ID {renderSeta("id")}
+              </button>
+            </th>
+            <th>
+              <button
+                type="button"
+                className="btn btn-link p-0 text-decoration-none text-reset fw-semibold"
+                onClick={() => handleOrdenar("nome")}
+              >
+                Nome {renderSeta("nome")}
+              </button>
+            </th>
+            <th>
+              <button
+                type="button"
+                className="btn btn-link p-0 text-decoration-none text-reset fw-semibold"
+                onClick={() => handleOrdenar("codigo")}
+              >
+                Código {renderSeta("codigo")}
+              </button>
+            </th>
             <th style={{ width: "180px" }}>Ações</th>
           </tr>
         </thead>
 
         <tbody>
-          {produtos.length === 0 ? (
+          {produtosOrdenados.length === 0 ? (
             <tr>
               <td colSpan={4} className="text-center text-body-secondary py-4">
-                Nenhum produto genérico cadastrado.
+                Nenhum produto base cadastrado.
               </td>
             </tr>
           ) : (
-            produtos.map((produto) => (
+            produtosOrdenados.map((produto) => (
               <tr key={produto.id}>
                 <td>{produto.id}</td>
                 <td>{produto.nome}</td>
