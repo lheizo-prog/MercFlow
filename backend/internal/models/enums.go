@@ -15,7 +15,7 @@ const (
 	Un UnidadeMedida = "UN"
 	Kg UnidadeMedida = "KG"
 	Gr UnidadeMedida = "GR"
-	L UnidadeMedida = "L"
+	L  UnidadeMedida = "L"
 	Ml UnidadeMedida = "ML"
 )
 

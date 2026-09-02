@@ -18,7 +18,7 @@ func NovoMemoryProdutoRepository() *MemoryProdutoRepository {
 	}
 }
 
-func (r *MemoryProdutoRepository) Criar(p *models.ProdutoGenerico) (*models.ProdutoGenerico, error){
+func (r *MemoryProdutoRepository) Criar(p *models.ProdutoGenerico) (*models.ProdutoGenerico, error) {
 	r.produtos = append(r.produtos, p)
 	return p, nil
 }

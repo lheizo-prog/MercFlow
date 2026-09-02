@@ -29,6 +29,12 @@ func (h *DashboardHandler) BuscarLancamentos(ctx *gin.Context) {
 		})
 		return
 	}
+	lojaID, ok := lojaDoUsuario(ctx)
+	if !ok {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"erro": "usuário não autenticado"})
+		return
+	}
+	filtros.LojaID = lojaID
 
 	resultado, err := h.service.BuscarLancamentos(&filtros)
 	if err != nil {

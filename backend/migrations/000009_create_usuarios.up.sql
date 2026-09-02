@@ -1,0 +1,16 @@
+CREATE TABLE usuarios (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nome VARCHAR(150) NOT NULL,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    senha_hash VARCHAR(255) NOT NULL,
+    loja_id INT NOT NULL,
+    perfil VARCHAR(50) NOT NULL DEFAULT 'operador',
+    permissoes TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+    ativo BOOLEAN NOT NULL DEFAULT TRUE,
+    criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_usuarios_loja
+        FOREIGN KEY (loja_id)
+        REFERENCES lojas(id)
+        ON DELETE CASCADE
+);

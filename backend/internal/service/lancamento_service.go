@@ -4,6 +4,7 @@ import (
 	"MercFlow/internal/models"
 	request "MercFlow/internal/models/requests"
 	response "MercFlow/internal/models/response"
+	"MercFlow/internal/repository/departamento"
 	"MercFlow/internal/repository/lancamento"
 	produtodepartamento "MercFlow/internal/repository/produto-departamento"
 	produtomercearia "MercFlow/internal/repository/produto-mercearia"
@@ -13,24 +14,31 @@ import (
 )
 
 type LancamentoService struct {
-	lancamentoRepo lancamento.LancamentoRepository
-	produtoMRepo   produtomercearia.ProdutoMerceariaRepository
-	produtoDRepo   produtodepartamento.ProdutoDepartamentoRepository
+	lancamentoRepo   lancamento.LancamentoRepository
+	produtoMRepo     produtomercearia.ProdutoMerceariaRepository
+	produtoDRepo     produtodepartamento.ProdutoDepartamentoRepository
+	departamentoRepo departamento.DepartamentoRepository
 }
 
 func NovoLancamentoService(
 	lancamentoRepo lancamento.LancamentoRepository,
 	produtoMRepo produtomercearia.ProdutoMerceariaRepository,
 	produtoDRepo produtodepartamento.ProdutoDepartamentoRepository,
+	departamentoRepos ...departamento.DepartamentoRepository,
 ) *LancamentoService {
+	var departamentoRepo departamento.DepartamentoRepository
+	if len(departamentoRepos) > 0 {
+		departamentoRepo = departamentoRepos[0]
+	}
 	return &LancamentoService{
-		lancamentoRepo: lancamentoRepo,
-		produtoMRepo:   produtoMRepo,
-		produtoDRepo:   produtoDRepo,
+		lancamentoRepo:   lancamentoRepo,
+		produtoMRepo:     produtoMRepo,
+		produtoDRepo:     produtoDRepo,
+		departamentoRepo: departamentoRepo,
 	}
 }
 
-func (s *LancamentoService) Criar(request *request.LancamentoRequest) (*response.LancamentoResponse, error) {
+func (s *LancamentoService) Criar(request *request.LancamentoRequest, lojas ...int) (*response.LancamentoResponse, error) {
 	if request == nil {
 		return nil, errors.New("lançamento não informado")
 	}
@@ -39,37 +47,58 @@ func (s *LancamentoService) Criar(request *request.LancamentoRequest) (*response
 		return nil, err
 	}
 
+	lojaID := lojaSolicitada(lojas)
+	if s.departamentoRepo != nil {
+		departamento, err := s.departamentoRepo.BuscarID(request.DepartamentoID)
+		if err != nil || !pertenceALoja(lojaID, departamento.LojaID) {
+			return nil, erroAcessoLoja()
+		}
+	}
+
 	switch request.Tipo {
 	case "TRANSFERENCIA":
-		return s.criarTransferencia(request)
+		return s.criarTransferencia(request, lojaID)
 
 	case "QUEBRA":
-		return s.criarQuebra(request)
+		return s.criarQuebra(request, lojaID)
 
 	default:
 		return nil, errors.New("tipo de lançamento inválido")
 	}
 }
 
-func (s *LancamentoService) Listar() ([]models.Lancamento, error) {
+func (s *LancamentoService) Listar(lojas ...int) ([]models.Lancamento, error) {
 	lancamentos, err := s.lancamentoRepo.Listar()
 	if err != nil {
 		return nil, err
 	}
 
-	return lancamentos, nil
+	lojaID := lojaSolicitada(lojas)
+	if lojaID <= 0 {
+		return lancamentos, nil
+	}
+	filtrados := make([]models.Lancamento, 0, len(lancamentos))
+	for _, lancamento := range lancamentos {
+		if lancamento.LojaID == lojaID {
+			filtrados = append(filtrados, lancamento)
+		}
+	}
+	return filtrados, nil
 }
 
-func (s *LancamentoService) BuscarID(id int) (*models.Lancamento, error) {
+func (s *LancamentoService) BuscarID(id int, lojas ...int) (*models.Lancamento, error) {
 	lancamento, err := s.lancamentoRepo.BuscarID(id)
 	if err != nil {
 		return nil, err
 	}
 
+	if !pertenceALoja(lojaSolicitada(lojas), lancamento.LojaID) {
+		return nil, erroAcessoLoja()
+	}
 	return lancamento, nil
 }
 
-func (s *LancamentoService) CalcularConversao(item request.LancamentoItem) (*response.LancamentoItemResponse, error) {
+func (s *LancamentoService) CalcularConversao(item request.LancamentoItem, lojas ...int) (*response.LancamentoItemResponse, error) {
 	if item.ProdutoMerceariaID == nil {
 		return nil, errors.New("produto da mercearia não informado")
 	}
@@ -77,10 +106,10 @@ func (s *LancamentoService) CalcularConversao(item request.LancamentoItem) (*res
 		return nil, errors.New("produto do departamento não encontrado")
 	}
 
-	return s.processarItemTransferencia(item)
+	return s.processarItemTransferencia(item, lojaSolicitada(lojas))
 }
 
-func (s *LancamentoService) criarTransferencia(request *request.LancamentoRequest) (*response.LancamentoResponse, error) {
+func (s *LancamentoService) criarTransferencia(request *request.LancamentoRequest, lojaID int) (*response.LancamentoResponse, error) {
 	observacao := ""
 
 	if request.Observacao != nil {
@@ -88,6 +117,7 @@ func (s *LancamentoService) criarTransferencia(request *request.LancamentoReques
 	}
 
 	lancamentoModel := &models.Lancamento{
+		LojaID:         lojaID,
 		Tipo:           models.TipoLancamento(request.Tipo),
 		DepartamentoID: request.DepartamentoID,
 		Observacao:     request.Observacao,
@@ -113,7 +143,7 @@ func (s *LancamentoService) criarTransferencia(request *request.LancamentoReques
 			return nil, errors.New("quantidade deve ser maior que 0")
 		}
 
-		itemResponse, err := s.processarItemTransferencia(item)
+		itemResponse, err := s.processarItemTransferencia(item, lojaID)
 		if err != nil {
 			return nil, err
 		}
@@ -140,7 +170,7 @@ func (s *LancamentoService) criarTransferencia(request *request.LancamentoReques
 
 	return lancamentoResponse, nil
 }
-func (s *LancamentoService) criarQuebra(request *request.LancamentoRequest) (*response.LancamentoResponse, error) {
+func (s *LancamentoService) criarQuebra(request *request.LancamentoRequest, lojaID int) (*response.LancamentoResponse, error) {
 	observacao := ""
 
 	if request.Observacao != nil {
@@ -148,6 +178,7 @@ func (s *LancamentoService) criarQuebra(request *request.LancamentoRequest) (*re
 	}
 
 	lancamentoModel := &models.Lancamento{
+		LojaID:         lojaID,
 		Tipo:           models.TipoLancamento(request.Tipo),
 		DepartamentoID: request.DepartamentoID,
 		Observacao:     request.Observacao,
@@ -180,6 +211,9 @@ func (s *LancamentoService) criarQuebra(request *request.LancamentoRequest) (*re
 			if err != nil {
 				return nil, err
 			}
+			if !pertenceALoja(lojaID, produto.LojaID) {
+				return nil, erroAcessoLoja()
+			}
 
 			itemResponse = &response.LancamentoItemResponse{
 				ProdutoMerceariaID: produto.ID,
@@ -193,6 +227,9 @@ func (s *LancamentoService) criarQuebra(request *request.LancamentoRequest) (*re
 			produto, err := s.produtoDRepo.BuscarID(*item.ProdutoDepartamentoID)
 			if err != nil {
 				return nil, err
+			}
+			if !pertenceALoja(lojaID, produto.LojaID) {
+				return nil, erroAcessoLoja()
 			}
 
 			itemResponse = &response.LancamentoItemResponse{
@@ -225,15 +262,21 @@ func (s *LancamentoService) criarQuebra(request *request.LancamentoRequest) (*re
 	return lancamentoResponse, nil
 }
 
-func (s *LancamentoService) processarItemTransferencia(item request.LancamentoItem) (*response.LancamentoItemResponse, error) {
+func (s *LancamentoService) processarItemTransferencia(item request.LancamentoItem, lojaID int) (*response.LancamentoItemResponse, error) {
 	produtoMercearia, err := s.produtoMRepo.BuscarID(*item.ProdutoMerceariaID)
 	if err != nil {
 		return nil, err
+	}
+	if !pertenceALoja(lojaID, produtoMercearia.LojaID) {
+		return nil, erroAcessoLoja()
 	}
 
 	produtoDepartamento, err := s.produtoDRepo.BuscarID(*item.ProdutoDepartamentoID)
 	if err != nil {
 		return nil, err
+	}
+	if !pertenceALoja(lojaID, produtoDepartamento.LojaID) {
+		return nil, erroAcessoLoja()
 	}
 
 	if produtoMercearia.ProdutoGenericoID != produtoDepartamento.ProdutoGenericoID {

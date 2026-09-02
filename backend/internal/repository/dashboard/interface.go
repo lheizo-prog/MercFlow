@@ -5,6 +5,6 @@ import (
 	response "MercFlow/internal/models/response"
 )
 
-type DashboardRepository interface{
+type DashboardRepository interface {
 	BuscarLancamentos(filtros *request.DashboardLancamentoRequest) (*response.DashboardLancamentoResponse, error)
 }

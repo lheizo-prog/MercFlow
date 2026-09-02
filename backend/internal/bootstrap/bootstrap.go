@@ -12,6 +12,7 @@ import (
 	produtodepartamento "MercFlow/internal/repository/produto-departamento"
 	produtogenerico "MercFlow/internal/repository/produto-generico"
 	produtomercearia "MercFlow/internal/repository/produto-mercearia"
+	"MercFlow/internal/repository/usuario"
 	"MercFlow/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -29,12 +30,6 @@ func New() (*Application, error) {
 	router := gin.Default()
 	router.Use(middleware.CORS())
 
-	authHandler := handlers.NovoAuthHandler()
-	router.POST("/login", authHandler.Login)
-	router.GET("/health", func(ctx *gin.Context) {
-		ctx.JSON(200, gin.H{"status": "ok"})
-	})
-
 	cfg, err := config.Load()
 	if err != nil {
 		return nil, err
@@ -44,6 +39,18 @@ func New() (*Application, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	usuarioRepo := usuario.NovoPostgresUsuarioRepository(db)
+	if err := usuarioRepo.CriarOuAtualizarAdminPadrao(); err != nil {
+		return nil, err
+	}
+	usuarioService := service.NovoUsuarioService(usuarioRepo)
+	authHandler := handlers.NovoAuthHandler(usuarioService)
+	usuarioHandler := handlers.NovoUsuarioHandler(usuarioService)
+	router.POST("/login", authHandler.Login)
+	router.GET("/health", func(ctx *gin.Context) {
+		ctx.JSON(200, gin.H{"status": "ok"})
+	})
 
 	produtoRepo := produtogenerico.NovoPostgresProdutoGenericoRepository(db)
 	produtoService := service.NovoProdutoService(produtoRepo)
@@ -62,7 +69,7 @@ func New() (*Application, error) {
 	produto_mHandler := handlers.NovoProdutoMerceariaHandler(produto_mService)
 
 	lancamentoRepo := lancamento.NovoLancamentoPostgresRepositoy(db)
-	lancamentoService := service.NovoLancamentoService(lancamentoRepo, produto_mRepo, produto_dRepo)
+	lancamentoService := service.NovoLancamentoService(lancamentoRepo, produto_mRepo, produto_dRepo, departamentoRepo)
 	lancamentoHandler := handlers.NovoLancamentoHandler(lancamentoService)
 
 	dashboardRepository := dashboardrepo.NovoDashboardPostgresRepository(db)
@@ -73,6 +80,7 @@ func New() (*Application, error) {
 	protected := router.Group("/")
 	protected.Use(auth.AuthMiddleware())
 	{
+		usuarioHandler.HandleUsuarios(protected)
 		produtoHandler.HandleProdutosGenericos(protected)
 		departamentoHandler.HandleDepartamentos(protected)
 		produto_dHandler.HandleProdutosDepartamento(protected)

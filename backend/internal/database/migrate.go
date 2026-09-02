@@ -14,7 +14,7 @@ import (
 
 func RunMigrations() error {
 	cfg, err := config.Load()
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
@@ -22,13 +22,13 @@ func RunMigrations() error {
 		context.Background(),
 		cfg.Database.URL,
 	)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	defer conn.Close(context.Background())
 
 	arquivos, err := os.ReadDir("migrations")
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
@@ -40,7 +40,7 @@ func RunMigrations() error {
 
 	var migrations []string
 
-	for _, arquivo := range arquivos{
+	for _, arquivo := range arquivos {
 		if strings.HasSuffix(arquivo.Name(), ".up.sql") {
 			migrations = append(migrations, arquivo.Name())
 		}
@@ -54,11 +54,11 @@ func RunMigrations() error {
 		fmt.Println("-", m)
 	}
 
-	for _, migration := range migrations{
-		caminho := filepath.Join("migrations",migration)
+	for _, migration := range migrations {
+		caminho := filepath.Join("migrations", migration)
 
 		sqlBytes, err := os.ReadFile(caminho)
-		if err != nil{
+		if err != nil {
 			return err
 		}
 
@@ -66,7 +66,7 @@ func RunMigrations() error {
 			context.Background(),
 			string(sqlBytes),
 		)
-		
+
 	}
 	fmt.Println("Todas as migrations executadas com sucesso!")
 

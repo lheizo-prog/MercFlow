@@ -19,7 +19,7 @@ func NovoPostgresDepartamentoRepository(db *pgxpool.Pool) *PostgresDepartamentoR
 }
 
 func (r *PostgresDepartamentoRepository) Criar(d *models.Departamento) (*models.Departamento, error) {
-	err := r.db.QueryRow(context.Background(), "INSERT INTO departamentos (nome) VALUES ($1) RETURNING id", d.Nome).Scan(&d.ID)
+	err := r.db.QueryRow(context.Background(), "INSERT INTO departamentos (nome, loja_id) VALUES ($1, $2) RETURNING id", d.Nome, d.LojaID).Scan(&d.ID)
 
 	if err != nil {
 		return nil, err
@@ -60,7 +60,7 @@ func (r *PostgresDepartamentoRepository) Atualizar(departamento *models.Departam
 
 func (r *PostgresDepartamentoRepository) Listar() ([]*models.Departamento, error) {
 	rows, err := r.db.Query(context.Background(), `
-		SELECT d.id, d.nome
+		SELECT d.id, d.nome, d.loja_id
 		FROM departamentos d
 		LEFT JOIN lancamentos l ON l.departamento_id = d.id
 		WHERE d.id = (
@@ -72,7 +72,7 @@ func (r *PostgresDepartamentoRepository) Listar() ([]*models.Departamento, error
 			ORDER BY COUNT(l2.id) DESC, d2.id
 			LIMIT 1
 		)
-		GROUP BY d.id, d.nome
+		GROUP BY d.id, d.nome, d.loja_id
 		ORDER BY LOWER(TRIM(d.nome));
 	`)
 	if err != nil {
@@ -87,6 +87,7 @@ func (r *PostgresDepartamentoRepository) Listar() ([]*models.Departamento, error
 		rows.Scan(
 			&departamento.ID,
 			&departamento.Nome,
+			&departamento.LojaID,
 		)
 		lista = append(lista, departamento)
 	}
@@ -97,11 +98,12 @@ func (r *PostgresDepartamentoRepository) Listar() ([]*models.Departamento, error
 func (r *PostgresDepartamentoRepository) BuscarID(id int) (*models.Departamento, error) {
 	departamento := &models.Departamento{}
 
-	row := r.db.QueryRow(context.Background(), "SELECT id, nome FROM departamentos WHERE id = $1;", id)
+	row := r.db.QueryRow(context.Background(), "SELECT id, nome, loja_id FROM departamentos WHERE id = $1;", id)
 
 	err := row.Scan(
 		&departamento.ID,
 		&departamento.Nome,
+		&departamento.LojaID,
 	)
 	if err != nil {
 		return nil, err

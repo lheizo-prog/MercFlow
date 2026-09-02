@@ -14,6 +14,7 @@ import ProdutoGenericoPage from "../pages/ProdutoGenerico/ProdutoGenericoPage";
 import ProdutoDepartamentoPage from "../pages/ProdutoDepartamento/ProdutoDepartamentoPage";
 import ProdutoMerceariaPage from "../pages/ProdutoMercearia/ProdutoMerceariaPage";
 import LancamentoPage from "../pages/Lancamento/LancamentoPage";
+import UsuariosPage from "../pages/Usuarios/UsuariosPage";
 
 function ProtectedLayout() {
   const token = localStorage.getItem("mercflow_token");
@@ -44,6 +45,7 @@ function AppRoutes() {
             path="/produtos_mercearia"
             element={<ProdutoMerceariaPage />}
           />
+          <Route path="/usuarios" element={<UsuariosPage />} />
           <Route path="/lancamentos" element={<LancamentoPage />} />
         </Route>
 

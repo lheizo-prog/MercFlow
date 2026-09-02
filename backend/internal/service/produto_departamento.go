@@ -10,10 +10,10 @@ import (
 	"strings"
 )
 
-type ProdutoDepartamentoService struct{
+type ProdutoDepartamentoService struct {
 	ProdutoDepartamentoRepo produtodepartamento.ProdutoDepartamentoRepository
-	ProdutoRepo produtogenerico.ProdutoGenericoRepository
-	DepartamentoRepo departamento.DepartamentoRepository
+	ProdutoRepo             produtogenerico.ProdutoGenericoRepository
+	DepartamentoRepo        departamento.DepartamentoRepository
 }
 
 func NovoProdutoDepartamentoService(
@@ -21,93 +21,126 @@ func NovoProdutoDepartamentoService(
 	produtoRepo produtogenerico.ProdutoGenericoRepository,
 	departamentoRepo departamento.DepartamentoRepository,
 
-	) *ProdutoDepartamentoService{
+) *ProdutoDepartamentoService {
 	return &ProdutoDepartamentoService{
 		ProdutoDepartamentoRepo: produtoDepartamentoRepo,
-		ProdutoRepo: produtoRepo,
-		DepartamentoRepo: departamentoRepo,
+		ProdutoRepo:             produtoRepo,
+		DepartamentoRepo:        departamentoRepo,
 	}
 }
 
-func (s *ProdutoDepartamentoService)Criar(p *models.ProdutoDepartamento) (*models.ProdutoDepartamento, error){
+func (s *ProdutoDepartamentoService) Criar(p *models.ProdutoDepartamento, lojas ...int) (*models.ProdutoDepartamento, error) {
+	if p != nil {
+		p.LojaID = lojaSolicitada(lojas)
+	}
 	fmt.Println("ENTROU NO CRIAR")
 	fmt.Printf("Produto recebido: %+v\n", p)
-	if err := s.ValidarProdutoD(p); err != nil{
+	if err := s.ValidarProdutoD(p); err != nil {
 		fmt.Println("ERRO VALIDAÇÃO", err)
 		return nil, err
 	}
 	fmt.Println("PASSOU DA VALIDAÇÃO")
 	res, err := s.ProdutoDepartamentoRepo.BuscarInativo(p.ProdutoGenericoID, p.DepartamentoID, p.Codigo)
-	if err == nil{
+	if err == nil {
+		if !pertenceALoja(p.LojaID, res.LojaID) {
+			return nil, erroAcessoLoja()
+		}
 		fmt.Println("ACHOU PRODUTO INATIVO, REATIVANDO")
-		return nil,s.ProdutoDepartamentoRepo.Reativar(res.ID)
+		return nil, s.ProdutoDepartamentoRepo.Reativar(res.ID)
 	}
 	fmt.Println("VOLTOU DO BUSCAR INATIVO")
 	fmt.Printf("Produto recebido: %+v\n", res)
 	return s.ProdutoDepartamentoRepo.Criar(p)
 }
 
-func (s *ProdutoDepartamentoService)Atualizar(p *models.ProdutoDepartamento) (*models.ProdutoDepartamento, error){
-	if err := s.ValidarProdutoD(p); err != nil{
+func (s *ProdutoDepartamentoService) Atualizar(p *models.ProdutoDepartamento, lojas ...int) (*models.ProdutoDepartamento, error) {
+	if p != nil {
+		p.LojaID = lojaSolicitada(lojas)
+	}
+	if err := s.ValidarProdutoD(p); err != nil {
 		return nil, err
 	}
 
+	recurso, err := s.ProdutoDepartamentoRepo.BuscarID(p.ID)
+	if err != nil || !pertenceALoja(lojaSolicitada(lojas), recurso.LojaID) {
+		return nil, erroAcessoLoja()
+	}
 	return s.ProdutoDepartamentoRepo.Atualizar(p)
 }
 
-func(s *ProdutoDepartamentoService)RemoverID(id int) error{
-	if id <= 0{
+func (s *ProdutoDepartamentoService) RemoverID(id int, lojas ...int) error {
+	if id <= 0 {
 		return errors.New("ID inválido")
 	}
 
+	recurso, err := s.ProdutoDepartamentoRepo.BuscarID(id)
+	if err != nil || !pertenceALoja(lojaSolicitada(lojas), recurso.LojaID) {
+		return erroAcessoLoja()
+	}
 	return s.ProdutoDepartamentoRepo.RemoverID(id)
 }
 
-func (s *ProdutoDepartamentoService)Listar() ([]*models.ProdutoDepartamento, error){
+func (s *ProdutoDepartamentoService) Listar(lojas ...int) ([]*models.ProdutoDepartamento, error) {
 	produtos, err := s.ProdutoDepartamentoRepo.Listar()
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 
-	return produtos, nil 
+	lojaID := lojaSolicitada(lojas)
+	if lojaID <= 0 {
+		return produtos, nil
+	}
+	filtrados := make([]*models.ProdutoDepartamento, 0, len(produtos))
+	for _, produto := range produtos {
+		if produto.LojaID == lojaID {
+			filtrados = append(filtrados, produto)
+		}
+	}
+	return filtrados, nil
 }
 
-func (s *ProdutoDepartamentoService)BuscarID(id int) (*models.ProdutoDepartamento, error){
+func (s *ProdutoDepartamentoService) BuscarID(id int, lojas ...int) (*models.ProdutoDepartamento, error) {
 	produto, err := s.ProdutoDepartamentoRepo.BuscarID(id)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
-	
+
+	if !pertenceALoja(lojaSolicitada(lojas), produto.LojaID) {
+		return nil, erroAcessoLoja()
+	}
 	return produto, nil
 }
 
-func (s *ProdutoDepartamentoService)BuscarCodigo(codigo string) (*models.ProdutoDepartamento, error){
+func (s *ProdutoDepartamentoService) BuscarCodigo(codigo string, lojas ...int) (*models.ProdutoDepartamento, error) {
 	produto, err := s.ProdutoDepartamentoRepo.BuscarCodigo(codigo)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 
+	if !pertenceALoja(lojaSolicitada(lojas), produto.LojaID) {
+		return nil, erroAcessoLoja()
+	}
 	return produto, nil
 }
 
-func(s *ProdutoDepartamentoService) ValidarProdutoD(p *models.ProdutoDepartamento) error{
+func (s *ProdutoDepartamentoService) ValidarProdutoD(p *models.ProdutoDepartamento) error {
 	pS := s.ProdutoRepo
 	dS := s.DepartamentoRepo
 
-	if p == nil{
+	if p == nil {
 		return errors.New("produto inválido")
 	}
 
 	p.UnidadeMedida = p.UnidadeMedida.Normalizado()
 
 	//Verificadores dos parâmetros do produto departamento
-	if strings.TrimSpace(p.Nome) == ""{
+	if strings.TrimSpace(p.Nome) == "" {
 		return errors.New("nome do produto é obrigatório")
 	}
-	if strings.TrimSpace(p.Codigo) == ""{
+	if strings.TrimSpace(p.Codigo) == "" {
 		return errors.New("código do produto é obrigatório")
 	}
-	if p.ProdutoGenericoID <= 0 || p.DepartamentoID <= 0{
+	if p.ProdutoGenericoID <= 0 || p.DepartamentoID <= 0 {
 		return errors.New("ID do produto genérico e/ou do departamento inválido(s)")
 	}
 	if !p.UnidadeMedida.Valido() {
@@ -115,15 +148,21 @@ func(s *ProdutoDepartamentoService) ValidarProdutoD(p *models.ProdutoDepartament
 	}
 
 	//Verificador dos repositórios do produto genérico
-	_, err := pS.BuscarID(p.ProdutoGenericoID)
-	if err != nil{
+	produtoGenerico, err := pS.BuscarID(p.ProdutoGenericoID)
+	if err != nil {
 		return errors.New("ID do produto genérico não encontrado")
 	}
+	if !pertenceALoja(p.LojaID, produtoGenerico.LojaID) {
+		return erroAcessoLoja()
+	}
 
-	//Verficador dos repositórios do departamento 
-	_, err = dS.BuscarID(p.DepartamentoID)
-	if err != nil{
+	//Verficador dos repositórios do departamento
+	departamento, err := dS.BuscarID(p.DepartamentoID)
+	if err != nil {
 		return errors.New("ID do departamento raiz não encontrado")
+	}
+	if !pertenceALoja(p.LojaID, departamento.LojaID) {
+		return erroAcessoLoja()
 	}
 
 	return nil

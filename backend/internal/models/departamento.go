@@ -1,8 +1,9 @@
 package models
 
 type Departamento struct {
-	ID   int `json:"id"`
-	Nome string `json:"nome"`
+	ID     int    `json:"id"`
+	LojaID int    `json:"loja_id"`
+	Nome   string `json:"nome"`
 }
 
 func NovoDepartamento(id int, nome string) *Departamento {

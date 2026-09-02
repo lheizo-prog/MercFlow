@@ -1,7 +1,8 @@
 package models
 
 type ProdutoGenerico struct {
-	ID           int `json:"id"`
+	ID           int    `json:"id"`
+	LojaID       int    `json:"loja_id"`
 	Nome         string `json:"nome"`
 	Codigo_Geral string `json:"codigo"`
 }

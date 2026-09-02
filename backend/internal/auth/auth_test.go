@@ -27,3 +27,48 @@ func TestGenerateAndValidateToken(t *testing.T) {
 		t.Fatalf("username inesperado: %s", claims.Username)
 	}
 }
+
+func TestHasPermission(t *testing.T) {
+	perms := []string{"dashboard.read", "lancamento.create"}
+
+	if !HasPermission(perms, "dashboard.read") {
+		t.Fatal("permissão esperada não foi reconhecida")
+	}
+
+	if HasPermission(perms, "produto.create") {
+		t.Fatal("permissão inexistente não deve ser aceita")
+	}
+}
+
+func TestGenerateTokenForUser(t *testing.T) {
+	user := User{
+		ID:          7,
+		Username:    "admin",
+		Nome:        "Administrador",
+		LojaID:      1,
+		Role:        "admin",
+		Permissions: []string{"dashboard.read", "lancamento.create", "produto.create"},
+	}
+
+	token, err := GenerateTokenForUser(user)
+	if err != nil {
+		t.Fatalf("gerar token do usuário falhou: %v", err)
+	}
+
+	claims, err := ValidateToken(token)
+	if err != nil {
+		t.Fatalf("validar token do usuário falhou: %v", err)
+	}
+
+	if claims.UserID != 7 {
+		t.Fatalf("user id inesperado: %d", claims.UserID)
+	}
+
+	if claims.LojaID != 1 {
+		t.Fatalf("loja id inesperado: %d", claims.LojaID)
+	}
+
+	if !HasPermission(claims.Permissions, "produto.create") {
+		t.Fatal("permissão do usuário não foi carregada no token")
+	}
+}

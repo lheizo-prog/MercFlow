@@ -31,6 +31,11 @@ func (r *DashboardPostgresRepository) BuscarLancamentos(
 	param := 1
 
 	where := ""
+	if filtros.LojaID > 0 {
+		where += fmt.Sprintf(" AND base.loja_id = $%d", param)
+		args = append(args, filtros.LojaID)
+		param++
+	}
 
 	if filtros.Tipo != "" {
 		where += fmt.Sprintf(
@@ -110,6 +115,7 @@ func (r *DashboardPostgresRepository) BuscarLancamentos(
 				l.tipo,
 				l.data_lancamento,
 				l.departamento_id,
+				l.loja_id,
 
 				li.produto_mercearia_id,
 				li.produto_departamento_id,
@@ -170,6 +176,7 @@ func (r *DashboardPostgresRepository) BuscarLancamentos(
 				l.tipo,
 				l.data_lancamento,
 				l.departamento_id,
+				l.loja_id,
 
 				li.produto_mercearia_id,
 				li.produto_departamento_id,

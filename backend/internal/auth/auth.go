@@ -13,10 +13,24 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type User struct {
+	ID          int      `json:"id"`
+	Username    string   `json:"username"`
+	Nome        string   `json:"nome"`
+	LojaID      int      `json:"loja_id"`
+	Role        string   `json:"role"`
+	Permissions []string `json:"permissions"`
+}
+
 type Claims struct {
-	Username string `json:"username"`
-	Iat      int64  `json:"iat"`
-	Exp      int64  `json:"exp"`
+	UserID      int      `json:"user_id"`
+	Username    string   `json:"username"`
+	Nome        string   `json:"nome"`
+	LojaID      int      `json:"loja_id"`
+	Role        string   `json:"role"`
+	Permissions []string `json:"permissions"`
+	Iat         int64    `json:"iat"`
+	Exp         int64    `json:"exp"`
 }
 
 func getEnv(name, fallback string) string {
@@ -38,16 +52,61 @@ func defaultJWTSecret() string {
 	return getEnv("JWT_SECRET", "mercflow-admin-secret-key")
 }
 
+func defaultAdminPermissions() []string {
+	return []string{
+		"dashboard.read",
+		"lancamento.create",
+		"lancamento.read",
+		"produto.read",
+		"produto.create",
+		"produto.update",
+		"departamento.read",
+		"departamento.create",
+		"usuario.read",
+		"usuario.create",
+		"usuario.update",
+	}
+}
+
+func defaultAdminUser() User {
+	return User{
+		ID:          1,
+		Username:    defaultAdminUsername(),
+		Nome:        "Administrador",
+		LojaID:      1,
+		Role:        "super_admin",
+		Permissions: defaultAdminPermissions(),
+	}
+}
+
+func HasPermission(permissions []string, permission string) bool {
+	for _, item := range permissions {
+		if strings.EqualFold(strings.TrimSpace(item), strings.TrimSpace(permission)) {
+			return true
+		}
+	}
+	return false
+}
+
 func CheckCredentials(username, password string) bool {
 	return strings.EqualFold(username, defaultAdminUsername()) && password == defaultAdminPassword()
 }
 
 func GenerateToken(username string) (string, error) {
+	return GenerateTokenForUser(defaultAdminUser())
+}
+
+func GenerateTokenForUser(user User) (string, error) {
 	header := map[string]string{"alg": "HS256", "typ": "JWT"}
 	claims := Claims{
-		Username: username,
-		Iat:      time.Now().Unix(),
-		Exp:      time.Now().Add(8 * time.Hour).Unix(),
+		UserID:      user.ID,
+		Username:    user.Username,
+		Nome:        user.Nome,
+		LojaID:      user.LojaID,
+		Role:        user.Role,
+		Permissions: user.Permissions,
+		Iat:         time.Now().Unix(),
+		Exp:         time.Now().Add(8 * time.Hour).Unix(),
 	}
 
 	headerJSON, err := json.Marshal(header)
@@ -117,6 +176,32 @@ func signHMAC(message string) ([]byte, error) {
 	return h.Sum(nil), nil
 }
 
+func RequirePermission(permission string) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		claimsValue, exists := ctx.Get("claims")
+		if !exists {
+			ctx.JSON(401, gin.H{"erro": "usuário não autenticado"})
+			ctx.Abort()
+			return
+		}
+
+		claims, ok := claimsValue.(Claims)
+		if !ok {
+			ctx.JSON(401, gin.H{"erro": "claims inválidas"})
+			ctx.Abort()
+			return
+		}
+
+		if claims.Role != "super_admin" && !HasPermission(claims.Permissions, permission) {
+			ctx.JSON(403, gin.H{"erro": "permissão insuficiente"})
+			ctx.Abort()
+			return
+		}
+
+		ctx.Next()
+	}
+}
+
 func AuthMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if ctx.Request.Method == "OPTIONS" {
@@ -152,6 +237,11 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		ctx.Set("username", claims.Username)
+		ctx.Set("user_id", claims.UserID)
+		ctx.Set("loja_id", claims.LojaID)
+		ctx.Set("role", claims.Role)
+		ctx.Set("permissions", claims.Permissions)
+		ctx.Set("claims", claims)
 		ctx.Next()
 	}
 }

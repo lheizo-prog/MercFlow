@@ -24,7 +24,7 @@ func NovoProdutoMerceariaPostgresRepository(db *pgxpool.Pool) *ProdutoMerceariaP
 func (r *ProdutoMerceariaPostgresRepository) Criar(p *models.ProdutoMercearia) (*models.ProdutoMercearia, error) {
 	err := r.db.QueryRow(
 		context.Background(),
-		"INSERT INTO produtos_mercearia (produto_generico_id, sku, marca, descricao, codigo_barras, quantidade_embalagem, unidade_medida) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, ativo",
+		"INSERT INTO produtos_mercearia (produto_generico_id, sku, marca, descricao, codigo_barras, quantidade_embalagem, unidade_medida, loja_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, ativo",
 		p.ProdutoGenericoID,
 		p.SKU,
 		p.Marca,
@@ -32,8 +32,9 @@ func (r *ProdutoMerceariaPostgresRepository) Criar(p *models.ProdutoMercearia) (
 		p.CodigoBarras,
 		p.QuantidadeEmbalagem,
 		p.UnidadeMedida,
+		p.LojaID,
 	).Scan(&p.ID, &p.Ativo)
-	if err != nil{
+	if err != nil {
 		fmt.Println("Erro ao criar produto mercearia:", err)
 		return nil, err
 	}
@@ -60,14 +61,14 @@ func (r *ProdutoMerceariaPostgresRepository) Atualizar(p *models.ProdutoMerceari
 	if response.RowsAffected() == 0 {
 		return nil, errors.New("produto não encontrado")
 	}
-	
+
 	return p, nil
 }
 
 func (r *ProdutoMerceariaPostgresRepository) Listar() ([]*models.ProdutoMercearia, error) {
 	rows, err := r.db.Query(
 		context.Background(),
-		"SELECT pm.id, pm.produto_generico_id, pg.nome, pm.sku, pm.marca, pm.descricao, pm.codigo_barras, pm.quantidade_embalagem, pm.unidade_medida, pm.ativo FROM produtos_mercearia pm JOIN produtos_genericos pg ON pm.produto_generico_id = pg.id",
+		"SELECT pm.id, pm.loja_id, pm.produto_generico_id, pg.nome, pm.sku, pm.marca, pm.descricao, pm.codigo_barras, pm.quantidade_embalagem, pm.unidade_medida, pm.ativo FROM produtos_mercearia pm JOIN produtos_genericos pg ON pm.produto_generico_id = pg.id",
 	)
 	if err != nil {
 		return nil, err
@@ -80,6 +81,7 @@ func (r *ProdutoMerceariaPostgresRepository) Listar() ([]*models.ProdutoMerceari
 		produto := &models.ProdutoMercearia{}
 		err := rows.Scan(
 			&produto.ID,
+			&produto.LojaID,
 			&produto.ProdutoGenericoID,
 			&produto.ProdutoGenericoNome,
 			&produto.SKU,
@@ -108,13 +110,13 @@ func (r *ProdutoMerceariaPostgresRepository) RemoverID(id int) error {
 		"DELETE FROM produtos_mercearia WHERE id = $1;",
 		id,
 	)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	if response.RowsAffected() == 0 {
 		return errors.New("produto não encontrado")
 	}
-	
+
 	return nil
 }
 
@@ -123,12 +125,13 @@ func (r *ProdutoMerceariaPostgresRepository) BuscarID(id int) (*models.ProdutoMe
 
 	row := r.db.QueryRow(
 		context.Background(),
-		"SELECT pm.id, pm.produto_generico_id, pg.nome, pm.sku, pm.marca, pm.descricao, pm.codigo_barras, pm.quantidade_embalagem, pm.unidade_medida, pm.ativo FROM produtos_mercearia pm JOIN produtos_genericos pg ON pm.produto_generico_id = pg.id WHERE pm.id = $1;",
+		"SELECT pm.id, pm.loja_id, pm.produto_generico_id, pg.nome, pm.sku, pm.marca, pm.descricao, pm.codigo_barras, pm.quantidade_embalagem, pm.unidade_medida, pm.ativo FROM produtos_mercearia pm JOIN produtos_genericos pg ON pm.produto_generico_id = pg.id WHERE pm.id = $1;",
 		id,
 	)
 
 	err := row.Scan(
 		&produto.ID,
+		&produto.LojaID,
 		&produto.ProdutoGenericoID,
 		&produto.ProdutoGenericoNome,
 		&produto.SKU,
@@ -145,7 +148,7 @@ func (r *ProdutoMerceariaPostgresRepository) BuscarID(id int) (*models.ProdutoMe
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return produto, nil
 }
 
@@ -154,12 +157,13 @@ func (r *ProdutoMerceariaPostgresRepository) BuscarSKU(sku string) (*models.Prod
 
 	row := r.db.QueryRow(
 		context.Background(),
-		"SELECT pm.id, pm.produto_generico_id, pg.nome, pm.sku, pm.marca, pm.descricao, pm.codigo_barras, pm.quantidade_embalagem, pm.unidade_medida, pm.ativo FROM produtos_mercearia pm JOIN produtos_genericos pg ON pm.produto_generico_id = pg.id WHERE pm.sku = $1;",
+		"SELECT pm.id, pm.loja_id, pm.produto_generico_id, pg.nome, pm.sku, pm.marca, pm.descricao, pm.codigo_barras, pm.quantidade_embalagem, pm.unidade_medida, pm.ativo FROM produtos_mercearia pm JOIN produtos_genericos pg ON pm.produto_generico_id = pg.id WHERE pm.sku = $1;",
 		sku,
 	)
 
 	err := row.Scan(
 		&produto.ID,
+		&produto.LojaID,
 		&produto.ProdutoGenericoID,
 		&produto.ProdutoGenericoNome,
 		&produto.SKU,
@@ -176,7 +180,7 @@ func (r *ProdutoMerceariaPostgresRepository) BuscarSKU(sku string) (*models.Prod
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return produto, nil
 }
 
@@ -185,12 +189,13 @@ func (r *ProdutoMerceariaPostgresRepository) BuscarCodigoBarras(codigoBarras str
 
 	row := r.db.QueryRow(
 		context.Background(),
-		"SELECT pm.id, pm.produto_generico_id, pg.nome, pm.sku, pm.marca, pm.descricao, pm.codigo_barras, pm.quantidade_embalagem, pm.unidade_medida, pm.ativo FROM produtos_mercearia pm JOIN produtos_genericos pg ON pm.produto_generico_id = pg.id WHERE pm.codigo_barras = $1;",
+		"SELECT pm.id, pm.loja_id, pm.produto_generico_id, pg.nome, pm.sku, pm.marca, pm.descricao, pm.codigo_barras, pm.quantidade_embalagem, pm.unidade_medida, pm.ativo FROM produtos_mercearia pm JOIN produtos_genericos pg ON pm.produto_generico_id = pg.id WHERE pm.codigo_barras = $1;",
 		codigoBarras,
 	)
 
 	err := row.Scan(
 		&produto.ID,
+		&produto.LojaID,
 		&produto.ProdutoGenericoID,
 		&produto.ProdutoGenericoNome,
 		&produto.SKU,
@@ -216,20 +221,21 @@ func (r *ProdutoMerceariaPostgresRepository) Buscar(texto string) ([]*models.Pro
 
 	rows, err := r.db.Query(
 		context.Background(),
-		"SELECT pm.id, pm.produto_generico_id,pg.nome, pm.sku, pm.marca, pm.descricao, pm.codigo_barras, pm.quantidade_embalagem, pm.unidade_medida, pm.ativo FROM produtos_mercearia pm JOIN produtos_genericos pg ON pm.produto_generico_id = pg.id WHERE pm.ativo = TRUE AND (LOWER(pm.sku) LIKE '%' || $1 || '%' OR LOWER(pm.marca) LIKE '%' || $1 || '%' OR LOWER(pm.descricao) LIKE '%' || $1 || '%' OR LOWER(pm.codigo_barras) LIKE '%' || $1 || '%') ORDER BY CASE WHEN LOWER(pm.sku) = $1 THEN 1 WHEN LOWER(pm.codigo_barras) = $1 THEN 2 ELSE 3 END, pm.marca;",
+		"SELECT pm.id, pm.loja_id, pm.produto_generico_id,pg.nome, pm.sku, pm.marca, pm.descricao, pm.codigo_barras, pm.quantidade_embalagem, pm.unidade_medida, pm.ativo FROM produtos_mercearia pm JOIN produtos_genericos pg ON pm.produto_generico_id = pg.id WHERE pm.ativo = TRUE AND (LOWER(pm.sku) LIKE '%' || $1 || '%' OR LOWER(pm.marca) LIKE '%' || $1 || '%' OR LOWER(pm.descricao) LIKE '%' || $1 || '%' OR LOWER(pm.codigo_barras) LIKE '%' || $1 || '%') ORDER BY CASE WHEN LOWER(pm.sku) = $1 THEN 1 WHEN LOWER(pm.codigo_barras) = $1 THEN 2 ELSE 3 END, pm.marca;",
 		texto,
 	)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
 	lista := []*models.ProdutoMercearia{}
 
-	for rows.Next(){
+	for rows.Next() {
 		produto := &models.ProdutoMercearia{}
 		if err := rows.Scan(
 			&produto.ID,
+			&produto.LojaID,
 			&produto.ProdutoGenericoID,
 			&produto.ProdutoGenericoNome,
 			&produto.SKU,
@@ -244,8 +250,8 @@ func (r *ProdutoMerceariaPostgresRepository) Buscar(texto string) ([]*models.Pro
 		}
 		lista = append(lista, produto)
 	}
-	if err := rows.Err(); err != nil{
-		return nil ,err
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return lista, nil
@@ -258,12 +264,13 @@ func (r *ProdutoMerceariaPostgresRepository) BuscarInativo(sku string) (*models.
 
 	row := r.db.QueryRow(
 		context.Background(),
-		"SELECT pm.id ,pm.produto_generico_id,pg.nome, pm.sku, pm.marca, pm.descricao, pm.codigo_barras, pm.quantidade_embalagem, pm.unidade_medida, pm.ativo FROM produtos_mercearia pm JOIN s pg ON pm.produto_generico_id = pg.id WHERE pm.sku = $1 AND pm.ativo = FALSE;",
+		"SELECT pm.id, pm.loja_id, pm.produto_generico_id, pg.nome, pm.sku, pm.marca, pm.descricao, pm.codigo_barras, pm.quantidade_embalagem, pm.unidade_medida, pm.ativo FROM produtos_mercearia pm JOIN produtos_genericos pg ON pm.produto_generico_id = pg.id WHERE pm.sku = $1 AND pm.ativo = FALSE;",
 		sku,
 	)
 
 	err := row.Scan(
 		&produto.ID,
+		&produto.LojaID,
 		&produto.ProdutoGenericoID,
 		&produto.ProdutoGenericoNome,
 		&produto.SKU,
@@ -296,6 +303,6 @@ func (r *ProdutoMerceariaPostgresRepository) Reativar(id int) error {
 	if response.RowsAffected() == 0 {
 		return errors.New("produto não encontrado")
 	}
-	
+
 	return nil
 }

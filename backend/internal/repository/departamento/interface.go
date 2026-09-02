@@ -9,4 +9,3 @@ type DepartamentoRepository interface {
 	Listar() ([]*models.Departamento, error)
 	BuscarID(id int) (*models.Departamento, error)
 }
-

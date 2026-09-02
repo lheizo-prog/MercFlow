@@ -32,6 +32,7 @@ function Sidebar({ aberto, onNavegar }: SidebarProps) {
     { to: "/departamentos", label: "Departamentos" },
     { to: "/produtos_departamento", label: "Produtos Departamento" },
     { to: "/produtos_mercearia", label: "Produtos Mercearia" },
+    { to: "/usuarios", label: "Usuários" },
     { to: "/lancamentos", label: "Lançamentos" },
   ];
 

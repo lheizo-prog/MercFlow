@@ -10,92 +10,91 @@ import (
 
 type produtoMerceariaRepositoryMock struct {
 	produto *models.ProdutoMercearia
-	err error
+	err     error
 }
 
-type produtoDepartamentoRepositoryMock struct{
+type produtoDepartamentoRepositoryMock struct {
 	produto *models.ProdutoDepartamento
-	err error
+	err     error
 }
 
-type lancamentoRepositoryMock struct{
+type lancamentoRepositoryMock struct {
 	lancamento *models.Lancamento
-	err error
+	err        error
 }
 
-//Produto mercearia
-func (m *produtoMerceariaRepositoryMock)Criar(p *models.ProdutoMercearia) (*models.ProdutoMercearia, error){
+// Produto mercearia
+func (m *produtoMerceariaRepositoryMock) Criar(p *models.ProdutoMercearia) (*models.ProdutoMercearia, error) {
 	return m.produto, m.err
 }
-func (m *produtoMerceariaRepositoryMock)Atualizar(p *models.ProdutoMercearia) (*models.ProdutoMercearia, error){
+func (m *produtoMerceariaRepositoryMock) Atualizar(p *models.ProdutoMercearia) (*models.ProdutoMercearia, error) {
 	return m.produto, m.err
 }
-func (m *produtoMerceariaRepositoryMock)Listar() ([]*models.ProdutoMercearia, error){
+func (m *produtoMerceariaRepositoryMock) Listar() ([]*models.ProdutoMercearia, error) {
 	return nil, m.err
 }
-func (m *produtoMerceariaRepositoryMock)RemoverID(id int) error{
+func (m *produtoMerceariaRepositoryMock) RemoverID(id int) error {
 	return m.err
 }
-func (m *produtoMerceariaRepositoryMock)BuscarID(id int) (*models.ProdutoMercearia, error){
+func (m *produtoMerceariaRepositoryMock) BuscarID(id int) (*models.ProdutoMercearia, error) {
 	return m.produto, m.err
 }
-func (m *produtoMerceariaRepositoryMock)BuscarSKU(sku string) (*models.ProdutoMercearia, error){
+func (m *produtoMerceariaRepositoryMock) BuscarSKU(sku string) (*models.ProdutoMercearia, error) {
 	return m.produto, m.err
 }
-func (m *produtoMerceariaRepositoryMock)BuscarCodigoBarras(codigo string) (*models.ProdutoMercearia, error){
+func (m *produtoMerceariaRepositoryMock) BuscarCodigoBarras(codigo string) (*models.ProdutoMercearia, error) {
 	return m.produto, m.err
 }
-func (m *produtoMerceariaRepositoryMock)Buscar(texto string) ([]*models.ProdutoMercearia, error){
+func (m *produtoMerceariaRepositoryMock) Buscar(texto string) ([]*models.ProdutoMercearia, error) {
 	return nil, m.err
 }
-func (m *produtoMerceariaRepositoryMock)BuscarInativo(sku string) (*models.ProdutoMercearia, error){
+func (m *produtoMerceariaRepositoryMock) BuscarInativo(sku string) (*models.ProdutoMercearia, error) {
 	return m.produto, m.err
 }
-func (m *produtoMerceariaRepositoryMock)Reativar(id int) error{
+func (m *produtoMerceariaRepositoryMock) Reativar(id int) error {
 	return m.err
 }
 
-
-//Produto departamento
-func (d *produtoDepartamentoRepositoryMock)Criar(p *models.ProdutoDepartamento) (*models.ProdutoDepartamento, error){
+// Produto departamento
+func (d *produtoDepartamentoRepositoryMock) Criar(p *models.ProdutoDepartamento) (*models.ProdutoDepartamento, error) {
 	return d.produto, d.err
 }
-func (d *produtoDepartamentoRepositoryMock)Atualizar(p *models.ProdutoDepartamento) (*models.ProdutoDepartamento, error){
+func (d *produtoDepartamentoRepositoryMock) Atualizar(p *models.ProdutoDepartamento) (*models.ProdutoDepartamento, error) {
 	return d.produto, d.err
 }
-func (d *produtoDepartamentoRepositoryMock)Listar() ([]*models.ProdutoDepartamento, error){
+func (d *produtoDepartamentoRepositoryMock) Listar() ([]*models.ProdutoDepartamento, error) {
 	return nil, d.err
 }
-func (d *produtoDepartamentoRepositoryMock)RemoverID(id int) error{
+func (d *produtoDepartamentoRepositoryMock) RemoverID(id int) error {
 	return d.err
 }
-func (d *produtoDepartamentoRepositoryMock)BuscarID(id int) (*models.ProdutoDepartamento, error){
+func (d *produtoDepartamentoRepositoryMock) BuscarID(id int) (*models.ProdutoDepartamento, error) {
 	return d.produto, d.err
 }
-func (d *produtoDepartamentoRepositoryMock)BuscarSKU(sku string) (*models.ProdutoDepartamento, error){
+func (d *produtoDepartamentoRepositoryMock) BuscarSKU(sku string) (*models.ProdutoDepartamento, error) {
 	return d.produto, d.err
 }
-func (d *produtoDepartamentoRepositoryMock)BuscarCodigo(codigo string) (*models.ProdutoDepartamento, error){
+func (d *produtoDepartamentoRepositoryMock) BuscarCodigo(codigo string) (*models.ProdutoDepartamento, error) {
 	return d.produto, d.err
 }
-func (d *produtoDepartamentoRepositoryMock)Buscar(texto string) ([]*models.ProdutoDepartamento, error){
+func (d *produtoDepartamentoRepositoryMock) Buscar(texto string) ([]*models.ProdutoDepartamento, error) {
 	return nil, d.err
 }
-func (d *produtoDepartamentoRepositoryMock)BuscarInativo(departamentoID, produtoGenericoID int, codigo string) (*models.ProdutoDepartamento, error){
+func (d *produtoDepartamentoRepositoryMock) BuscarInativo(departamentoID, produtoGenericoID int, codigo string) (*models.ProdutoDepartamento, error) {
 	return d.produto, d.err
 }
-func (d *produtoDepartamentoRepositoryMock)Reativar(id int) error{
+func (d *produtoDepartamentoRepositoryMock) Reativar(id int) error {
 	return d.err
 }
 
-//Lançamento
-func (l *lancamentoRepositoryMock)Criar(lancamento *models.Lancamento) (*models.Lancamento, error){
+// Lançamento
+func (l *lancamentoRepositoryMock) Criar(lancamento *models.Lancamento) (*models.Lancamento, error) {
 	return l.lancamento, l.err
 }
-func (l *lancamentoRepositoryMock)BuscarID(id int) (*models.Lancamento, error){
+func (l *lancamentoRepositoryMock) BuscarID(id int) (*models.Lancamento, error) {
 	return l.lancamento, l.err
 }
-func (l *lancamentoRepositoryMock)Listar() ([]models.Lancamento, error){
+func (l *lancamentoRepositoryMock) Listar() ([]models.Lancamento, error) {
 	return nil, l.err
 }
 
@@ -144,7 +143,7 @@ func TestCriarQuebraProdutoMercearia(t *testing.T) {
 		DepartamentoID: 1,
 		Itens: []request.LancamentoItem{
 			{
-				ProdutoMerceariaID:   &produtoMercearia.ID,
+				ProdutoMerceariaID:    &produtoMercearia.ID,
 				ProdutoDepartamentoID: nil,
 				Quantidade:            quantidade,
 			},
@@ -255,11 +254,11 @@ func TestCriarQuebraProdutoMerceariaMultiplicaQuantidadeEmbalagem(t *testing.T) 
 
 func TestCriarQuebraProdutoDepartamento(t *testing.T) {
 	produtoDepartamento := &models.ProdutoDepartamento{
-		ID:               20,
+		ID:                20,
 		ProdutoGenericoID: 5,
-		Nome:             "Arroz 1kg",
-		Codigo:           "ARR-01",
-		UnidadeMedida:    "KG",
+		Nome:              "Arroz 1kg",
+		Codigo:            "ARR-01",
+		UnidadeMedida:     "KG",
 	}
 
 	produtoDRepo := &produtoDepartamentoRepositoryMock{
@@ -293,7 +292,7 @@ func TestCriarQuebraProdutoDepartamento(t *testing.T) {
 		DepartamentoID: 1,
 		Itens: []request.LancamentoItem{
 			{
-				ProdutoMerceariaID:   nil,
+				ProdutoMerceariaID:    nil,
 				ProdutoDepartamentoID: &produtoDepartamento.ID,
 				Quantidade:            quantidade,
 			},
@@ -449,7 +448,7 @@ func TestCriarTransferencia(t *testing.T) {
 			Tipo:           "TRANSFERENCIA",
 			DepartamentoID: 1,
 			Itens: []request.LancamentoItem{{
-				ProdutoMerceariaID:   &produtoMercearia.ID,
+				ProdutoMerceariaID:    &produtoMercearia.ID,
 				ProdutoDepartamentoID: &produtoDepartamentoDestino.ID,
 				Quantidade:            2,
 			}},
@@ -498,7 +497,7 @@ func TestCriarTransferencia(t *testing.T) {
 		DepartamentoID: 1,
 		Itens: []request.LancamentoItem{
 			{
-				ProdutoMerceariaID:   &produtoMercearia.ID,
+				ProdutoMerceariaID:    &produtoMercearia.ID,
 				ProdutoDepartamentoID: &produtoDepartamento.ID,
 				Quantidade:            quantidade,
 			},
@@ -788,7 +787,7 @@ func TestCriarTransferenciaErros(t *testing.T) {
 			DepartamentoID: 1,
 			Itens: []request.LancamentoItem{
 				{
-					ProdutoMerceariaID:   &produtoMercearia.ID,
+					ProdutoMerceariaID:    &produtoMercearia.ID,
 					ProdutoDepartamentoID: &produtoDepartamento.ID,
 					Quantidade:            1,
 				},
@@ -824,7 +823,7 @@ func TestCriarTransferenciaErros(t *testing.T) {
 			DepartamentoID: 1,
 			Itens: []request.LancamentoItem{
 				{
-					ProdutoMerceariaID:   &produtoMercearia.ID,
+					ProdutoMerceariaID:    &produtoMercearia.ID,
 					ProdutoDepartamentoID: &produtoDepartamento.ID,
 					Quantidade:            1,
 				},
@@ -859,7 +858,7 @@ func TestCriarTransferenciaErros(t *testing.T) {
 			DepartamentoID: 1,
 			Itens: []request.LancamentoItem{
 				{
-					ProdutoMerceariaID:   &produtoMercearia.ID,
+					ProdutoMerceariaID:    &produtoMercearia.ID,
 					ProdutoDepartamentoID: &produtoDiferente.ID,
 					Quantidade:            1,
 				},
@@ -902,7 +901,7 @@ func TestCriarTransferenciaErros(t *testing.T) {
 			DepartamentoID: 1,
 			Itens: []request.LancamentoItem{
 				{
-					ProdutoMerceariaID:   &produtoMercearia.ID,
+					ProdutoMerceariaID:    &produtoMercearia.ID,
 					ProdutoDepartamentoID: &produtoDepartamentoIncompativel.ID,
 					Quantidade:            1,
 				},
@@ -920,11 +919,11 @@ func TestCriarTransferenciaErros(t *testing.T) {
 
 func TestCalcularFatorConversao(t *testing.T) {
 	testes := []struct {
-		nome           string
-		origem         string
-		destino        string
-		fatorEsperado  float64
-		deveDarErro    bool
+		nome          string
+		origem        string
+		destino       string
+		fatorEsperado float64
+		deveDarErro   bool
 	}{
 		{
 			nome:          "kg para g",

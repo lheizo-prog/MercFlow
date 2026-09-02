@@ -4,7 +4,7 @@ import (
 	"MercFlow/internal/models"
 )
 
-type ProdutoGenericoRepository interface{
+type ProdutoGenericoRepository interface {
 	Criar(produto *models.ProdutoGenerico) (*models.ProdutoGenerico, error)
 	RemoverID(id int) error
 	BuscarID(id int) (*models.ProdutoGenerico, error)
