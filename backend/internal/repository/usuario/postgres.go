@@ -27,7 +27,7 @@ func (r *PostgresUsuarioRepository) BuscarPorUsername(username string) (*models.
 
 	usuario := &models.Usuario{}
 	row := r.db.QueryRow(context.Background(), `
-		SELECT id, nome, username, senha_hash, loja_id, perfil, permissoes, ativo, criado_em
+		SELECT id, nome, username, senha_hash, loja_id, perfil, permissoes, ativo, criado_em::text
 		FROM usuarios
 		WHERE LOWER(username) = LOWER($1)
 		LIMIT 1;
@@ -57,7 +57,7 @@ func (r *PostgresUsuarioRepository) BuscarPorID(id int) (*models.Usuario, error)
 
 	usuario := &models.Usuario{}
 	row := r.db.QueryRow(context.Background(), `
-		SELECT id, nome, username, senha_hash, loja_id, perfil, permissoes, ativo, criado_em
+		SELECT id, nome, username, senha_hash, loja_id, perfil, permissoes, ativo, criado_em::text
 		FROM usuarios
 		WHERE id = $1
 		LIMIT 1;
@@ -86,7 +86,7 @@ func (r *PostgresUsuarioRepository) ListarPorLoja(lojaID int) ([]*models.Usuario
 	}
 
 	rows, err := r.db.Query(context.Background(), `
-		SELECT id, nome, username, senha_hash, loja_id, perfil, permissoes, ativo, criado_em
+		SELECT id, nome, username, senha_hash, loja_id, perfil, permissoes, ativo, criado_em::text
 		FROM usuarios
 		WHERE loja_id = $1
 		ORDER BY nome ASC;
@@ -120,7 +120,7 @@ func (r *PostgresUsuarioRepository) ListarPorLoja(lojaID int) ([]*models.Usuario
 
 func (r *PostgresUsuarioRepository) ListarTodos() ([]*models.Usuario, error) {
 	rows, err := r.db.Query(context.Background(), `
-		SELECT id, nome, username, senha_hash, loja_id, perfil, permissoes, ativo, criado_em
+		SELECT id, nome, username, senha_hash, loja_id, perfil, permissoes, ativo, criado_em::text
 		FROM usuarios ORDER BY loja_id, nome ASC;
 	`)
 	if err != nil {
