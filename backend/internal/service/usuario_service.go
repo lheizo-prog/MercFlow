@@ -25,7 +25,7 @@ func (s *UsuarioService) Autenticar(username, senha string) (*models.Usuario, er
 
 	usuario, err := s.repo.BuscarPorUsername(username)
 	if err != nil || usuario == nil {
-		log.Printf("autenticacao recusada: username=%q motivo=usuario_nao_encontrado", username)
+		log.Printf("autenticacao recusada: username=%q motivo=usuario_nao_encontrado detalhe=%v", username, err)
 		return nil, errors.New("credenciais inválidas")
 	}
 
