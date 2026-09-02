@@ -9,6 +9,7 @@ import (
 	dashboardrepo "MercFlow/internal/repository/dashboard"
 	"MercFlow/internal/repository/departamento"
 	"MercFlow/internal/repository/lancamento"
+	"MercFlow/internal/repository/loja"
 	produtodepartamento "MercFlow/internal/repository/produto-departamento"
 	produtogenerico "MercFlow/internal/repository/produto-generico"
 	produtomercearia "MercFlow/internal/repository/produto-mercearia"
@@ -47,6 +48,8 @@ func New() (*Application, error) {
 	usuarioService := service.NovoUsuarioService(usuarioRepo)
 	authHandler := handlers.NovoAuthHandler(usuarioService)
 	usuarioHandler := handlers.NovoUsuarioHandler(usuarioService)
+	lojaRepo := loja.NovoPostgresLojaRepository(db)
+	lojaHandler := handlers.NovoLojaHandler(lojaRepo)
 	router.POST("/login", authHandler.Login)
 	router.GET("/health", func(ctx *gin.Context) {
 		ctx.JSON(200, gin.H{"status": "ok"})
@@ -81,6 +84,7 @@ func New() (*Application, error) {
 	protected.Use(auth.AuthMiddleware())
 	{
 		usuarioHandler.HandleUsuarios(protected)
+		lojaHandler.HandleLojas(protected)
 		produtoHandler.HandleProdutosGenericos(protected)
 		departamentoHandler.HandleDepartamentos(protected)
 		produto_dHandler.HandleProdutosDepartamento(protected)

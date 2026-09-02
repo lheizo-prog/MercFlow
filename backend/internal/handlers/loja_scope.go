@@ -3,6 +3,7 @@ package handlers
 import (
 	"MercFlow/internal/auth"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,9 +15,21 @@ func lojaDoUsuario(ctx *gin.Context) (int, bool) {
 		return 0, false
 	}
 	if claims.Role == "super_admin" {
+		if lojaID, err := strconv.Atoi(ctx.GetHeader("X-Loja-ID")); err == nil && lojaID > 0 {
+			return lojaID, true
+		}
 		return 0, true
 	}
+	if claims.Role == "admin" {
+		if lojaID, err := strconv.Atoi(ctx.GetHeader("X-Loja-ID")); err == nil && lojaID > 0 {
+			return lojaID, true
+		}
+	}
 	return claims.LojaID, true
+}
+
+func perfilPodeNavegarLojas(claims auth.Claims) bool {
+	return strings.EqualFold(claims.Role, "admin") || strings.EqualFold(claims.Role, "super_admin")
 }
 
 func lojaParaCriacao(ctx *gin.Context) (int, bool) {

@@ -3,6 +3,7 @@ package dashboard
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	request "MercFlow/internal/models/requests"
 	response "MercFlow/internal/models/response"
@@ -31,10 +32,19 @@ func (r *DashboardPostgresRepository) BuscarLancamentos(
 	param := 1
 
 	where := ""
-	if filtros.LojaID > 0 {
+	if filtros.LojaID > 0 && len(filtros.LojaIDs) == 0 {
 		where += fmt.Sprintf(" AND base.loja_id = $%d", param)
 		args = append(args, filtros.LojaID)
 		param++
+	}
+	if len(filtros.LojaIDs) > 0 {
+		placeholders := make([]string, len(filtros.LojaIDs))
+		for index, lojaID := range filtros.LojaIDs {
+			placeholders[index] = fmt.Sprintf("$%d", param)
+			args = append(args, lojaID)
+			param++
+		}
+		where += " AND base.loja_id IN (" + strings.Join(placeholders, ", ") + ")"
 	}
 
 	if filtros.Tipo != "" {

@@ -24,6 +24,15 @@ function LoginPage() {
       }
 
       localStorage.setItem("mercflow_token", token);
+      localStorage.setItem(
+        "mercflow_usuario",
+        JSON.stringify({
+          username: response.data?.username ?? username,
+          nome: response.data?.nome ?? username,
+          loja_id: response.data?.loja_id,
+          perfil: response.data?.perfil,
+        }),
+      );
       navigate("/", { replace: true });
     } catch (error) {
       setErro("Usuário ou senha inválidos.");

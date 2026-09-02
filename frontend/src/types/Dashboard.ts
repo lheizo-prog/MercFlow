@@ -5,6 +5,7 @@ export interface DashboardLancamentoFiltros {
   departamento_id?: number;
   produto_id?: number;
   produto_generico_id?: number;
+  loja_ids?: string;
 }
 
 export interface DashboardLancamentoResumo {

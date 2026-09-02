@@ -55,6 +55,8 @@ func defaultJWTSecret() string {
 func defaultAdminPermissions() []string {
 	return []string{
 		"dashboard.read",
+		"dashboard.compare",
+		"loja.switch",
 		"lancamento.create",
 		"lancamento.read",
 		"produto.read",

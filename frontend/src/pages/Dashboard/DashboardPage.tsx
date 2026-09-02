@@ -5,12 +5,14 @@ import departamentoService from "../../services/departamentoService";
 import produtoDepartamentoService from "../../services/produtoDepartamentoService";
 import produtoGenericoService from "../../services/produtoGenericoService";
 import produtoMerceariaService from "../../services/produtoMerceariaService";
+import lojaService from "../../services/lojaService";
 
 import type { DashboardLancamentoResponse } from "../../types/Dashboard";
 import type { Departamento } from "../../types/Departamento";
 import type { ProdutoDepartamento } from "../../types/ProdutoDepartamento";
 import type { ProdutoGenerico } from "../../types/ProdutoGenerico";
 import type { ProdutoMercearia } from "../../types/ProdutoMercearia";
+import type { Loja } from "../../types/Loja";
 
 const dashboardVazio: DashboardLancamentoResponse = {
   filtros: {
@@ -215,6 +217,22 @@ function DashboardPage() {
   const [animacaoGrafico, setAnimacaoGrafico] = useState(0);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
+  const [lojas, setLojas] = useState<Loja[]>([]);
+  const [lojaPrincipalID, setLojaPrincipalID] = useState("");
+  const [lojaComparacaoID, setLojaComparacaoID] = useState("");
+  const usuarioPerfil = (() => {
+    try {
+      return (
+        JSON.parse(localStorage.getItem("mercflow_usuario") ?? "null") as {
+          perfil?: string;
+        } | null
+      )?.perfil;
+    } catch {
+      return undefined;
+    }
+  })();
+  const podeCompararLojas =
+    usuarioPerfil === "admin" || usuarioPerfil === "super_admin";
 
   async function buscarDashboard() {
     setCarregando(true);
@@ -231,8 +249,12 @@ function DashboardPage() {
           : {}),
       };
 
+      const filtrosComLojas = lojaPrincipalID
+        ? { ...filtros, loja_ids: lojaPrincipalID }
+        : filtros;
+
       const resultado = await dashboardService.buscarLancamentos({
-        ...filtros,
+        ...filtrosComLojas,
       });
 
       const dashboardSegura: DashboardLancamentoResponse = {
@@ -244,11 +266,14 @@ function DashboardPage() {
       setDashboard(dashboardSegura);
       setAnimacaoGrafico((atual) => atual + 1);
 
-      if (dataInicioComparacao && dataFimComparacao) {
+      if (podeCompararLojas && lojaComparacaoID) {
         const comparacao = await dashboardService.buscarLancamentos({
           ...filtros,
-          data_inicio: dataInicioComparacao,
-          data_fim: dataFimComparacao,
+          loja_ids: lojaComparacaoID,
+          ...(dataInicioComparacao
+            ? { data_inicio: dataInicioComparacao }
+            : {}),
+          ...(dataFimComparacao ? { data_fim: dataFimComparacao } : {}),
         });
 
         setDashboardComparacao({
@@ -269,6 +294,23 @@ function DashboardPage() {
   useEffect(() => {
     async function carregarFiltros() {
       try {
+        if (podeCompararLojas) {
+          const lojasData = await lojaService.listar();
+          setLojas(lojasData);
+          if (lojasData.length >= 2) {
+            const lojaAtual = localStorage.getItem("mercflow_loja_id");
+            const principal = lojasData.some(
+              (loja) => String(loja.id) === lojaAtual,
+            )
+              ? lojaAtual
+              : String(lojasData[0].id);
+            const comparacao = lojasData.find(
+              (loja) => String(loja.id) !== principal,
+            );
+            setLojaPrincipalID(principal ?? String(lojasData[0].id));
+            setLojaComparacaoID(String(comparacao?.id ?? lojasData[1].id));
+          }
+        }
         const [
           departamentosData,
           genericosData,
@@ -460,6 +502,57 @@ function DashboardPage() {
                 value={dataFimComparacao}
                 onChange={(event) => setDataFimComparacao(event.target.value)}
               />
+            </div>
+            <div className="col-12 col-md-4 col-xl-2">
+              {podeCompararLojas && lojas.length > 0 ? (
+                <>
+                  <label
+                    className="form-label"
+                    htmlFor="dashboard-loja-principal"
+                  >
+                    Loja 1
+                  </label>
+                  <select
+                    id="dashboard-loja-principal"
+                    className="form-select"
+                    value={lojaPrincipalID}
+                    onChange={(event) => setLojaPrincipalID(event.target.value)}
+                  >
+                    {lojas.map((loja) => (
+                      <option key={loja.id} value={loja.id}>
+                        {loja.nome}
+                      </option>
+                    ))}
+                  </select>
+                </>
+              ) : null}
+            </div>
+            <div className="col-12 col-md-4 col-xl-2">
+              {podeCompararLojas && lojas.length > 0 ? (
+                <>
+                  <label
+                    className="form-label"
+                    htmlFor="dashboard-loja-comparacao"
+                  >
+                    Loja 2
+                  </label>
+                  <select
+                    id="dashboard-loja-comparacao"
+                    className="form-select"
+                    value={lojaComparacaoID}
+                    onChange={(event) =>
+                      setLojaComparacaoID(event.target.value)
+                    }
+                  >
+                    <option value="">Sem comparação</option>
+                    {lojas.map((loja) => (
+                      <option key={loja.id} value={loja.id}>
+                        {loja.nome}
+                      </option>
+                    ))}
+                  </select>
+                </>
+              ) : null}
             </div>
             <div className="col-12 col-md-4 col-xl-2">
               <label className="form-label" htmlFor="dashboard-departamento">
