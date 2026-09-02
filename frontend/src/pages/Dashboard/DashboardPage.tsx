@@ -220,6 +220,7 @@ function DashboardPage() {
   const [lojas, setLojas] = useState<Loja[]>([]);
   const [lojaPrincipalID, setLojaPrincipalID] = useState("");
   const [lojaComparacaoID, setLojaComparacaoID] = useState("");
+  const [compararLojas, setCompararLojas] = useState(false);
   const usuarioPerfil = (() => {
     try {
       return (
@@ -249,9 +250,10 @@ function DashboardPage() {
           : {}),
       };
 
-      const filtrosComLojas = lojaPrincipalID
-        ? { ...filtros, loja_ids: lojaPrincipalID }
-        : filtros;
+      const filtrosComLojas =
+        compararLojas && lojaPrincipalID
+          ? { ...filtros, loja_ids: lojaPrincipalID }
+          : filtros;
 
       const resultado = await dashboardService.buscarLancamentos({
         ...filtrosComLojas,
@@ -266,10 +268,14 @@ function DashboardPage() {
       setDashboard(dashboardSegura);
       setAnimacaoGrafico((atual) => atual + 1);
 
-      if (podeCompararLojas && lojaComparacaoID) {
+      if (
+        dataInicioComparacao &&
+        dataFimComparacao &&
+        (!compararLojas || (podeCompararLojas && lojaComparacaoID))
+      ) {
         const comparacao = await dashboardService.buscarLancamentos({
-          ...filtros,
-          loja_ids: lojaComparacaoID,
+          ...filtrosComLojas,
+          ...(compararLojas ? { loja_ids: lojaComparacaoID } : {}),
           ...(dataInicioComparacao
             ? { data_inicio: dataInicioComparacao }
             : {}),
@@ -394,6 +400,7 @@ function DashboardPage() {
     setDepartamentoID("");
     setProdutoID("");
     setProdutoGenericoID("");
+    setCompararLojas(false);
     setPesquisa("");
     setCarregando(true);
     setErro("");
@@ -442,9 +449,18 @@ function DashboardPage() {
               </p>
             </div>
             {podeCompararLojas ? (
-              <span className="dashboard-filtros-status badge rounded-pill align-self-start">
-                Comparação entre lojas disponível
-              </span>
+              <label className="dashboard-comparacao-switch form-check form-switch mb-0">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  role="switch"
+                  checked={compararLojas}
+                  onChange={(event) => setCompararLojas(event.target.checked)}
+                />
+                <span className="form-check-label fw-semibold">
+                  Comparar lojas
+                </span>
+              </label>
             ) : null}
           </div>
           <div className="dashboard-filtros-grid row g-3">
@@ -465,7 +481,7 @@ function DashboardPage() {
             </div>
             <div className="col-6 col-md-4 col-xl-2 dashboard-filtro dashboard-filtro-periodo">
               <label className="form-label" htmlFor="dashboard-inicio">
-                Loja 1: início
+                {compararLojas ? "Loja 1: início" : "Data 1: início"}
               </label>
               <input
                 id="dashboard-inicio"
@@ -477,7 +493,7 @@ function DashboardPage() {
             </div>
             <div className="col-6 col-md-4 col-xl-2 dashboard-filtro dashboard-filtro-periodo">
               <label className="form-label" htmlFor="dashboard-fim">
-                Loja 1: final
+                {compararLojas ? "Loja 1: final" : "Data 1: final"}
               </label>
               <input
                 id="dashboard-fim"
@@ -487,12 +503,14 @@ function DashboardPage() {
                 onChange={(event) => setDataFim(event.target.value)}
               />
             </div>
-            <div className="col-6 col-md-4 col-xl-2 dashboard-filtro dashboard-filtro-periodo dashboard-filtro-loja2">
+            <div
+              className={`col-6 col-md-4 col-xl-2 dashboard-filtro dashboard-filtro-periodo ${compararLojas ? "dashboard-filtro-loja2" : ""}`}
+            >
               <label
                 className="form-label"
                 htmlFor="dashboard-inicio-comparacao"
               >
-                Loja 2: início
+                {compararLojas ? "Loja 2: início" : "Data 2: início"}
               </label>
               <input
                 id="dashboard-inicio-comparacao"
@@ -504,9 +522,11 @@ function DashboardPage() {
                 }
               />
             </div>
-            <div className="col-6 col-md-4 col-xl-2 dashboard-filtro dashboard-filtro-periodo dashboard-filtro-loja2">
+            <div
+              className={`col-6 col-md-4 col-xl-2 dashboard-filtro dashboard-filtro-periodo ${compararLojas ? "dashboard-filtro-loja2" : ""}`}
+            >
               <label className="form-label" htmlFor="dashboard-fim-comparacao">
-                Loja 2: final
+                {compararLojas ? "Loja 2: final" : "Data 2: final"}
               </label>
               <input
                 id="dashboard-fim-comparacao"
@@ -517,7 +537,7 @@ function DashboardPage() {
               />
             </div>
             <div className="col-12 col-md-4 col-xl-2 dashboard-filtro dashboard-filtro-loja">
-              {podeCompararLojas && lojas.length > 0 ? (
+              {compararLojas && podeCompararLojas && lojas.length > 0 ? (
                 <>
                   <label
                     className="form-label"
@@ -545,7 +565,7 @@ function DashboardPage() {
               ) : null}
             </div>
             <div className="col-12 col-md-4 col-xl-2 dashboard-filtro dashboard-filtro-loja dashboard-filtro-loja2">
-              {podeCompararLojas && lojas.length > 0 ? (
+              {compararLojas && podeCompararLojas && lojas.length > 0 ? (
                 <>
                   <label
                     className="form-label"
@@ -753,17 +773,19 @@ function DashboardPage() {
               <div className="dashboard-grafico-card dashboard-grafico-comparacao card border-0 shadow-sm h-100">
                 <div className="card-body">
                   <div className="mb-4">
-                    <h2 className="h5 mb-1">Ranking: Loja 2</h2>
+                    <h2 className="h5 mb-1">
+                      Ranking: {compararLojas ? "Loja 2" : "Data 2"}
+                    </h2>
                     <p className="text-body-secondary small mb-0">
-                      {lojaComparacaoID &&
-                      dataInicioComparacao &&
-                      dataFimComparacao
+                      {dataInicioComparacao && dataFimComparacao
                         ? `${dataInicioComparacao} até ${dataFimComparacao}`
-                        : "Informe a Loja 2 e o segundo intervalo."}
+                        : compararLojas
+                          ? "Informe a Loja 2 e o segundo intervalo."
+                          : "Informe o segundo intervalo."}
                     </p>
                   </div>
-                  {podeCompararLojas &&
-                  lojaComparacaoID &&
+                  {(!compararLojas ||
+                    (podeCompararLojas && lojaComparacaoID)) &&
                   dataInicioComparacao &&
                   dataFimComparacao ? (
                     <>

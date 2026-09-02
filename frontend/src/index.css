@@ -19,6 +19,22 @@
   font-weight: 600;
 }
 
+.dashboard-comparacao-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.85rem;
+  color: #084298;
+  background: #e7f1ff;
+  border: 1px solid #b6d4fe;
+  border-radius: 0.5rem;
+}
+
+.dashboard-comparacao-switch .form-check-input {
+  margin: 0;
+  cursor: pointer;
+}
+
 .dashboard-filtro {
   padding: 0.75rem;
   border-radius: 0.5rem;
