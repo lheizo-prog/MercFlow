@@ -45,7 +45,7 @@ func (r *PostgresLojaRepository) Criar(loja *models.Loja) (*models.Loja, error) 
 
 func (r *PostgresLojaRepository) Listar() ([]*models.Loja, error) {
 	rows, err := r.db.Query(context.Background(), `
-		SELECT id, nome, codigo, ativo, criado_em
+		SELECT id, nome, codigo, ativo, criado_em::text
 		FROM lojas
 		ORDER BY nome ASC;
 	`)
