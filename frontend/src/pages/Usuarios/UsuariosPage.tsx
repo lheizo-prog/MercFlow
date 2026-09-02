@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+import axios from "axios";
 import usuarioService from "../../services/usuarioService";
 import type { Usuario, UsuarioPayload } from "../../types/Usuario";
 
@@ -111,7 +112,16 @@ function UsuariosPage() {
       await carregarUsuarios();
     } catch (error) {
       console.error(error);
-      setErro("Não foi possível criar o usuário.");
+      if (axios.isAxiosError(error)) {
+        const mensagem = error.response?.data?.erro;
+        setErro(
+          typeof mensagem === "string"
+            ? mensagem
+            : "Não foi possível criar o usuário.",
+        );
+      } else {
+        setErro("Não foi possível criar o usuário.");
+      }
     }
   }
 
@@ -136,6 +146,7 @@ function UsuariosPage() {
                 <label className="form-label fw-semibold">Nome</label>
                 <input
                   className="form-control"
+                  required
                   value={form.nome}
                   onChange={(event) =>
                     setForm((anterior) => ({
@@ -150,6 +161,7 @@ function UsuariosPage() {
                 <label className="form-label fw-semibold">Usuário</label>
                 <input
                   className="form-control"
+                  required
                   value={form.username}
                   onChange={(event) =>
                     setForm((anterior) => ({
@@ -165,6 +177,8 @@ function UsuariosPage() {
                 <input
                   type="password"
                   className="form-control"
+                  required
+                  minLength={6}
                   value={form.senha}
                   onChange={(event) =>
                     setForm((anterior) => ({
