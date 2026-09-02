@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import axios from "axios";
 import usuarioService from "../../services/usuarioService";
+import lojaService from "../../services/lojaService";
 import type { Usuario, UsuarioPayload } from "../../types/Usuario";
+import type { Loja } from "../../types/Loja";
 
 const permissoesPadrao = {
   operador: ["dashboard.read", "lancamento.create", "lancamento.read"],
@@ -27,12 +29,13 @@ function UsuariosPage() {
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
+  const [lojas, setLojas] = useState<Loja[]>([]);
 
   const [form, setForm] = useState<UsuarioPayload>({
     nome: "",
     username: "",
     senha: "",
-    loja_id: 1,
+    loja_id: 0,
     perfil: "operador",
     permissoes: [...permissoesPadrao.operador],
   });
@@ -52,6 +55,20 @@ function UsuariosPage() {
 
   useEffect(() => {
     void carregarUsuarios();
+    void lojaService
+      .listar()
+      .then((lista) => {
+        setLojas(lista.filter((loja) => loja.ativo));
+        setForm((anterior) => ({
+          ...anterior,
+          loja_id:
+            anterior.loja_id || lista.find((loja) => loja.ativo)?.id || 0,
+        }));
+      })
+      .catch((error) => {
+        console.error(error);
+        setErro("Não foi possível carregar as lojas.");
+      });
   }, []);
 
   const opcoesPermissoes = useMemo(
@@ -105,7 +122,7 @@ function UsuariosPage() {
         nome: "",
         username: "",
         senha: "",
-        loja_id: 1,
+        loja_id: lojas.find((loja) => loja.ativo)?.id || 0,
         perfil: "operador",
         permissoes: [...permissoesPadrao.operador],
       });
@@ -191,18 +208,26 @@ function UsuariosPage() {
 
               <div className="mb-3">
                 <label className="form-label fw-semibold">Loja</label>
-                <input
-                  type="number"
-                  className="form-control"
+                <select
+                  className="form-select"
                   value={form.loja_id}
-                  min={1}
+                  required
                   onChange={(event) =>
                     setForm((anterior) => ({
                       ...anterior,
-                      loja_id: Number(event.target.value || 1),
+                      loja_id: Number(event.target.value),
                     }))
                   }
-                />
+                >
+                  <option value={0} disabled>
+                    Selecione uma loja
+                  </option>
+                  {lojas.map((loja) => (
+                    <option key={loja.id} value={loja.id}>
+                      {loja.nome} ({loja.codigo})
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="mb-4">
