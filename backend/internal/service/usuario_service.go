@@ -4,6 +4,7 @@ import (
 	"MercFlow/internal/models"
 	"MercFlow/internal/repository/usuario"
 	"errors"
+	"log"
 	"strings"
 
 	"golang.org/x/crypto/bcrypt"
@@ -24,16 +25,20 @@ func (s *UsuarioService) Autenticar(username, senha string) (*models.Usuario, er
 
 	usuario, err := s.repo.BuscarPorUsername(username)
 	if err != nil || usuario == nil {
+		log.Printf("autenticacao recusada: username=%q motivo=usuario_nao_encontrado", username)
 		return nil, errors.New("credenciais inválidas")
 	}
 
 	if !usuario.Ativo {
+		log.Printf("autenticacao recusada: username=%q motivo=usuario_inativo", username)
 		return nil, errors.New("usuário inativo")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(usuario.SenhaHash), []byte(senha)); err != nil {
+		log.Printf("autenticacao recusada: username=%q motivo=senha_invalida", username)
 		return nil, errors.New("credenciais inválidas")
 	}
+	log.Printf("autenticacao aprovada: username=%q", usuario.Username)
 
 	return usuario, nil
 }

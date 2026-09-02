@@ -4,6 +4,7 @@ import (
 	"MercFlow/internal/models"
 	"context"
 	"errors"
+	"log"
 	"os"
 	"strings"
 
@@ -192,6 +193,7 @@ func (r *PostgresUsuarioRepository) CriarOuAtualizarAdminPadrao() error {
 	if adminPassword == "" {
 		adminPassword = "admin123"
 	}
+	log.Printf("seed do admin: username=%q tamanho_senha=%d", adminUsername, len(adminPassword))
 
 	senhaHash, err := bcrypt.GenerateFromPassword([]byte(adminPassword), bcrypt.DefaultCost)
 	if err != nil {
