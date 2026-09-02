@@ -187,6 +187,7 @@ func (r *PostgresUsuarioRepository) CriarOuAtualizarAdminPadrao() error {
 	if adminUsername == "" {
 		adminUsername = "admin"
 	}
+	adminUsername = strings.TrimSpace(adminUsername)
 	adminPassword := os.Getenv("ADMIN_PASSWORD")
 	if adminPassword == "" {
 		adminPassword = "admin123"
