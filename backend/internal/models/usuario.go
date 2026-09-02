@@ -6,6 +6,7 @@ type Usuario struct {
 	Username   string   `json:"username"`
 	SenhaHash  string   `json:"-"`
 	LojaID     int      `json:"loja_id"`
+	LojaNome   string   `json:"loja_nome,omitempty"`
 	Perfil     string   `json:"perfil"`
 	Permissoes []string `json:"permissoes"`
 	Ativo      bool     `json:"ativo"`

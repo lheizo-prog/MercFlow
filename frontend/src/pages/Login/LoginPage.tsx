@@ -30,6 +30,7 @@ function LoginPage() {
           username: response.data?.username ?? username,
           nome: response.data?.nome ?? username,
           loja_id: response.data?.loja_id,
+          loja_nome: response.data?.loja_nome,
           perfil: response.data?.perfil,
         }),
       );

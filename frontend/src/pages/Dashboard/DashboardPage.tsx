@@ -365,7 +365,7 @@ function DashboardPage() {
 
     void carregarFiltros();
     void carregarDashboardInicial();
-  }, []);
+  }, [podeCompararLojas]);
 
   const ranking = useMemo(() => {
     const termo = pesquisa.trim().toLowerCase();
@@ -452,7 +452,7 @@ function DashboardPage() {
             </div>
             <div className="col-6 col-md-4 col-xl-2">
               <label className="form-label" htmlFor="dashboard-inicio">
-                Data inicial
+                Loja 1: início
               </label>
               <input
                 id="dashboard-inicio"
@@ -464,7 +464,7 @@ function DashboardPage() {
             </div>
             <div className="col-6 col-md-4 col-xl-2">
               <label className="form-label" htmlFor="dashboard-fim">
-                Data final
+                Loja 1: final
               </label>
               <input
                 id="dashboard-fim"
@@ -479,7 +479,7 @@ function DashboardPage() {
                 className="form-label"
                 htmlFor="dashboard-inicio-comparacao"
               >
-                Comparação: início
+                Loja 2: início
               </label>
               <input
                 id="dashboard-inicio-comparacao"
@@ -493,7 +493,7 @@ function DashboardPage() {
             </div>
             <div className="col-6 col-md-4 col-xl-2">
               <label className="form-label" htmlFor="dashboard-fim-comparacao">
-                Comparação: final
+                Loja 2: final
               </label>
               <input
                 id="dashboard-fim-comparacao"
@@ -519,7 +519,11 @@ function DashboardPage() {
                     onChange={(event) => setLojaPrincipalID(event.target.value)}
                   >
                     {lojas.map((loja) => (
-                      <option key={loja.id} value={loja.id}>
+                      <option
+                        key={loja.id}
+                        value={loja.id}
+                        disabled={String(loja.id) === lojaComparacaoID}
+                      >
                         {loja.nome}
                       </option>
                     ))}
@@ -546,7 +550,11 @@ function DashboardPage() {
                   >
                     <option value="">Sem comparação</option>
                     {lojas.map((loja) => (
-                      <option key={loja.id} value={loja.id}>
+                      <option
+                        key={loja.id}
+                        value={loja.id}
+                        disabled={String(loja.id) === lojaPrincipalID}
+                      >
                         {loja.nome}
                       </option>
                     ))}
@@ -673,9 +681,11 @@ function DashboardPage() {
                 <div className="card-body">
                   <div className="d-flex flex-wrap gap-3 justify-content-between align-items-center mb-4">
                     <div>
-                      <h2 className="h5 mb-1">Ranking de produtos</h2>
+                      <h2 className="h5 mb-1">Ranking: Loja 1</h2>
                       <p className="text-body-secondary small mb-0">
-                        Maior volume agregado primeiro.
+                        {dataInicio && dataFim
+                          ? `${dataInicio} até ${dataFim}`
+                          : "Informe o primeiro intervalo."}
                       </p>
                     </div>
                     <div className="d-flex flex-wrap gap-2 align-items-center">
@@ -730,14 +740,19 @@ function DashboardPage() {
               <div className="dashboard-grafico-card dashboard-grafico-comparacao card border-0 shadow-sm h-100">
                 <div className="card-body">
                   <div className="mb-4">
-                    <h2 className="h5 mb-1">Período de comparação</h2>
+                    <h2 className="h5 mb-1">Ranking: Loja 2</h2>
                     <p className="text-body-secondary small mb-0">
-                      {dataInicioComparacao && dataFimComparacao
+                      {lojaComparacaoID &&
+                      dataInicioComparacao &&
+                      dataFimComparacao
                         ? `${dataInicioComparacao} até ${dataFimComparacao}`
-                        : "Informe o segundo intervalo para comparar."}
+                        : "Informe a Loja 2 e o segundo intervalo."}
                     </p>
                   </div>
-                  {dataInicioComparacao && dataFimComparacao ? (
+                  {podeCompararLojas &&
+                  lojaComparacaoID &&
+                  dataInicioComparacao &&
+                  dataFimComparacao ? (
                     <>
                       <div className="d-flex justify-content-between border-bottom pb-3 mb-4">
                         <span className="text-body-secondary">

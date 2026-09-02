@@ -18,18 +18,25 @@ O projeto está sendo desenvolvido utilizando uma arquitetura em camadas, priori
 - Cadastro de Departamentos
 - Cadastro de Produtos por Departamento
 - Cadastro de Produtos de Mercearia
+- Transferências entre departamentos
+- Registro de quebras
+- Conversão automática de unidades e embalagens
+- Dashboard de lançamentos com filtros, ranking, gráficos e comparação
+- Autenticação de usuários com JWT e senhas protegidas por bcrypt
+- Perfis de acesso: `operador`, `visualizador`, `admin` e `super_admin`
+- Cadastro de usuários e definição de permissões
+- Multi-loja com isolamento dos dados por `loja_id`
+- Navegação entre lojas para administradores
+- Comparação de duas lojas em intervalos independentes no dashboard
 - Sistema de migrations em SQL
 - API REST em Go
 - Interface Web em React + TypeScript
 
 ## Em desenvolvimento
 
-- Transferências entre departamentos
-- Controle de Quebras
-- Conversão automática de embalagens
-- Dashboard gerencial
 - Relatórios
 - Controle de Estoque
+- Auditoria de operações
 
 ---
 
@@ -206,16 +213,55 @@ Cada migration possui dois arquivos:
 000001_create_produtos.down.sql
 ```
 
-As migrations são executadas através do runner próprio do projeto.
+As migrations são executadas com `golang-migrate`. A migration `000010_add_loja_scope` adiciona o isolamento por loja às tabelas de produtos, departamentos e lançamentos.
+
+O banco remoto deve ser PostgreSQL e a URL deve estar disponível na variável `DATABASE_URL`.
 
 ---
 
 # Executando as migrations
 
-Na pasta `backend`:
+Na pasta `backend`, para um banco novo:
 
 ```bash
-go run cmd/migrate/main.go
+migrate -path migrations -database "${DATABASE_URL}" up
+```
+
+No PowerShell:
+
+```powershell
+$env:DATABASE_URL="postgresql://usuario:senha@host:5432/banco?sslmode=require"
+migrate -path migrations -database $env:DATABASE_URL up
+```
+
+O comando aplica somente as migrations pendentes. Para conferir a versão:
+
+```bash
+migrate -path migrations -database "${DATABASE_URL}" version
+```
+
+Em um banco existente, faça backup antes de aplicar migrations que alteram tabelas:
+
+```bash
+pg_dump "${DATABASE_URL}" > backup.sql
+```
+
+Depois das migrations, o backend cria ou atualiza o administrador padrão ao iniciar. As credenciais padrão são:
+
+```text
+Usuário: admin
+Senha: admin123
+```
+
+Em produção, configure credenciais próprias com `ADMIN_USERNAME` e `ADMIN_PASSWORD`.
+
+## Recriar um banco de desenvolvimento
+
+O comando abaixo apaga todos os dados do schema `public`. Use somente em ambiente de desenvolvimento ou após um backup:
+
+```sql
+DROP SCHEMA public CASCADE;
+CREATE SCHEMA public;
 ```
 
 ---
@@ -228,6 +274,18 @@ Na pasta `backend`:
 go run cmd/api/main.go
 ```
 
+Variáveis necessárias:
+
+```text
+DATABASE_URL=postgresql://...
+JWT_SECRET=uma-chave-secreta-forte
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=admin123
+FRONTEND_URL=http://localhost:5173
+```
+
+O `JWT_SECRET` deve ser longo e exclusivo em produção. Nunca versionar o arquivo `.env`.
+
 ---
 
 # Executando o Frontend
@@ -237,6 +295,21 @@ npm install
 
 npm run dev
 ```
+
+Para apontar o frontend para uma API remota, configure:
+
+```text
+VITE_API_URL=https://seu-backend.exemplo.com
+```
+
+## Perfis e lojas
+
+- `operador`: dashboard e criação/leitura de lançamentos conforme suas permissões.
+- `visualizador`: acesso de leitura ao dashboard e aos lançamentos.
+- `admin`: pode navegar entre lojas e comparar lojas quando autorizado.
+- `super_admin`: acesso global às lojas e bypass das permissões de recurso.
+
+Usuários comuns recebem apenas os dados da loja associada à sua conta. Administradores podem selecionar uma loja na navbar. No dashboard, o intervalo da Loja 1 e o intervalo da Loja 2 são consultados separadamente.
 
 ---
 
@@ -270,7 +343,7 @@ npm run dev
 
 - Sistema de Migrations
 
-## Sprint 8 (Atual)
+## Sprint 8
 
 - Produto Mercearia
 - Pesquisa por SKU
@@ -279,10 +352,6 @@ npm run dev
 
 ## Próximas Sprints
 
-- Transferências
-- Conversão automática de embalagens
-- Controle de Quebras
-- Dashboard
 - Relatórios
 - Controle de Estoque
 - Auditoria

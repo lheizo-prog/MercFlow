@@ -18,6 +18,7 @@ function Navbar({ titulo, menuAberto, onAlternarMenu }: NavbarProps) {
         username?: string;
         nome?: string;
         loja_id?: number;
+        loja_nome?: string;
         perfil?: string;
       } | null;
     } catch {
@@ -28,6 +29,10 @@ function Navbar({ titulo, menuAberto, onAlternarMenu }: NavbarProps) {
   const lojaAtual = Number(
     localStorage.getItem("mercflow_loja_id") || usuario?.loja_id || 0,
   );
+  const nomeLojaAtual =
+    lojas.find((loja) => loja.id === lojaAtual)?.nome ??
+    usuario?.loja_nome ??
+    "Loja não identificada";
 
   useEffect(() => {
     if (usuario?.perfil !== "admin" && usuario?.perfil !== "super_admin") {
@@ -88,8 +93,7 @@ function Navbar({ titulo, menuAberto, onAlternarMenu }: NavbarProps) {
             </select>
           ) : null}
           <span className="navbar-text text-white-50 small">
-            {usuario?.username ?? usuario?.nome ?? "Usuário"} · Loja #
-            {lojaAtual || "-"}
+            {usuario?.username ?? usuario?.nome ?? "Usuário"} · {nomeLojaAtual}
           </span>
           <button
             type="button"

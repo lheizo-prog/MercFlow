@@ -52,6 +52,7 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 		"username":   usuario.Username,
 		"nome":       usuario.Nome,
 		"loja_id":    usuario.LojaID,
+		"loja_nome":  usuario.LojaNome,
 		"perfil":     usuario.Perfil,
 		"permissoes": usuario.Permissoes,
 	})

@@ -27,8 +27,8 @@ func (r *PostgresUsuarioRepository) BuscarPorUsername(username string) (*models.
 
 	usuario := &models.Usuario{}
 	row := r.db.QueryRow(context.Background(), `
-		SELECT id, nome, username, senha_hash, loja_id, perfil, permissoes, ativo, criado_em::text
-		FROM usuarios
+		SELECT u.id, u.nome, u.username, u.senha_hash, u.loja_id, l.nome, u.perfil, u.permissoes, u.ativo, u.criado_em::text
+		FROM usuarios u JOIN lojas l ON l.id = u.loja_id
 		WHERE LOWER(username) = LOWER($1)
 		LIMIT 1;
 	`, username)
@@ -39,6 +39,7 @@ func (r *PostgresUsuarioRepository) BuscarPorUsername(username string) (*models.
 		&usuario.Username,
 		&usuario.SenhaHash,
 		&usuario.LojaID,
+		&usuario.LojaNome,
 		&usuario.Perfil,
 		&usuario.Permissoes,
 		&usuario.Ativo,
@@ -57,8 +58,8 @@ func (r *PostgresUsuarioRepository) BuscarPorID(id int) (*models.Usuario, error)
 
 	usuario := &models.Usuario{}
 	row := r.db.QueryRow(context.Background(), `
-		SELECT id, nome, username, senha_hash, loja_id, perfil, permissoes, ativo, criado_em::text
-		FROM usuarios
+		SELECT u.id, u.nome, u.username, u.senha_hash, u.loja_id, l.nome, u.perfil, u.permissoes, u.ativo, u.criado_em::text
+		FROM usuarios u JOIN lojas l ON l.id = u.loja_id
 		WHERE id = $1
 		LIMIT 1;
 	`, id)
@@ -69,6 +70,7 @@ func (r *PostgresUsuarioRepository) BuscarPorID(id int) (*models.Usuario, error)
 		&usuario.Username,
 		&usuario.SenhaHash,
 		&usuario.LojaID,
+		&usuario.LojaNome,
 		&usuario.Perfil,
 		&usuario.Permissoes,
 		&usuario.Ativo,
@@ -86,8 +88,8 @@ func (r *PostgresUsuarioRepository) ListarPorLoja(lojaID int) ([]*models.Usuario
 	}
 
 	rows, err := r.db.Query(context.Background(), `
-		SELECT id, nome, username, senha_hash, loja_id, perfil, permissoes, ativo, criado_em::text
-		FROM usuarios
+		SELECT u.id, u.nome, u.username, u.senha_hash, u.loja_id, l.nome, u.perfil, u.permissoes, u.ativo, u.criado_em::text
+		FROM usuarios u JOIN lojas l ON l.id = u.loja_id
 		WHERE loja_id = $1
 		ORDER BY nome ASC;
 	`, lojaID)
@@ -105,6 +107,7 @@ func (r *PostgresUsuarioRepository) ListarPorLoja(lojaID int) ([]*models.Usuario
 			&usuario.Username,
 			&usuario.SenhaHash,
 			&usuario.LojaID,
+			&usuario.LojaNome,
 			&usuario.Perfil,
 			&usuario.Permissoes,
 			&usuario.Ativo,
@@ -120,8 +123,8 @@ func (r *PostgresUsuarioRepository) ListarPorLoja(lojaID int) ([]*models.Usuario
 
 func (r *PostgresUsuarioRepository) ListarTodos() ([]*models.Usuario, error) {
 	rows, err := r.db.Query(context.Background(), `
-		SELECT id, nome, username, senha_hash, loja_id, perfil, permissoes, ativo, criado_em::text
-		FROM usuarios ORDER BY loja_id, nome ASC;
+		SELECT u.id, u.nome, u.username, u.senha_hash, u.loja_id, l.nome, u.perfil, u.permissoes, u.ativo, u.criado_em::text
+		FROM usuarios u JOIN lojas l ON l.id = u.loja_id ORDER BY u.loja_id, u.nome ASC;
 	`)
 	if err != nil {
 		return nil, err
@@ -130,7 +133,7 @@ func (r *PostgresUsuarioRepository) ListarTodos() ([]*models.Usuario, error) {
 	usuarios := []*models.Usuario{}
 	for rows.Next() {
 		usuario := &models.Usuario{}
-		if err := rows.Scan(&usuario.ID, &usuario.Nome, &usuario.Username, &usuario.SenhaHash, &usuario.LojaID, &usuario.Perfil, &usuario.Permissoes, &usuario.Ativo, &usuario.CriadoEm); err != nil {
+		if err := rows.Scan(&usuario.ID, &usuario.Nome, &usuario.Username, &usuario.SenhaHash, &usuario.LojaID, &usuario.LojaNome, &usuario.Perfil, &usuario.Permissoes, &usuario.Ativo, &usuario.CriadoEm); err != nil {
 			return nil, err
 		}
 		usuarios = append(usuarios, usuario)
