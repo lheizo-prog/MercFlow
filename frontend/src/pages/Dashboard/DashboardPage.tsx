@@ -434,8 +434,21 @@ function DashboardPage() {
         }}
       >
         <div className="card-body">
+          <div className="dashboard-filtros-header d-flex flex-column flex-md-row justify-content-between gap-2 mb-4">
+            <div>
+              <h2 className="h5 mb-1">Filtros da análise</h2>
+              <p className="text-body-secondary small mb-0">
+                Defina as lojas e os períodos antes de aplicar a consulta.
+              </p>
+            </div>
+            {podeCompararLojas ? (
+              <span className="dashboard-filtros-status badge rounded-pill align-self-start">
+                Comparação entre lojas disponível
+              </span>
+            ) : null}
+          </div>
           <div className="dashboard-filtros-grid row g-3">
-            <div className="col-12 col-md-4 col-xl-2">
+            <div className="col-12 col-md-4 col-xl-2 dashboard-filtro dashboard-filtro-secundario">
               <label className="form-label" htmlFor="dashboard-tipo">
                 Tipo
               </label>
@@ -450,7 +463,7 @@ function DashboardPage() {
                 <option value="TRANSFERENCIA">Transferência</option>
               </select>
             </div>
-            <div className="col-6 col-md-4 col-xl-2">
+            <div className="col-6 col-md-4 col-xl-2 dashboard-filtro dashboard-filtro-periodo">
               <label className="form-label" htmlFor="dashboard-inicio">
                 Loja 1: início
               </label>
@@ -462,7 +475,7 @@ function DashboardPage() {
                 onChange={(event) => setDataInicio(event.target.value)}
               />
             </div>
-            <div className="col-6 col-md-4 col-xl-2">
+            <div className="col-6 col-md-4 col-xl-2 dashboard-filtro dashboard-filtro-periodo">
               <label className="form-label" htmlFor="dashboard-fim">
                 Loja 1: final
               </label>
@@ -474,7 +487,7 @@ function DashboardPage() {
                 onChange={(event) => setDataFim(event.target.value)}
               />
             </div>
-            <div className="col-6 col-md-4 col-xl-2">
+            <div className="col-6 col-md-4 col-xl-2 dashboard-filtro dashboard-filtro-periodo dashboard-filtro-loja2">
               <label
                 className="form-label"
                 htmlFor="dashboard-inicio-comparacao"
@@ -491,7 +504,7 @@ function DashboardPage() {
                 }
               />
             </div>
-            <div className="col-6 col-md-4 col-xl-2">
+            <div className="col-6 col-md-4 col-xl-2 dashboard-filtro dashboard-filtro-periodo dashboard-filtro-loja2">
               <label className="form-label" htmlFor="dashboard-fim-comparacao">
                 Loja 2: final
               </label>
@@ -503,7 +516,7 @@ function DashboardPage() {
                 onChange={(event) => setDataFimComparacao(event.target.value)}
               />
             </div>
-            <div className="col-12 col-md-4 col-xl-2">
+            <div className="col-12 col-md-4 col-xl-2 dashboard-filtro dashboard-filtro-loja">
               {podeCompararLojas && lojas.length > 0 ? (
                 <>
                   <label
@@ -531,7 +544,7 @@ function DashboardPage() {
                 </>
               ) : null}
             </div>
-            <div className="col-12 col-md-4 col-xl-2">
+            <div className="col-12 col-md-4 col-xl-2 dashboard-filtro dashboard-filtro-loja dashboard-filtro-loja2">
               {podeCompararLojas && lojas.length > 0 ? (
                 <>
                   <label
@@ -562,7 +575,7 @@ function DashboardPage() {
                 </>
               ) : null}
             </div>
-            <div className="col-12 col-md-4 col-xl-2">
+            <div className="col-12 col-md-4 col-xl-2 dashboard-filtro dashboard-filtro-secundario">
               <label className="form-label" htmlFor="dashboard-departamento">
                 Departamento
               </label>
@@ -580,7 +593,7 @@ function DashboardPage() {
                 ))}
               </select>
             </div>
-            <div className="col-12 col-md-4 col-xl-2">
+            <div className="col-12 col-md-4 col-xl-2 dashboard-filtro dashboard-filtro-secundario">
               <label className="form-label" htmlFor="dashboard-generico">
                 Produto Base
               </label>
@@ -598,7 +611,7 @@ function DashboardPage() {
                 ))}
               </select>
             </div>
-            <div className="col-12 col-md-4 col-xl-2">
+            <div className="col-12 col-md-4 col-xl-2 dashboard-filtro dashboard-filtro-secundario">
               <label className="form-label" htmlFor="dashboard-produto">
                 Produto
               </label>
