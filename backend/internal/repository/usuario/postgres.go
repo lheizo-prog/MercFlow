@@ -4,6 +4,7 @@ import (
 	"MercFlow/internal/models"
 	"context"
 	"errors"
+	"os"
 	"strings"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -182,13 +183,22 @@ func (r *PostgresUsuarioRepository) CriarOuAtualizarAdminPadrao() error {
 		return err
 	}
 
-	senhaHash, err := bcrypt.GenerateFromPassword([]byte("admin123"), bcrypt.DefaultCost)
+	adminUsername := os.Getenv("ADMIN_USERNAME")
+	if adminUsername == "" {
+		adminUsername = "admin"
+	}
+	adminPassword := os.Getenv("ADMIN_PASSWORD")
+	if adminPassword == "" {
+		adminPassword = "admin123"
+	}
+
+	senhaHash, err := bcrypt.GenerateFromPassword([]byte(adminPassword), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
 
 	nome := "Administrador"
-	username := "admin"
+	username := adminUsername
 	novoHash := string(senhaHash)
 
 	var existe bool
