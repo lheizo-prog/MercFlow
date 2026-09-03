@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import { Collapse } from "bootstrap";
 
 interface SidebarProps {
@@ -9,6 +9,19 @@ interface SidebarProps {
 
 function Sidebar({ aberto, onNavegar }: SidebarProps) {
   const sidebarRef = useRef<HTMLElement>(null);
+
+  const perfil = useMemo(() => {
+    try {
+      const usuario = localStorage.getItem("mercflow_usuario");
+      if (!usuario) return null;
+      const parsed = JSON.parse(usuario) as { perfil?: string };
+      return parsed.perfil ?? null;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const isAdmin = perfil === "admin" || perfil === "super_admin";
 
   useEffect(() => {
     if (!sidebarRef.current) {
@@ -28,8 +41,12 @@ function Sidebar({ aberto, onNavegar }: SidebarProps) {
 
   const links = [
     { to: "/", label: "Dashboard" },
-    { to: "/usuarios", label: "Usuários" },
-    { to: "/produtos_genericos", label: "Produtos Base" },
+    ...(isAdmin
+      ? [
+          { to: "/usuarios", label: "Usuários" },
+          { to: "/produtos_genericos", label: "Produtos Base" },
+        ]
+      : []),
     { to: "/departamentos", label: "Departamentos" },
     { to: "/produtos_mercearia", label: "Produtos Mercearia" },
     { to: "/produtos_departamento", label: "Produtos Departamento" },

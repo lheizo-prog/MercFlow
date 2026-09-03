@@ -148,8 +148,8 @@ func (r *DashboardPostgresRepository) BuscarLancamentos(
 					WHEN 'kg' THEN li.quantidade
 					WHEN 'g' THEN li.quantidade / 1000
 					WHEN 'gr' THEN li.quantidade / 1000
-					WHEN 'l' THEN li.quantidade * 1000
-					WHEN 'ml' THEN li.quantidade
+					WHEN 'l' THEN li.quantidade
+					WHEN 'ml' THEN li.quantidade / 1000
 					ELSE li.quantidade
 				END AS quantidade,
 
@@ -157,8 +157,8 @@ func (r *DashboardPostgresRepository) BuscarLancamentos(
 					WHEN 'kg' THEN 'kg'
 					WHEN 'g' THEN 'kg'
 					WHEN 'gr' THEN 'kg'
-					WHEN 'l' THEN 'ml'
-					WHEN 'ml' THEN 'ml'
+					WHEN 'l' THEN 'L'
+					WHEN 'ml' THEN 'L'
 					ELSE LOWER(TRIM(COALESCE(pm.unidade_medida, pd.unidade_medida)))
 				END AS unidade
 
@@ -258,7 +258,7 @@ func (r *DashboardPostgresRepository) BuscarLancamentos(
 							WHEN LOWER(TRIM(pm.unidade_medida)) = 'ml' AND LOWER(TRIM(pd.unidade_medida)) = 'l' THEN 0.001
 							ELSE 0
 						END
-					) * 1000
+					)
 					ELSE (
 						li.quantidade * pm.quantidade_embalagem * CASE
 							WHEN LOWER(TRIM(pm.unidade_medida)) = LOWER(TRIM(pd.unidade_medida)) THEN 1
@@ -273,10 +273,10 @@ func (r *DashboardPostgresRepository) BuscarLancamentos(
 
 				CASE LOWER(TRIM(pd.unidade_medida))
 					WHEN 'kg' THEN 'kg'
-					WHEN 'g' THEN 'g'
-					WHEN 'gr' THEN 'g'
-					WHEN 'l' THEN 'l'
-					WHEN 'ml' THEN 'ml'
+					WHEN 'g' THEN 'kg'
+					WHEN 'gr' THEN 'kg'
+					WHEN 'l' THEN 'L'
+					WHEN 'ml' THEN 'L'
 					ELSE LOWER(TRIM(pd.unidade_medida))
 				END AS unidade
 
