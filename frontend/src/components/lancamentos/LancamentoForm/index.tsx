@@ -1,4 +1,4 @@
-import {
+﻿import {
   useEffect,
   useState,
   type ChangeEvent,
@@ -619,14 +619,25 @@ function LancamentoForm({
           ? "Quebra registrada com sucesso"
           : "Transferência registrada com sucesso",
       );
-    } catch (error) {
+    
+    } catch (error: unknown) {
       console.error("Erro ao criar lançamento:", error);
       setTipoMensagem("erro");
-      setMensagem(
-        error instanceof Error
-          ? error.message
-          : "Não foi possível registrar a transferência.",
-      );
+
+      // Extrair mensagem de erro do Axios ou erro padrão
+      let mensagemErro = "Não foi possível registrar a transferência.";
+      if (error && typeof error === "object" && "response" in error) {
+        const axiosError = error as {
+          response?: { data?: { erro?: string } };
+        };
+        if (axiosError.response?.data?.erro) {
+          mensagemErro = axiosError.response.data.erro;
+        }
+      } else if (error instanceof Error) {
+        mensagemErro = error.message;
+      }
+
+      setMensagem(mensagemErro);
     } finally {
       setSalvando(false);
     }
