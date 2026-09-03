@@ -28,11 +28,11 @@ function Sidebar({ aberto, onNavegar }: SidebarProps) {
 
   const links = [
     { to: "/", label: "Dashboard" },
+    { to: "/usuarios", label: "Usuários" },
     { to: "/produtos_genericos", label: "Produtos Base" },
     { to: "/departamentos", label: "Departamentos" },
-    { to: "/produtos_departamento", label: "Produtos Departamento" },
     { to: "/produtos_mercearia", label: "Produtos Mercearia" },
-    { to: "/usuarios", label: "Usuários" },
+    { to: "/produtos_departamento", label: "Produtos Departamento" },
     { to: "/lancamentos", label: "Lançamentos" },
   ];
 
