@@ -1,4 +1,6 @@
-﻿import {
+﻿import axios from "axios";
+
+import {
   useEffect,
   useState,
   type ChangeEvent,
@@ -56,6 +58,7 @@ function LancamentoForm({
   const [tipoMensagem, setTipoMensagem] = useState<"sucesso" | "erro">(
     "sucesso",
   );
+  const [erroConversao, setErroConversao] = useState<string | null>(null);
   const [produtoMerceariaBusca, setProdutoMerceariaBusca] = useState("");
   const [mostrarSugestoesMercearia, setMostrarSugestoesMercearia] =
     useState(false);
@@ -142,8 +145,15 @@ function LancamentoForm({
           unidadeDepartamento: conversao.unidade_departamento,
           fatorConversao: conversao.fator_conversao,
         }));
-      } catch (error) {
-        console.error("Erro ao buscar fator de conversão:", error);
+        setErroConversao(null);
+      } catch (error: unknown) {
+        let erroMsg = "Erro ao buscar conversao";
+        if (axios.isAxiosError(error) && error.response?.data?.erro) {
+          erroMsg = error.response.data.erro;
+        } else if (error instanceof Error) {
+          erroMsg = error.message;
+        }
+        console.error("Erro ao buscar fator de conversao:", erroMsg);
 
         setItemAtual((anterior) => ({
           ...anterior,
@@ -151,6 +161,7 @@ function LancamentoForm({
           unidadeDepartamento: "",
           fatorConversao: 0,
         }));
+        setErroConversao(erroMsg);
       } finally {
         setCarregandoConversao(false);
       }
@@ -907,6 +918,17 @@ function LancamentoForm({
             />
           </div>
 
+          {erroConversao && (
+            <div className="col-12">
+              <div className="alert alert-danger border rounded-3">
+                <strong>Erro na conversao:</strong> {erroConversao}
+                <div className="mt-2 small">
+                  Verifique se os produtos selecionados sao compativeis (mesmo produto base e unidades de medida conversiveis).
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="col-12 col-md-8 d-flex align-items-end">
             <button
               type="button"
@@ -914,7 +936,7 @@ function LancamentoForm({
               onClick={adicionarItem}
               disabled={
                 carregandoConversao ||
-                (!isQuebra && itemAtual.fatorConversao <= 0)
+                (!isQuebra && itemAtual.fatorConversao <= 0 && !erroConversao)
               }
             >
               Adicionar item
