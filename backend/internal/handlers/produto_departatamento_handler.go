@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"MercFlow/internal/auth"
 	"MercFlow/internal/models"
 	"MercFlow/internal/service"
 	"net/http"
@@ -22,12 +23,12 @@ func NovoProdutoDepartamentoHandler(s *service.ProdutoDepartamentoService) *Prod
 func (h *ProdutoDepartamentoHandler) HandleProdutosDepartamento(router gin.IRouter) {
 	produtos_departamento := router.Group("/produtos_d")
 
-	produtos_departamento.GET("", h.Listar)
-	produtos_departamento.POST("", h.Criar)
-	produtos_departamento.GET("/:id", h.BuscarID)
-	produtos_departamento.GET("/codigo/:codigo", h.BuscarCodigo)
-	produtos_departamento.PUT("/id/:id", h.Atualizar)
-	produtos_departamento.DELETE("/id/:id", h.RemoverID)
+	produtos_departamento.GET("", auth.RequirePermission("produto.read"), h.Listar)
+	produtos_departamento.POST("", auth.RequirePermission("produto.create"), h.Criar)
+	produtos_departamento.GET("/:id", auth.RequirePermission("produto.read"), h.BuscarID)
+	produtos_departamento.GET("/codigo/:codigo", auth.RequirePermission("produto.read"), h.BuscarCodigo)
+	produtos_departamento.PUT("/id/:id", auth.RequirePermission("produto.update"), h.Atualizar)
+	produtos_departamento.DELETE("/id/:id", auth.RequirePermission("produto.update"), h.RemoverID)
 
 }
 

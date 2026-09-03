@@ -21,8 +21,8 @@ func (s *DepartamentoService) Criar(d *models.Departamento, lojas ...int) (*mode
 	if d != nil {
 		d.LojaID = lojaSolicitada(lojas)
 	}
-	if s.ValidarDepartamento(d) != nil {
-		return nil, s.ValidarDepartamento(d)
+	if err := s.ValidarDepartamento(d); err != nil {
+		return nil, err
 	}
 
 	return s.repo.Criar(d)
@@ -41,8 +41,8 @@ func (s *DepartamentoService) RemoverID(id int, lojas ...int) error {
 }
 
 func (s *DepartamentoService) Atualizar(d *models.Departamento, lojas ...int) (*models.Departamento, error) {
-	if s.ValidarDepartamento(d) != nil {
-		return nil, s.ValidarDepartamento(d)
+	if err := s.ValidarDepartamento(d); err != nil {
+		return nil, err
 	}
 	recurso, err := s.repo.BuscarID(d.ID)
 	if err != nil || !pertenceALoja(lojaSolicitada(lojas), recurso.LojaID) {
@@ -83,11 +83,14 @@ func (s *DepartamentoService) BuscarID(id int, lojas ...int) (*models.Departamen
 }
 
 func (s *DepartamentoService) ValidarDepartamento(d *models.Departamento) error {
-	if strings.TrimSpace(d.Nome) == "" {
-		return errors.New("Nome do departamento é obirgatório")
-	}
 	if d == nil {
-		return errors.New("Departamento inválido")
+		return errors.New("departamento inválido")
+	}
+	if strings.TrimSpace(d.Nome) == "" {
+		return errors.New("nome do departamento é obrigatório")
+	}
+	if d.LojaID <= 0 {
+		return errors.New("loja não informada")
 	}
 	return nil
 }

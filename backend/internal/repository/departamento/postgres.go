@@ -60,20 +60,9 @@ func (r *PostgresDepartamentoRepository) Atualizar(departamento *models.Departam
 
 func (r *PostgresDepartamentoRepository) Listar() ([]*models.Departamento, error) {
 	rows, err := r.db.Query(context.Background(), `
-		SELECT d.id, d.nome, d.loja_id
-		FROM departamentos d
-		LEFT JOIN lancamentos l ON l.departamento_id = d.id
-		WHERE d.id = (
-			SELECT d2.id
-			FROM departamentos d2
-			LEFT JOIN lancamentos l2 ON l2.departamento_id = d2.id
-			WHERE LOWER(TRIM(d2.nome)) = LOWER(TRIM(d.nome))
-			GROUP BY d2.id
-			ORDER BY COUNT(l2.id) DESC, d2.id
-			LIMIT 1
-		)
-		GROUP BY d.id, d.nome, d.loja_id
-		ORDER BY LOWER(TRIM(d.nome));
+		SELECT id, nome, loja_id
+		FROM departamentos
+		ORDER BY LOWER(TRIM(nome));
 	`)
 	if err != nil {
 		return nil, err
@@ -84,11 +73,13 @@ func (r *PostgresDepartamentoRepository) Listar() ([]*models.Departamento, error
 
 	for rows.Next() {
 		departamento := &models.Departamento{}
-		rows.Scan(
+		if err := rows.Scan(
 			&departamento.ID,
 			&departamento.Nome,
 			&departamento.LojaID,
-		)
+		); err != nil {
+			return nil, err
+		}
 		lista = append(lista, departamento)
 	}
 

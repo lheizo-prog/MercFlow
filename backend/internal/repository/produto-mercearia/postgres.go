@@ -4,7 +4,6 @@ import (
 	"MercFlow/internal/models"
 	"context"
 	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/jackc/pgx/v5"
@@ -35,7 +34,6 @@ func (r *ProdutoMerceariaPostgresRepository) Criar(p *models.ProdutoMercearia) (
 		p.LojaID,
 	).Scan(&p.ID, &p.Ativo)
 	if err != nil {
-		fmt.Println("Erro ao criar produto mercearia:", err)
 		return nil, err
 	}
 	return p, nil
@@ -259,8 +257,6 @@ func (r *ProdutoMerceariaPostgresRepository) Buscar(texto string) ([]*models.Pro
 
 func (r *ProdutoMerceariaPostgresRepository) BuscarInativo(sku string) (*models.ProdutoMercearia, error) {
 	produto := &models.ProdutoMercearia{}
-
-	fmt.Println(sku)
 
 	row := r.db.QueryRow(
 		context.Background(),

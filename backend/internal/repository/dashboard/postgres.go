@@ -273,9 +273,9 @@ func (r *DashboardPostgresRepository) BuscarLancamentos(
 
 				CASE LOWER(TRIM(pd.unidade_medida))
 					WHEN 'kg' THEN 'kg'
-					WHEN 'g' THEN 'kg'
-					WHEN 'gr' THEN 'kg'
-					WHEN 'l' THEN 'ml'
+					WHEN 'g' THEN 'g'
+					WHEN 'gr' THEN 'g'
+					WHEN 'l' THEN 'l'
 					WHEN 'ml' THEN 'ml'
 					ELSE LOWER(TRIM(pd.unidade_medida))
 				END AS unidade

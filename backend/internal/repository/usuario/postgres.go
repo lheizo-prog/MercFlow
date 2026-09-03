@@ -163,7 +163,13 @@ func (r *PostgresUsuarioRepository) Criar(usuario *models.Usuario) (*models.Usua
 	}
 
 	if len(usuario.Permissoes) == 0 {
-		usuario.Permissoes = []string{"dashboard.read", "lancamento.create", "lancamento.read"}
+		usuario.Permissoes = []string{
+			"dashboard.read",
+			"lancamento.create",
+			"lancamento.read",
+			"produto.read",
+			"departamento.read",
+		}
 	}
 
 	var id int

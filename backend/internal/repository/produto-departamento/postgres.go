@@ -4,7 +4,6 @@ import (
 	"MercFlow/internal/models"
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -32,14 +31,13 @@ func (r *PostgresProdutoDepartamentoRepository) Criar(p *models.ProdutoDepartame
 		p.LojaID,
 	).Scan(&p.ID, &p.Ativo)
 	if err != nil {
-		fmt.Println("Erro ao criar produto departamento:", err)
 		return nil, err
 	}
 	return p, nil
 }
 
 func (r *PostgresProdutoDepartamentoRepository) RemoverID(id int) error {
-	reponse, err := r.db.Exec(
+	response, err := r.db.Exec(
 		context.Background(),
 		"UPDATE produtos_departamento SET ativo = FALSE WHERE id = $1",
 		id,
@@ -47,7 +45,7 @@ func (r *PostgresProdutoDepartamentoRepository) RemoverID(id int) error {
 	if err != nil {
 		return err
 	}
-	if reponse.RowsAffected() == 0 {
+	if response.RowsAffected() == 0 {
 		return errors.New("produto não encontrado")
 	}
 	return nil
@@ -179,8 +177,6 @@ func (r *PostgresProdutoDepartamentoRepository) BuscarCodigo(codigo string) (*mo
 func (r *PostgresProdutoDepartamentoRepository) BuscarInativo(produtoGenericoID, departamentoID int, codigo string) (*models.ProdutoDepartamento, error) {
 	produto := &models.ProdutoDepartamento{}
 
-	fmt.Println(departamentoID, produtoGenericoID, codigo)
-
 	row := r.db.QueryRow(
 		context.Background(),
 		"SELECT id, loja_id, produto_generico_id, departamento_id, nome, codigo, unidade_medida, ativo FROM produtos_departamento WHERE ativo = FALSE AND produto_generico_id = $1 AND departamento_id = $2 AND codigo = $3",
@@ -206,7 +202,6 @@ func (r *PostgresProdutoDepartamentoRepository) BuscarInativo(produtoGenericoID,
 		return nil, err
 	}
 
-	fmt.Println("produto encontrado", produto)
 	return produto, nil
 }
 

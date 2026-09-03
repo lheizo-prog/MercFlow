@@ -20,7 +20,7 @@ func NovoDashboardHandler(s *service.DashboardService) *DashboardHandler {
 }
 
 func (h *DashboardHandler) HandleDashboard(router gin.IRouter) {
-	router.GET("/dashboard/lancamentos", h.BuscarLancamentos)
+	router.GET("/dashboard/lancamentos", auth.RequirePermission("dashboard.read"), h.BuscarLancamentos)
 }
 
 func (h *DashboardHandler) BuscarLancamentos(ctx *gin.Context) {

@@ -6,7 +6,6 @@ import (
 	produtodepartamento "MercFlow/internal/repository/produto-departamento"
 	produtogenerico "MercFlow/internal/repository/produto-generico"
 	"errors"
-	"fmt"
 	"strings"
 )
 
@@ -33,23 +32,16 @@ func (s *ProdutoDepartamentoService) Criar(p *models.ProdutoDepartamento, lojas 
 	if p != nil {
 		p.LojaID = lojaSolicitada(lojas)
 	}
-	fmt.Println("ENTROU NO CRIAR")
-	fmt.Printf("Produto recebido: %+v\n", p)
 	if err := s.ValidarProdutoD(p); err != nil {
-		fmt.Println("ERRO VALIDAÇÃO", err)
 		return nil, err
 	}
-	fmt.Println("PASSOU DA VALIDAÇÃO")
 	res, err := s.ProdutoDepartamentoRepo.BuscarInativo(p.ProdutoGenericoID, p.DepartamentoID, p.Codigo)
 	if err == nil {
 		if !pertenceALoja(p.LojaID, res.LojaID) {
 			return nil, erroAcessoLoja()
 		}
-		fmt.Println("ACHOU PRODUTO INATIVO, REATIVANDO")
 		return nil, s.ProdutoDepartamentoRepo.Reativar(res.ID)
 	}
-	fmt.Println("VOLTOU DO BUSCAR INATIVO")
-	fmt.Printf("Produto recebido: %+v\n", res)
 	return s.ProdutoDepartamentoRepo.Criar(p)
 }
 

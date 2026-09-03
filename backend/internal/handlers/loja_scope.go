@@ -38,11 +38,13 @@ func lojaParaCriacao(ctx *gin.Context) (int, bool) {
 	if !existe || !ok {
 		return 0, false
 	}
-	if claims.Role == "super_admin" {
+	if claims.Role == "super_admin" || claims.Role == "admin" {
 		if lojaID, err := strconv.Atoi(ctx.Query("loja_id")); err == nil && lojaID > 0 {
 			return lojaID, true
 		}
+		// Fallback para a loja do usuário (útil para admin que quer criar na própria loja)
 		return claims.LojaID, true
 	}
+	// Para outros perfis (operador, visualizador), usa a loja do usuário
 	return claims.LojaID, claims.LojaID > 0
 }

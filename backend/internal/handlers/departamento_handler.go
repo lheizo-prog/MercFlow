@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"MercFlow/internal/auth"
 	"MercFlow/internal/models"
 	"MercFlow/internal/service"
 	"net/http"
@@ -22,11 +23,11 @@ func NovoDepartamentoHandler(s *service.DepartamentoService) *DepartamentoHandle
 func (h *DepartamentoHandler) HandleDepartamentos(router gin.IRouter) {
 	departamentos := router.Group("/departamentos")
 
-	departamentos.GET("", h.Listar)
-	departamentos.POST("", h.Criar)
-	departamentos.GET("/:id", h.BuscarID)
-	departamentos.PUT("/id/:id", h.Atualizar)
-	departamentos.DELETE("/id/:id", h.RemoverID)
+	departamentos.GET("", auth.RequirePermission("departamento.read"), h.Listar)
+	departamentos.POST("", auth.RequirePermission("departamento.create"), h.Criar)
+	departamentos.GET("/:id", auth.RequirePermission("departamento.read"), h.BuscarID)
+	departamentos.PUT("/id/:id", auth.RequirePermission("departamento.create"), h.Atualizar)
+	departamentos.DELETE("/id/:id", auth.RequirePermission("departamento.create"), h.RemoverID)
 }
 
 func (h *DepartamentoHandler) Criar(ctx *gin.Context) {

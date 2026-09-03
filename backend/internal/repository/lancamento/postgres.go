@@ -148,7 +148,6 @@ func (r *LancamentoPostgresRepository) Listar() ([]models.Lancamento, error) {
 
 	for rows.Next() {
 		var lancamento models.Lancamento
-
 		err := rows.Scan(
 			&lancamento.ID,
 			&lancamento.LojaID,
@@ -167,5 +166,38 @@ func (r *LancamentoPostgresRepository) Listar() ([]models.Lancamento, error) {
 		return nil, err
 	}
 
+	return lancamentos, nil
+}
+
+func (r *LancamentoPostgresRepository) ListarPorLoja(lojaID int) ([]models.Lancamento, error) {
+	rows, err := r.db.Query(
+		context.Background(),
+		`SELECT id, loja_id, tipo, departamento_id, data_lancamento, observacao FROM lancamentos WHERE loja_id = $1 ORDER BY data_lancamento DESC`,
+		lojaID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var lancamentos []models.Lancamento
+	for rows.Next() {
+		var lancamento models.Lancamento
+		err := rows.Scan(
+			&lancamento.ID,
+			&lancamento.LojaID,
+			&lancamento.Tipo,
+			&lancamento.DepartamentoID,
+			&lancamento.Data,
+			&lancamento.Observacao,
+		)
+		if err != nil {
+			return nil, err
+		}
+		lancamentos = append(lancamentos, lancamento)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 	return lancamentos, nil
 }

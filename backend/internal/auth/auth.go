@@ -91,10 +91,17 @@ func HasPermission(permissions []string, permission string) bool {
 }
 
 func CheckCredentials(username, password string) bool {
-	return strings.EqualFold(username, defaultAdminUsername()) && password == defaultAdminPassword()
+	// Usa hmac.Equal para comparação em tempo constante (segurança contra timing attacks)
+	return strings.EqualFold(username, defaultAdminUsername()) &&
+		hmac.Equal([]byte(password), []byte(defaultAdminPassword()))
 }
 
 func GenerateToken(username string) (string, error) {
+	// Busca o usuário pelo username para gerar token correto
+	// Retorna erro se não for o admin padrão
+	if username != defaultAdminUsername() {
+		return "", errors.New("usuário não autorizado para geração de token via GenerateToken")
+	}
 	return GenerateTokenForUser(defaultAdminUser())
 }
 

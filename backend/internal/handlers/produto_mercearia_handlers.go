@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"MercFlow/internal/auth"
 	"MercFlow/internal/models"
 	"MercFlow/internal/service"
 	"net/http"
@@ -22,14 +23,14 @@ func NovoProdutoMerceariaHandler(s *service.ProdutoMerceariaService) *ProdutoMer
 func (h *ProdutoMerceariaHandler) HandleProdutosMercearia(router gin.IRouter) {
 	produtos := router.Group("/produtos_m")
 
-	produtos.GET("", h.Listar)
-	produtos.POST("", h.Criar)
-	produtos.PUT("/id/:id", h.Atualizar)
-	produtos.DELETE("/id/:id", h.RemoverID)
-	produtos.GET("/:id", h.BuscarID)
-	produtos.GET("/sku/:sku", h.BuscarSKU)
-	produtos.GET("/codigo/:codigo", h.BuscarCodigoBarras)
-	produtos.GET("/buscar/:texto", h.Buscar)
+	produtos.GET("", auth.RequirePermission("produto.read"), h.Listar)
+	produtos.POST("", auth.RequirePermission("produto.create"), h.Criar)
+	produtos.PUT("/id/:id", auth.RequirePermission("produto.update"), h.Atualizar)
+	produtos.DELETE("/id/:id", auth.RequirePermission("produto.update"), h.RemoverID)
+	produtos.GET("/:id", auth.RequirePermission("produto.read"), h.BuscarID)
+	produtos.GET("/sku/:sku", auth.RequirePermission("produto.read"), h.BuscarSKU)
+	produtos.GET("/codigo/:codigo", auth.RequirePermission("produto.read"), h.BuscarCodigoBarras)
+	produtos.GET("/buscar/:texto", auth.RequirePermission("produto.read"), h.Buscar)
 }
 
 func (h *ProdutoMerceariaHandler) Criar(ctx *gin.Context) {

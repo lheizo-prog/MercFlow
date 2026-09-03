@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"MercFlow/internal/auth"
 	request "MercFlow/internal/models/requests"
 	"MercFlow/internal/service"
 	"net/http"
@@ -22,10 +23,10 @@ func NovoLancamentoHandler(s *service.LancamentoService) *LancamentoHandler {
 func (h *LancamentoHandler) HandleLancamentos(router gin.IRouter) {
 	lancamentos := router.Group("/lancamentos")
 
-	lancamentos.GET("", h.Listar)
-	lancamentos.POST("", h.Criar)
-	lancamentos.GET("/conversao", h.CalcularConversao)
-	lancamentos.GET("/:id", h.BuscarID)
+	lancamentos.GET("", auth.RequirePermission("lancamento.read"), h.Listar)
+	lancamentos.POST("", auth.RequirePermission("lancamento.create"), h.Criar)
+	lancamentos.GET("/conversao", auth.RequirePermission("lancamento.read"), h.CalcularConversao)
+	lancamentos.GET("/:id", auth.RequirePermission("lancamento.read"), h.BuscarID)
 }
 
 func (h *LancamentoHandler) Criar(ctx *gin.Context) {

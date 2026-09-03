@@ -10,7 +10,9 @@ func lojaSolicitada(lojas []int) int {
 }
 
 func pertenceALoja(lojaID, recursoLojaID int) bool {
-	return lojaID <= 0 || lojaID == recursoLojaID
+	// Segurança: lojaID deve ser válido (> 0) E deve ser igual ao recurso
+	// Evita que lojaID <= 0 passe em todas as verificações
+	return lojaID > 0 && lojaID == recursoLojaID
 }
 
 func erroAcessoLoja() error {

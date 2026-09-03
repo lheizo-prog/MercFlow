@@ -68,22 +68,11 @@ func (s *LancamentoService) Criar(request *request.LancamentoRequest, lojas ...i
 }
 
 func (s *LancamentoService) Listar(lojas ...int) ([]models.Lancamento, error) {
-	lancamentos, err := s.lancamentoRepo.Listar()
-	if err != nil {
-		return nil, err
-	}
-
 	lojaID := lojaSolicitada(lojas)
 	if lojaID <= 0 {
-		return lancamentos, nil
+		return s.lancamentoRepo.Listar()
 	}
-	filtrados := make([]models.Lancamento, 0, len(lancamentos))
-	for _, lancamento := range lancamentos {
-		if lancamento.LojaID == lojaID {
-			filtrados = append(filtrados, lancamento)
-		}
-	}
-	return filtrados, nil
+	return s.lancamentoRepo.ListarPorLoja(lojaID)
 }
 
 func (s *LancamentoService) BuscarID(id int, lojas ...int) (*models.Lancamento, error) {
@@ -103,7 +92,7 @@ func (s *LancamentoService) CalcularConversao(item request.LancamentoItem, lojas
 		return nil, errors.New("produto da mercearia não informado")
 	}
 	if item.ProdutoDepartamentoID == nil {
-		return nil, errors.New("produto do departamento não encontrado")
+		return nil, errors.New("produto do departamento não informado")
 	}
 
 	return s.processarItemTransferencia(item, lojaSolicitada(lojas))

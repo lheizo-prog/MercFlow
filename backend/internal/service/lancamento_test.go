@@ -97,11 +97,15 @@ func (l *lancamentoRepositoryMock) BuscarID(id int) (*models.Lancamento, error) 
 func (l *lancamentoRepositoryMock) Listar() ([]models.Lancamento, error) {
 	return nil, l.err
 }
+func (l *lancamentoRepositoryMock) ListarPorLoja(lojaID int) ([]models.Lancamento, error) {
+	return nil, l.err
+}
 
 func TestCriarQuebraProdutoMercearia(t *testing.T) {
 
 	produtoMercearia := &models.ProdutoMercearia{
 		ID:                  10,
+		LojaID:              1,
 		ProdutoGenericoID:   5,
 		SKU:                 "ARROZ-001",
 		Marca:               "Marca Teste",
@@ -150,7 +154,7 @@ func TestCriarQuebraProdutoMercearia(t *testing.T) {
 		},
 	}
 
-	resultado, err := service.Criar(req)
+	resultado, err := service.Criar(req, 1)
 
 	if err != nil {
 		t.Fatalf("esperava que não houvesse erro, mas recebeu: %v", err)
@@ -204,6 +208,7 @@ func TestCriarQuebraProdutoMercearia(t *testing.T) {
 func TestCriarQuebraProdutoMerceariaMultiplicaQuantidadeEmbalagem(t *testing.T) {
 	produtoMercearia := &models.ProdutoMercearia{
 		ID:                  15,
+		LojaID:              1,
 		ProdutoGenericoID:   7,
 		SKU:                 "PAO-400",
 		Marca:               "Padaria",
@@ -219,6 +224,7 @@ func TestCriarQuebraProdutoMerceariaMultiplicaQuantidadeEmbalagem(t *testing.T) 
 	lancamentoRepo := &lancamentoRepositoryMock{
 		lancamento: &models.Lancamento{
 			ID:             90,
+			LojaID:         1,
 			Tipo:           models.TipoLancamento("QUEBRA"),
 			DepartamentoID: 2,
 			Data:           time.Now(),
@@ -238,7 +244,7 @@ func TestCriarQuebraProdutoMerceariaMultiplicaQuantidadeEmbalagem(t *testing.T) 
 			ProdutoMerceariaID: &produtoMercearia.ID,
 			Quantidade:         2,
 		}},
-	})
+	}, 1)
 	if err != nil {
 		t.Fatalf("esperava que não houvesse erro, mas recebeu: %v", err)
 	}
@@ -255,6 +261,7 @@ func TestCriarQuebraProdutoMerceariaMultiplicaQuantidadeEmbalagem(t *testing.T) 
 func TestCriarQuebraProdutoDepartamento(t *testing.T) {
 	produtoDepartamento := &models.ProdutoDepartamento{
 		ID:                20,
+		LojaID:            1,
 		ProdutoGenericoID: 5,
 		Nome:              "Arroz 1kg",
 		Codigo:            "ARR-01",
@@ -271,6 +278,7 @@ func TestCriarQuebraProdutoDepartamento(t *testing.T) {
 	lancamentoRepo := &lancamentoRepositoryMock{
 		lancamento: &models.Lancamento{
 			ID:             88,
+			LojaID:         1,
 			Tipo:           models.TipoLancamento("QUEBRA"),
 			DepartamentoID: 1,
 			Data:           time.Now(),
@@ -299,7 +307,7 @@ func TestCriarQuebraProdutoDepartamento(t *testing.T) {
 		},
 	}
 
-	resultado, err := service.Criar(req)
+	resultado, err := service.Criar(req, 1)
 
 	if err != nil {
 		t.Fatalf(
@@ -400,6 +408,7 @@ func TestUnidadeMedidaValidoAceitaMinusculo(t *testing.T) {
 func TestCriarTransferencia(t *testing.T) {
 	produtoMercearia := &models.ProdutoMercearia{
 		ID:                  10,
+		LojaID:              1,
 		ProdutoGenericoID:   5,
 		SKU:                 "ARROZ-001",
 		Marca:               "Marca Teste",
@@ -412,6 +421,7 @@ func TestCriarTransferencia(t *testing.T) {
 
 	produtoDepartamento := &models.ProdutoDepartamento{
 		ID:                20,
+		LojaID:            1,
 		ProdutoGenericoID: 5,
 		Nome:              "Arroz",
 		Codigo:            "ARR-01",
@@ -421,6 +431,7 @@ func TestCriarTransferencia(t *testing.T) {
 	t.Run("transferência entre diferentes produtos departamento do mesmo produto base", func(t *testing.T) {
 		produtoDepartamentoDestino := &models.ProdutoDepartamento{
 			ID:                21,
+			LojaID:            1,
 			ProdutoGenericoID: 5,
 			Nome:              "Arroz Extra",
 			Codigo:            "ARR-02",
@@ -432,6 +443,7 @@ func TestCriarTransferencia(t *testing.T) {
 		lancamentoRepo := &lancamentoRepositoryMock{
 			lancamento: &models.Lancamento{
 				ID:             77,
+				LojaID:         1,
 				Tipo:           models.TipoLancamento("TRANSFERENCIA"),
 				DepartamentoID: 1,
 				Data:           time.Now(),
@@ -454,7 +466,7 @@ func TestCriarTransferencia(t *testing.T) {
 			}},
 		}
 
-		resultado, err := service.Criar(req)
+		resultado, err := service.Criar(req, 1)
 		if err != nil {
 			t.Fatalf("esperava transferência válida para mesmo produto base, mas recebeu erro: %v", err)
 		}
@@ -475,6 +487,7 @@ func TestCriarTransferencia(t *testing.T) {
 	lancamentoRepo := &lancamentoRepositoryMock{
 		lancamento: &models.Lancamento{
 			ID:             99,
+			LojaID:         1,
 			Tipo:           models.TipoLancamento("TRANSFERENCIA"),
 			DepartamentoID: 1,
 			Data:           time.Now(),
@@ -504,7 +517,7 @@ func TestCriarTransferencia(t *testing.T) {
 		},
 	}
 
-	resultado, err := service.Criar(req)
+	resultado, err := service.Criar(req, 1)
 
 	if err != nil {
 		t.Fatalf(
@@ -712,7 +725,7 @@ func TestCriarLancamentoErros(t *testing.T) {
 func esperarErro(t *testing.T, service *LancamentoService, req *request.LancamentoRequest, mensagem string) {
 	t.Helper()
 
-	resultado, err := service.Criar(req)
+	resultado, err := service.Criar(req, 1)
 
 	if err == nil {
 		t.Fatalf(
@@ -740,6 +753,7 @@ func esperarErro(t *testing.T, service *LancamentoService, req *request.Lancamen
 func TestCriarTransferenciaErros(t *testing.T) {
 	produtoMercearia := &models.ProdutoMercearia{
 		ID:                  10,
+		LojaID:              1,
 		ProdutoGenericoID:   5,
 		SKU:                 "ARROZ-001",
 		Marca:               "Marca Teste",
@@ -752,6 +766,7 @@ func TestCriarTransferenciaErros(t *testing.T) {
 
 	produtoDepartamento := &models.ProdutoDepartamento{
 		ID:                20,
+		LojaID:            1,
 		ProdutoGenericoID: 5,
 		Nome:              "Arroz",
 		Codigo:            "ARR-01",
@@ -760,6 +775,7 @@ func TestCriarTransferenciaErros(t *testing.T) {
 
 	produtoDiferente := &models.ProdutoDepartamento{
 		ID:                30,
+		LojaID:            1,
 		ProdutoGenericoID: 99,
 		Nome:              "Feijão",
 		Codigo:            "FEI-01",
@@ -876,6 +892,7 @@ func TestCriarTransferenciaErros(t *testing.T) {
 	t.Run("unidades de medida incompatíveis", func(t *testing.T) {
 		produtoDepartamentoIncompativel := &models.ProdutoDepartamento{
 			ID:                40,
+			LojaID:            1,
 			ProdutoGenericoID: 5,
 			Nome:              "Arroz",
 			Codigo:            "ARR-02",
