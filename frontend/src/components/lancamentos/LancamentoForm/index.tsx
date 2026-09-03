@@ -78,11 +78,11 @@ function LancamentoForm({
   const isDepartamentoMercearia =
     isQuebra && form.departamentoID === departamentoMercearia?.id;
   const departamentosDisponiveis = isQuebra
-    ? departamentosSemDuplicatas
-    : departamentosSemDuplicatas.filter(
+    ? departamentosSemDuplicatas.filter(
         (departamento) =>
           departamento.nome.trim().toLowerCase() !== "mercearia",
-      );
+      )
+    : departamentosSemDuplicatas;
 
   const isProdutoDepartamento = (
     produto: ProdutoDepartamento | ProdutoMercearia,
