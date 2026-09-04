@@ -154,12 +154,12 @@ func (r *DashboardPostgresRepository) BuscarLancamentos(
 				END AS quantidade,
 
 				CASE LOWER(TRIM(COALESCE(pm.unidade_medida, pd.unidade_medida)))
-					WHEN 'kg' THEN 'kg'
-					WHEN 'g' THEN 'kg'
-					WHEN 'gr' THEN 'kg'
+					WHEN 'kg' THEN 'KG'
+					WHEN 'g' THEN 'KG'
+					WHEN 'gr' THEN 'KG'
 					WHEN 'l' THEN 'L'
 					WHEN 'ml' THEN 'L'
-					ELSE LOWER(TRIM(COALESCE(pm.unidade_medida, pd.unidade_medida)))
+					ELSE UPPER(TRIM(COALESCE(pm.unidade_medida, pd.unidade_medida)))
 				END AS unidade
 
 			FROM lancamentos l
@@ -272,12 +272,12 @@ func (r *DashboardPostgresRepository) BuscarLancamentos(
 				END AS quantidade,
 
 				CASE LOWER(TRIM(pd.unidade_medida))
-					WHEN 'kg' THEN 'kg'
-					WHEN 'g' THEN 'kg'
-					WHEN 'gr' THEN 'kg'
+					WHEN 'kg' THEN 'KG'
+					WHEN 'g' THEN 'KG'
+					WHEN 'gr' THEN 'KG'
 					WHEN 'l' THEN 'L'
 					WHEN 'ml' THEN 'L'
-					ELSE LOWER(TRIM(pd.unidade_medida))
+					ELSE UPPER(TRIM(pd.unidade_medida))
 				END AS unidade
 
 			FROM lancamentos l

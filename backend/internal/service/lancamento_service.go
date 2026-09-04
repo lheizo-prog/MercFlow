@@ -207,7 +207,7 @@ func (s *LancamentoService) criarQuebra(request *request.LancamentoRequest, loja
 			itemResponse = &response.LancamentoItemResponse{
 				ProdutoMerceariaID: produto.ID,
 				Quantidade:         item.Quantidade,
-				UnidadeMercearia:   string(produto.UnidadeMedida),
+				UnidadeMercearia:   normalizarUnidadeMedida(string(produto.UnidadeMedida)),
 				TotalLancado:       item.Quantidade * produto.QuantidadeEmbalagem,
 			}
 		}
@@ -224,7 +224,7 @@ func (s *LancamentoService) criarQuebra(request *request.LancamentoRequest, loja
 			itemResponse = &response.LancamentoItemResponse{
 				ProdutoDepartamentoID: produto.ID,
 				Quantidade:            item.Quantidade,
-				UnidadeDepartamento:   string(produto.UnidadeMedida),
+				UnidadeDepartamento:   normalizarUnidadeMedida(string(produto.UnidadeMedida)),
 				TotalLancado:          item.Quantidade,
 			}
 		}
@@ -286,8 +286,8 @@ func (s *LancamentoService) processarItemTransferencia(item request.LancamentoIt
 		ProdutoMerceariaID:    produtoMercearia.ID,
 		ProdutoDepartamentoID: produtoDepartamento.ID,
 		Quantidade:            item.Quantidade,
-		UnidadeMercearia:      string(produtoMercearia.UnidadeMedida),
-		UnidadeDepartamento:   string(produtoDepartamento.UnidadeMedida),
+		UnidadeMercearia:      normalizarUnidadeMedida(string(produtoMercearia.UnidadeMedida)),
+		UnidadeDepartamento:   normalizarUnidadeMedida(string(produtoDepartamento.UnidadeMedida)),
 		FatorConversao:        fatorConversao,
 		TotalLancado:          totalLancado,
 	}, nil
@@ -319,6 +319,25 @@ func normalizarUnidade(unidade string) string {
 	}
 
 	return unidade
+}
+
+// normalizarUnidadeMedida padroniza valores de unidades de medida para o formato superior consistente (KG, GR, L, ML, UN)
+func normalizarUnidadeMedida(valor string) string {
+	u := strings.ToUpper(strings.TrimSpace(valor))
+	switch u {
+	case "KG", "KILO", "KILOGRAMA":
+		return "KG"
+	case "GR", "G", "GRAMA":
+		return "GR"
+	case "L", "LT", "LITRO":
+		return "L"
+	case "ML", "MILLILITRO":
+		return "ML"
+	case "UN", "U", "UNIDADE":
+		return "UN"
+	default:
+		return ""
+	}
 }
 
 func calcularFatorConversao(

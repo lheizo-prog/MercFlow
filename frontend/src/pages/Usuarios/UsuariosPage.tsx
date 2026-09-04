@@ -23,6 +23,22 @@ const permissoesPadrao = {
   ],
   visualizador: ["dashboard.read", "lancamento.read"],
 };
+// Mapeamento de permissoes tecnicas para nomes amigaveis
+const permissoesLabels: Record<string, string> = {
+  "dashboard.read": "Visualizar Dashboard",
+  "dashboard.export": "Exportar Dados do Dashboard",
+  "lancamento.create": "Criar Lancamentos",
+  "lancamento.read": "Visualizar Lancamentos",
+  "produto.read": "Visualizar Produtos",
+  "produto.create": "Criar Produtos",
+  "produto.update": "Editar Produtos",
+  "departamento.read": "Visualizar Departamentos",
+  "departamento.create": "Criar Departamentos",
+  "usuario.read": "Visualizar Usuarios",
+  "usuario.create": "Criar Usuarios",
+  "usuario.update": "Editar Usuarios",
+};
+
 
 function UsuariosPage() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
@@ -255,7 +271,7 @@ function UsuariosPage() {
                           checked={form.permissoes.includes(permissao)}
                           onChange={() => togglePermissao(permissao)}
                         />
-                        <span className="small">{permissao}</span>
+                        <span className="small">{permissoesLabels[permissao] ?? permissao}</span>
                       </label>
                     </div>
                   ))}
@@ -304,7 +320,7 @@ function UsuariosPage() {
                           <td>{usuario.nome}</td>
                           <td>{usuario.username}</td>
                           <td>{usuario.perfil}</td>
-                          <td>{usuario.loja_id}</td>
+                          <td>{lojas.find((l) => l.id === usuario.loja_id)?.nome ?? ("Loja " + usuario.loja_id)}</td>
                         </tr>
                       ))}
                     </tbody>
