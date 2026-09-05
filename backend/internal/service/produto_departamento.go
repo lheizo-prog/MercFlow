@@ -73,22 +73,11 @@ func (s *ProdutoDepartamentoService) RemoverID(id int, lojas ...int) error {
 }
 
 func (s *ProdutoDepartamentoService) Listar(lojas ...int) ([]*models.ProdutoDepartamento, error) {
-	produtos, err := s.ProdutoDepartamentoRepo.Listar()
-	if err != nil {
-		return nil, err
-	}
-
 	lojaID := lojaSolicitada(lojas)
 	if lojaID <= 0 {
-		return produtos, nil
+		return s.ProdutoDepartamentoRepo.Listar()
 	}
-	filtrados := make([]*models.ProdutoDepartamento, 0, len(produtos))
-	for _, produto := range produtos {
-		if produto.LojaID == lojaID {
-			filtrados = append(filtrados, produto)
-		}
-	}
-	return filtrados, nil
+	return s.ProdutoDepartamentoRepo.ListarPorLoja(lojaID)
 }
 
 func (s *ProdutoDepartamentoService) BuscarID(id int, lojas ...int) (*models.ProdutoDepartamento, error) {

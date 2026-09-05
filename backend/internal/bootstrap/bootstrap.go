@@ -50,6 +50,7 @@ func New() (*Application, error) {
 	usuarioHandler := handlers.NovoUsuarioHandler(usuarioService)
 	lojaRepo := loja.NovoPostgresLojaRepository(db)
 	lojaHandler := handlers.NovoLojaHandler(lojaRepo)
+	handlers.InitScope(lojaRepo)
 	router.POST("/login", authHandler.Login)
 	router.GET("/health", func(ctx *gin.Context) {
 		ctx.JSON(200, gin.H{"status": "ok"})

@@ -69,13 +69,53 @@ func (r *PostgresProdutoGenericoRepository) Listar() ([]*models.ProdutoGenerico,
 
 	for rows.Next() {
 		produto := &models.ProdutoGenerico{}
-		rows.Scan(
+		if err := rows.Scan(
 			&produto.ID,
 			&produto.Nome,
 			&produto.Codigo_Geral,
 			&produto.LojaID,
-		)
+		); err != nil {
+			return nil, err
+		}
 		lista = append(lista, produto)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return lista, nil
+}
+
+func (r *PostgresProdutoGenericoRepository) ListarPorLoja(lojaID int) ([]*models.ProdutoGenerico, error) {
+	if lojaID <= 0 {
+		return nil, errors.New("loja inválida")
+	}
+	rows, err := r.db.Query(
+		context.Background(),
+		"SELECT id, nome, codigo, loja_id FROM produtos_genericos WHERE loja_id = $1 ORDER BY nome;",
+		lojaID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	lista := []*models.ProdutoGenerico{}
+
+	for rows.Next() {
+		produto := &models.ProdutoGenerico{}
+		if err := rows.Scan(
+			&produto.ID,
+			&produto.Nome,
+			&produto.Codigo_Geral,
+			&produto.LojaID,
+		); err != nil {
+			return nil, err
+		}
+		lista = append(lista, produto)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return lista, nil

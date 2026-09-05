@@ -102,6 +102,48 @@ func (r *ProdutoMerceariaPostgresRepository) Listar() ([]*models.ProdutoMerceari
 	return lista, nil
 }
 
+func (r *ProdutoMerceariaPostgresRepository) ListarPorLoja(lojaID int) ([]*models.ProdutoMercearia, error) {
+	if lojaID <= 0 {
+		return nil, errors.New("loja inválida")
+	}
+	rows, err := r.db.Query(
+		context.Background(),
+		"SELECT pm.id, pm.loja_id, pm.produto_generico_id, pg.nome, pm.sku, pm.marca, pm.descricao, pm.codigo_barras, pm.quantidade_embalagem, pm.unidade_medida, pm.ativo FROM produtos_mercearia pm JOIN produtos_genericos pg ON pm.produto_generico_id = pg.id WHERE pm.loja_id = $1",
+		lojaID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	lista := []*models.ProdutoMercearia{}
+
+	for rows.Next() {
+		produto := &models.ProdutoMercearia{}
+		if err := rows.Scan(
+			&produto.ID,
+			&produto.LojaID,
+			&produto.ProdutoGenericoID,
+			&produto.ProdutoGenericoNome,
+			&produto.SKU,
+			&produto.Marca,
+			&produto.Descricao,
+			&produto.CodigoBarras,
+			&produto.QuantidadeEmbalagem,
+			&produto.UnidadeMedida,
+			&produto.Ativo,
+		); err != nil {
+			return nil, err
+		}
+		lista = append(lista, produto)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return lista, nil
+}
+
 func (r *ProdutoMerceariaPostgresRepository) RemoverID(id int) error {
 	response, err := r.db.Exec(
 		context.Background(),
@@ -302,3 +344,48 @@ func (r *ProdutoMerceariaPostgresRepository) Reativar(id int) error {
 
 	return nil
 }
+func (r *ProdutoMerceariaPostgresRepository) BuscarPorLoja(texto string, lojaID int) ([]*models.ProdutoMercearia, error) {
+	if lojaID <= 0 {
+		return nil, errors.New("loja inválida")
+	}
+	texto = strings.TrimSpace(strings.ToLower(texto))
+
+	rows, err := r.db.Query(
+		context.Background(),
+		"SELECT pm.id, pm.loja_id, pm.produto_generico_id, pg.nome, pm.sku, pm.marca, pm.descricao, pm.codigo_barras, pm.quantidade_embalagem, pm.unidade_medida, pm.ativo FROM produtos_mercearia pm JOIN produtos_genericos pg ON pm.produto_generico_id = pg.id WHERE pm.loja_id = $1 AND pm.ativo = TRUE AND (LOWER(pm.sku) LIKE '%' || $2 || '%' OR LOWER(pm.marca) LIKE '%' || $2 || '%' OR LOWER(pm.descricao) LIKE '%' || $2 || '%' OR LOWER(pm.codigo_barras) LIKE '%' || $2 || '%') ORDER BY CASE WHEN LOWER(pm.sku) = $2 THEN 1 WHEN LOWER(pm.codigo_barras) = $2 THEN 2 ELSE 3 END, pm.marca;",
+		lojaID, texto,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	lista := []*models.ProdutoMercearia{}
+
+	for rows.Next() {
+		produto := &models.ProdutoMercearia{}
+		if err := rows.Scan(
+			&produto.ID,
+			&produto.LojaID,
+			&produto.ProdutoGenericoID,
+			&produto.ProdutoGenericoNome,
+			&produto.SKU,
+			&produto.Marca,
+			&produto.Descricao,
+			&produto.CodigoBarras,
+			&produto.QuantidadeEmbalagem,
+			&produto.UnidadeMedida,
+			&produto.Ativo,
+		); err != nil {
+			return nil, err
+		}
+		lista = append(lista, produto)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return lista, nil
+}
+
+

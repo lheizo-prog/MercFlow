@@ -48,6 +48,12 @@ func (m *produtoMerceariaRepositoryMock) BuscarCodigoBarras(codigo string) (*mod
 func (m *produtoMerceariaRepositoryMock) Buscar(texto string) ([]*models.ProdutoMercearia, error) {
 	return nil, m.err
 }
+func (m *produtoMerceariaRepositoryMock) ListarPorLoja(lojaID int) ([]*models.ProdutoMercearia, error) {
+	return nil, m.err
+}
+func (m *produtoMerceariaRepositoryMock) BuscarPorLoja(texto string, lojaID int) ([]*models.ProdutoMercearia, error) {
+	return nil, m.err
+}
 func (m *produtoMerceariaRepositoryMock) BuscarInativo(sku string) (*models.ProdutoMercearia, error) {
 	return m.produto, m.err
 }
@@ -63,6 +69,9 @@ func (d *produtoDepartamentoRepositoryMock) Atualizar(p *models.ProdutoDepartame
 	return d.produto, d.err
 }
 func (d *produtoDepartamentoRepositoryMock) Listar() ([]*models.ProdutoDepartamento, error) {
+	return nil, d.err
+}
+func (d *produtoDepartamentoRepositoryMock) ListarPorLoja(lojaID int) ([]*models.ProdutoDepartamento, error) {
 	return nil, d.err
 }
 func (d *produtoDepartamentoRepositoryMock) RemoverID(id int) error {
@@ -189,9 +198,9 @@ func TestCriarQuebraProdutoMercearia(t *testing.T) {
 		)
 	}
 
-	if item.UnidadeMercearia != "kg" {
+	if item.UnidadeMercearia != "KG" {
 		t.Errorf(
-			"esperava unidade kg, recebeu %s",
+			"esperava unidade KG, recebeu %s",
 			item.UnidadeMercearia,
 		)
 	}
@@ -563,16 +572,16 @@ func TestCriarTransferencia(t *testing.T) {
 		)
 	}
 
-	if item.UnidadeMercearia != "kg" {
+	if item.UnidadeMercearia != "KG" {
 		t.Errorf(
-			"esperava unidade mercearia kg, recebeu %s",
+			"esperava unidade mercearia KG, recebeu %s",
 			item.UnidadeMercearia,
 		)
 	}
 
-	if item.UnidadeDepartamento != "g" {
+	if item.UnidadeDepartamento != "GR" {
 		t.Errorf(
-			"esperava unidade departamento g, recebeu %s",
+			"esperava unidade departamento GR, recebeu %s",
 			item.UnidadeDepartamento,
 		)
 	}

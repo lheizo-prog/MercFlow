@@ -6,12 +6,20 @@ import type { Usuario, UsuarioPayload } from "../../types/Usuario";
 import type { Loja } from "../../types/Loja";
 
 const permissoesPadrao = {
-  operador: ["dashboard.read", "lancamento.create", "lancamento.read"],
+  operador: [
+    "dashboard.read",
+    "lancamento.create",
+    "lancamento.read",
+    "lancamento.calculate",
+    "produto.read",
+    "departamento.read",
+  ],
   admin: [
     "dashboard.read",
     "dashboard.export",
     "lancamento.create",
     "lancamento.read",
+    "lancamento.calculate",
     "produto.read",
     "produto.create",
     "produto.update",
@@ -21,7 +29,13 @@ const permissoesPadrao = {
     "usuario.create",
     "usuario.update",
   ],
-  visualizador: ["dashboard.read", "lancamento.read"],
+  visualizador: [
+    "dashboard.read",
+    "lancamento.read",
+    "lancamento.calculate",
+    "produto.read",
+    "departamento.read",
+  ],
 };
 // Mapeamento de permissoes tecnicas para nomes amigaveis
 const permissoesLabels: Record<string, string> = {
@@ -29,6 +43,7 @@ const permissoesLabels: Record<string, string> = {
   "dashboard.export": "Exportar Dados do Dashboard",
   "lancamento.create": "Criar Lancamentos",
   "lancamento.read": "Visualizar Lancamentos",
+  "lancamento.calculate": "Calcular Conversao de Lançamentos",
   "produto.read": "Visualizar Produtos",
   "produto.create": "Criar Produtos",
   "produto.update": "Editar Produtos",
@@ -93,6 +108,7 @@ function UsuariosPage() {
       "dashboard.export",
       "lancamento.create",
       "lancamento.read",
+      "lancamento.calculate",
       "produto.read",
       "produto.create",
       "produto.update",

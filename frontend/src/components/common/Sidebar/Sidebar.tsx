@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
-import { useEffect, useRef, useMemo } from "react";
+import { useEffect, useRef } from "react";
 import { Collapse } from "bootstrap";
+import { useAuth } from "../../../hooks/useAuth";
 
 interface SidebarProps {
   aberto: boolean;
@@ -9,19 +10,7 @@ interface SidebarProps {
 
 function Sidebar({ aberto, onNavegar }: SidebarProps) {
   const sidebarRef = useRef<HTMLElement>(null);
-
-  const perfil = useMemo(() => {
-    try {
-      const usuario = localStorage.getItem("mercflow_usuario");
-      if (!usuario) return null;
-      const parsed = JSON.parse(usuario) as { perfil?: string };
-      return parsed.perfil ?? null;
-    } catch {
-      return null;
-    }
-  }, []);
-
-  const isAdmin = perfil === "admin" || perfil === "super_admin";
+  const { isAdmin } = useAuth();
 
   useEffect(() => {
     if (!sidebarRef.current) {

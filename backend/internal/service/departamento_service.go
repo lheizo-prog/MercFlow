@@ -52,22 +52,11 @@ func (s *DepartamentoService) Atualizar(d *models.Departamento, lojas ...int) (*
 }
 
 func (s *DepartamentoService) Listar(lojas ...int) ([]*models.Departamento, error) {
-	departamentos, err := s.repo.Listar()
-
-	if err != nil {
-		return nil, err
-	}
 	lojaID := lojaSolicitada(lojas)
 	if lojaID <= 0 {
-		return departamentos, nil
+		return s.repo.Listar()
 	}
-	filtrados := make([]*models.Departamento, 0, len(departamentos))
-	for _, departamento := range departamentos {
-		if departamento.LojaID == lojaID {
-			filtrados = append(filtrados, departamento)
-		}
-	}
-	return filtrados, nil
+	return s.repo.ListarPorLoja(lojaID)
 }
 
 func (s *DepartamentoService) BuscarID(id int, lojas ...int) (*models.Departamento, error) {

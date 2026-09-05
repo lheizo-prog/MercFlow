@@ -51,21 +51,11 @@ func (s *ProdutoService) RemoverID(id int, lojas ...int) error {
 }
 
 func (s *ProdutoService) Listar(lojas ...int) ([]*models.ProdutoGenerico, error) {
-	produtos, err := s.repo.Listar()
-	if err != nil {
-		return nil, err
-	}
 	lojaID := lojaSolicitada(lojas)
 	if lojaID <= 0 {
-		return produtos, nil
+		return s.repo.Listar()
 	}
-	filtrados := make([]*models.ProdutoGenerico, 0, len(produtos))
-	for _, produto := range produtos {
-		if produto.LojaID == lojaID {
-			filtrados = append(filtrados, produto)
-		}
-	}
-	return filtrados, nil
+	return s.repo.ListarPorLoja(lojaID)
 }
 
 func (s *ProdutoService) BuscarID(id int, lojas ...int) (*models.ProdutoGenerico, error) {

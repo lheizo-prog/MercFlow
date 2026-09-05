@@ -11,4 +11,5 @@ type ProdutoGenericoRepository interface {
 	BuscarCodigo(codigo string) (*models.ProdutoGenerico, error)
 	Atualizar(produto *models.ProdutoGenerico) (*models.ProdutoGenerico, error)
 	Listar() ([]*models.ProdutoGenerico, error)
+	ListarPorLoja(lojaID int) ([]*models.ProdutoGenerico, error)
 }

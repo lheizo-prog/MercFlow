@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -86,6 +87,41 @@ func (r *PostgresDepartamentoRepository) Listar() ([]*models.Departamento, error
 	return lista, nil
 }
 
+func (r *PostgresDepartamentoRepository) ListarPorLoja(lojaID int) ([]*models.Departamento, error) {
+	if lojaID <= 0 {
+		return nil, errors.New("loja inválida")
+	}
+	rows, err := r.db.Query(context.Background(), `
+		SELECT id, nome, loja_id
+		FROM departamentos
+		WHERE loja_id = $1
+		ORDER BY LOWER(TRIM(nome));
+	`, lojaID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	lista := []*models.Departamento{}
+
+	for rows.Next() {
+		departamento := &models.Departamento{}
+		if err := rows.Scan(
+			&departamento.ID,
+			&departamento.Nome,
+			&departamento.LojaID,
+		); err != nil {
+			return nil, err
+		}
+		lista = append(lista, departamento)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return lista, nil
+}
+
 func (r *PostgresDepartamentoRepository) BuscarID(id int) (*models.Departamento, error) {
 	departamento := &models.Departamento{}
 
@@ -96,6 +132,9 @@ func (r *PostgresDepartamentoRepository) BuscarID(id int) (*models.Departamento,
 		&departamento.Nome,
 		&departamento.LojaID,
 	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, errors.New("departamento não encontrado")
+	}
 	if err != nil {
 		return nil, err
 	}

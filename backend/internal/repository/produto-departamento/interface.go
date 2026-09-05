@@ -13,4 +13,5 @@ type ProdutoDepartamentoRepository interface {
 	Reativar(id int) error
 	Atualizar(produto *models.ProdutoDepartamento) (*models.ProdutoDepartamento, error)
 	Listar() ([]*models.ProdutoDepartamento, error)
+	ListarPorLoja(lojaID int) ([]*models.ProdutoDepartamento, error)
 }

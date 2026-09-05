@@ -10,31 +10,33 @@ import (
 func CORS() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		origin := strings.TrimSpace(ctx.GetHeader("Origin"))
+		
+		// Obter URL do frontend das variáveis de ambiente
+		frontendURL := strings.TrimSpace(os.Getenv("FRONTEND_URL"))
+		if frontendURL == "" {
+			// Nenhuma origem permitida se FRONTEND_URL não estiver configurado
+			ctx.Next()
+			return
+		}
+
 		allowedOrigins := map[string]struct{}{
-			"http://localhost:5173": {},
-			"http://localhost:3000": {},
-			"http://localhost:8080": {},
+			frontendURL: {},
 		}
 
-		for _, envKey := range []string{"FRONTEND_URL", "VERCEL_PROJECT_PRODUCTION_URL", "VERCEL_URL"} {
-			if value := strings.TrimSpace(os.Getenv(envKey)); value != "" {
-				allowedOrigins[value] = struct{}{}
-			}
-		}
-
+		// Verificar se a origem da requisição é permitida
 		if origin != "" {
 			if _, ok := allowedOrigins[origin]; ok {
 				ctx.Header("Access-Control-Allow-Origin", origin)
+				ctx.Header("Vary", "Origin")
 			}
-		} else if frontendURL := strings.TrimSpace(os.Getenv("FRONTEND_URL")); frontendURL != "" {
-			ctx.Header("Access-Control-Allow-Origin", frontendURL)
 		} else {
-			ctx.Header("Access-Control-Allow-Origin", "http://localhost:5173")
+			// Para requisições sem Origin (curl, etc), usar FRONTEND_URL
+			ctx.Header("Access-Control-Allow-Origin", frontendURL)
 		}
 
 		ctx.Header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 		ctx.Header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Loja-ID")
-		ctx.Header("Vary", "Origin")
+		ctx.Header("Access-Control-Allow-Credentials", "true")
 
 		if ctx.Request.Method == "OPTIONS" {
 			ctx.AbortWithStatus(204)

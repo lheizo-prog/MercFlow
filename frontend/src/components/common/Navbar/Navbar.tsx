@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../../services/api";
 import lojaService from "../../../services/lojaService";
+import { useAuth } from "../../../hooks/useAuth";
 import type { Loja } from "../../../types/Loja";
 
 type NavbarProps = {
@@ -12,49 +13,29 @@ type NavbarProps = {
 
 function Navbar({ titulo, menuAberto, onAlternarMenu }: NavbarProps) {
   const navigate = useNavigate();
-  const usuario = (() => {
-    try {
-      return JSON.parse(localStorage.getItem("mercflow_usuario") ?? "null") as {
-        username?: string;
-        nome?: string;
-        loja_id?: number;
-        loja_nome?: string;
-        perfil?: string;
-      } | null;
-    } catch {
-      return null;
-    }
-  })();
+  const { user, isAdmin, logout } = useAuth();
   const [lojas, setLojas] = useState<Loja[]>([]);
   const lojaAtual = Number(
-    localStorage.getItem("mercflow_loja_id") || usuario?.loja_id || 0,
+    localStorage.getItem("mercflow_loja_id") || user?.loja_id || 0,
   );
   const nomeLojaAtual =
     lojas.find((loja) => loja.id === lojaAtual)?.nome ??
-    usuario?.loja_nome ??
-    "Loja nÃ£o identificada";
+    user?.loja_nome ??
+    "Loja não identificada";
 
   useEffect(() => {
-    if (usuario?.perfil !== "admin" && usuario?.perfil !== "super_admin") {
+    if (!isAdmin) {
       return;
     }
     void lojaService
       .listar()
       .then(setLojas)
       .catch(() => setLojas([]));
-  }, [usuario?.perfil]);
+  }, [isAdmin]);
 
   function trocarLoja(lojaID: number) {
     localStorage.setItem("mercflow_loja_id", String(lojaID));
     window.location.reload();
-  }
-
-  function logout() {
-    localStorage.removeItem("mercflow_token");
-    localStorage.removeItem("mercflow_usuario");
-    localStorage.removeItem("mercflow_loja_id");
-    delete api.defaults.headers.common.Authorization;
-    navigate("/login", { replace: true });
   }
 
   return (
@@ -93,12 +74,16 @@ function Navbar({ titulo, menuAberto, onAlternarMenu }: NavbarProps) {
             </select>
           ) : null}
           <span className="navbar-text text-white-50 small">
-            {usuario?.username ?? usuario?.nome ?? "UsuÃ¡rio"} Â· {nomeLojaAtual}
+            {user?.username ?? user?.nome ?? "Usuário"} · {nomeLojaAtual}
           </span>
           <button
             type="button"
             className="btn btn-light btn-sm"
-            onClick={logout}
+            onClick={() => {
+              logout();
+              delete api.defaults.headers.common.Authorization;
+              navigate("/login", { replace: true });
+            }}
           >
             Sair
           </button>

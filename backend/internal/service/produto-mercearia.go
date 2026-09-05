@@ -58,22 +58,11 @@ func (s *ProdutoMerceariaService) Atualizar(p *models.ProdutoMercearia, lojas ..
 }
 
 func (s *ProdutoMerceariaService) Listar(lojas ...int) ([]*models.ProdutoMercearia, error) {
-	produtos, err := s.ProdutoMerceariaRepo.Listar()
-	if err != nil {
-		return nil, err
-	}
-
 	lojaID := lojaSolicitada(lojas)
 	if lojaID <= 0 {
-		return produtos, nil
+		return s.ProdutoMerceariaRepo.Listar()
 	}
-	filtrados := make([]*models.ProdutoMercearia, 0, len(produtos))
-	for _, produto := range produtos {
-		if produto.LojaID == lojaID {
-			filtrados = append(filtrados, produto)
-		}
-	}
-	return filtrados, nil
+	return s.ProdutoMerceariaRepo.ListarPorLoja(lojaID)
 }
 
 func (s *ProdutoMerceariaService) RemoverID(id int, lojas ...int) error {
@@ -125,22 +114,11 @@ func (s *ProdutoMerceariaService) BuscarCodigoBarras(codigo_barras string, lojas
 }
 
 func (s *ProdutoMerceariaService) Buscar(texto string, lojas ...int) ([]*models.ProdutoMercearia, error) {
-	produtos, err := s.ProdutoMerceariaRepo.Buscar(texto)
-	if err != nil {
-		return nil, err
-	}
-
 	lojaID := lojaSolicitada(lojas)
 	if lojaID <= 0 {
-		return produtos, nil
+		return s.ProdutoMerceariaRepo.Buscar(texto)
 	}
-	filtrados := make([]*models.ProdutoMercearia, 0, len(produtos))
-	for _, produto := range produtos {
-		if produto.LojaID == lojaID {
-			filtrados = append(filtrados, produto)
-		}
-	}
-	return filtrados, nil
+	return s.ProdutoMerceariaRepo.BuscarPorLoja(texto, lojaID)
 }
 
 func (s *ProdutoMerceariaService) ValidarProduto(p *models.ProdutoMercearia) error {

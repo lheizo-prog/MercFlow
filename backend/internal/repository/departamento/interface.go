@@ -7,5 +7,6 @@ type DepartamentoRepository interface {
 	RemoverID(id int) error
 	Atualizar(departamento *models.Departamento) (*models.Departamento, error)
 	Listar() ([]*models.Departamento, error)
+	ListarPorLoja(lojaID int) ([]*models.Departamento, error)
 	BuscarID(id int) (*models.Departamento, error)
 }

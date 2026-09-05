@@ -8,6 +8,7 @@ import {
 import DashboardPage from "../pages/Dashboard/DashboardPage";
 import MainLayout from "../layouts/MainLayout";
 import LoginPage from "../pages/Login/LoginPage";
+import { useAuth } from "../hooks/useAuth";
 
 import DepartamentosPage from "../pages/Departamentos/DepartamentosPage";
 import ProdutoGenericoPage from "../pages/ProdutoGenerico/ProdutoGenericoPage";
@@ -17,10 +18,10 @@ import LancamentoPage from "../pages/Lancamento/LancamentoPage";
 import UsuariosPage from "../pages/Usuarios/UsuariosPage";
 
 function ProtectedLayout() {
-  const token = localStorage.getItem("mercflow_token");
+  const { isAuthenticated } = useAuth();
   const location = useLocation();
 
-  if (!token) {
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 

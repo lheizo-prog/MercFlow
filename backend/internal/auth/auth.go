@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"log"
 	"os"
 	"strings"
 	"time"
@@ -33,23 +34,35 @@ type Claims struct {
 	Exp         int64    `json:"exp"`
 }
 
-func getEnv(name, fallback string) string {
-	if value := os.Getenv(name); value != "" {
-		return value
+func requireEnv(name string) string {
+	value := os.Getenv(name)
+	if value == "" {
+		log.Fatalf("variável de ambiente %q é obrigatória", name)
 	}
-	return fallback
+	return value
+}
+
+func requireEnvMinLen(name string, minLen int) string {
+	value := os.Getenv(name)
+	if value == "" {
+		log.Fatalf("variável de ambiente %q é obrigatória", name)
+	}
+	if len(value) < minLen {
+		log.Fatalf("variável de ambiente %q deve ter pelo menos %d caracteres", name, minLen)
+	}
+	return value
 }
 
 func defaultAdminUsername() string {
-	return getEnv("ADMIN_USERNAME", "admin")
+	return strings.TrimSpace(requireEnv("ADMIN_USERNAME"))
 }
 
 func defaultAdminPassword() string {
-	return getEnv("ADMIN_PASSWORD", "admin123")
+	return requireEnvMinLen("ADMIN_PASSWORD", 12)
 }
 
 func defaultJWTSecret() string {
-	return getEnv("JWT_SECRET", "mercflow-admin-secret-key")
+	return requireEnvMinLen("JWT_SECRET", 32)
 }
 
 func defaultAdminPermissions() []string {
@@ -59,6 +72,7 @@ func defaultAdminPermissions() []string {
 		"loja.switch",
 		"lancamento.create",
 		"lancamento.read",
+		"lancamento.calculate",
 		"produto.read",
 		"produto.create",
 		"produto.update",

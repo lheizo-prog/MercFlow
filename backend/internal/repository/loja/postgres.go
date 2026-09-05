@@ -65,3 +65,17 @@ func (r *PostgresLojaRepository) Listar() ([]*models.Loja, error) {
 
 	return lojas, nil
 }
+
+func (r *PostgresLojaRepository) BuscarID(id int) (*models.Loja, error) {
+	loja := &models.Loja{}
+	row := r.db.QueryRow(context.Background(), `
+		SELECT id, nome, codigo, ativo, criado_em::text
+		FROM lojas
+		WHERE id = $1;
+	`, id)
+	err := row.Scan(&loja.ID, &loja.Nome, &loja.Codigo, &loja.Ativo, &loja.CriadoEm)
+	if err != nil {
+		return nil, err
+	}
+	return loja, nil
+}

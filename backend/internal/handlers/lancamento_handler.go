@@ -25,7 +25,7 @@ func (h *LancamentoHandler) HandleLancamentos(router gin.IRouter) {
 
 	lancamentos.GET("", auth.RequirePermission("lancamento.read"), h.Listar)
 	lancamentos.POST("", auth.RequirePermission("lancamento.create"), h.Criar)
-	lancamentos.GET("/conversao", auth.RequirePermission("lancamento.read"), h.CalcularConversao)
+	lancamentos.GET("/conversao", auth.RequirePermission("lancamento.calculate"), h.CalcularConversao)
 	lancamentos.GET("/:id", auth.RequirePermission("lancamento.read"), h.BuscarID)
 }
 

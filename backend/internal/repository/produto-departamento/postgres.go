@@ -111,6 +111,47 @@ func (r *PostgresProdutoDepartamentoRepository) Listar() ([]*models.ProdutoDepar
 	return lista, nil
 }
 
+func (r *PostgresProdutoDepartamentoRepository) ListarPorLoja(lojaID int) ([]*models.ProdutoDepartamento, error) {
+	if lojaID <= 0 {
+		return nil, errors.New("loja inválida")
+	}
+	rows, err := r.db.Query(
+		context.Background(),
+		"SELECT pd.id, pd.loja_id, pd.produto_generico_id, pg.nome, pd.departamento_id, d.nome, pd.nome, pd.codigo, pd.unidade_medida, pd.ativo FROM produtos_departamento pd INNER JOIN produtos_genericos pg ON pg.id = pd.produto_generico_id INNER JOIN departamentos d ON d.id = pd.departamento_id WHERE pd.ativo = TRUE AND pd.loja_id = $1",
+		lojaID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	lista := []*models.ProdutoDepartamento{}
+
+	for rows.Next() {
+		produto := &models.ProdutoDepartamento{}
+		if err := rows.Scan(
+			&produto.ID,
+			&produto.LojaID,
+			&produto.ProdutoGenericoID,
+			&produto.ProdutoGenericoNome,
+			&produto.DepartamentoID,
+			&produto.DepartamentoNome,
+			&produto.Nome,
+			&produto.Codigo,
+			&produto.UnidadeMedida,
+			&produto.Ativo,
+		); err != nil {
+			return nil, err
+		}
+		lista = append(lista, produto)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return lista, nil
+}
+
 func (r *PostgresProdutoDepartamentoRepository) BuscarID(id int) (*models.ProdutoDepartamento, error) {
 	produto := &models.ProdutoDepartamento{}
 
@@ -142,6 +183,7 @@ func (r *PostgresProdutoDepartamentoRepository) BuscarID(id int) (*models.Produt
 
 	return produto, nil
 }
+
 func (r *PostgresProdutoDepartamentoRepository) BuscarCodigo(codigo string) (*models.ProdutoDepartamento, error) {
 	produto := &models.ProdutoDepartamento{}
 

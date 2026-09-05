@@ -1,9 +1,19 @@
 package auth
 
-import "testing"
+import (
+	"os"
+	"testing"
+)
+
+func init() {
+	// Configurar variáveis de ambiente para testes
+	os.Setenv("ADMIN_USERNAME", "admin")
+	os.Setenv("ADMIN_PASSWORD", "admin12345678")
+	os.Setenv("JWT_SECRET", "test-jwt-secret-key-32-characters!")
+}
 
 func TestCheckCredentials(t *testing.T) {
-	if !CheckCredentials("admin", "admin123") {
+	if !CheckCredentials("admin", "admin12345678") {
 		t.Fatal("Credenciais padrão do admin devem funcionar")
 	}
 

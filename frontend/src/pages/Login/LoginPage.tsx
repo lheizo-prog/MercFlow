@@ -32,6 +32,7 @@ function LoginPage() {
           loja_id: response.data?.loja_id,
           loja_nome: response.data?.loja_nome,
           perfil: response.data?.perfil,
+          permissoes: response.data?.permissoes ?? [],
         }),
       );
       navigate("/", { replace: true });

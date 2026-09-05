@@ -167,6 +167,7 @@ func (r *PostgresUsuarioRepository) Criar(usuario *models.Usuario) (*models.Usua
 			"dashboard.read",
 			"lancamento.create",
 			"lancamento.read",
+			"lancamento.calculate",
 			"produto.read",
 			"departamento.read",
 		}
@@ -193,14 +194,16 @@ func (r *PostgresUsuarioRepository) CriarOuAtualizarAdminPadrao() error {
 		return err
 	}
 
-	adminUsername := os.Getenv("ADMIN_USERNAME")
+	adminUsername := strings.TrimSpace(os.Getenv("ADMIN_USERNAME"))
 	if adminUsername == "" {
-		adminUsername = "admin"
+		return errors.New("ADMIN_USERNAME não configurado")
 	}
-	adminUsername = strings.TrimSpace(adminUsername)
 	adminPassword := os.Getenv("ADMIN_PASSWORD")
 	if adminPassword == "" {
-		adminPassword = "admin123"
+		return errors.New("ADMIN_PASSWORD não configurado")
+	}
+	if len(adminPassword) < 12 {
+		return errors.New("ADMIN_PASSWORD deve ter pelo menos 12 caracteres")
 	}
 	log.Printf("seed do admin: username=%q tamanho_senha=%d", adminUsername, len(adminPassword))
 
@@ -238,6 +241,7 @@ func (r *PostgresUsuarioRepository) CriarOuAtualizarAdminPadrao() error {
 			"dashboard.export",
 			"lancamento.create",
 			"lancamento.read",
+			"lancamento.calculate",
 			"produto.read",
 			"produto.create",
 			"produto.update",
