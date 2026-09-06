@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import dashboardService from "../../services/dashboardService";
 import type {
@@ -11,6 +11,8 @@ import type {
 import { ComparativoGraficos } from "../../components/dashboard/ComparativoGraficos";
 import { TabelaComparativa } from "../../components/dashboard/TabelaComparativa";
 import { ExportControls } from "../../components/dashboard/ExportControls";
+import type { RankingItem } from "../../types/Comparativo";
+import { Container } from "react-bootstrap";
 
 type TipoGrafico = "barras" | "pizza";
 

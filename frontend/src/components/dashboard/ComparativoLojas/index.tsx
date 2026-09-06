@@ -1,7 +1,8 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ChartOptions, TooltipItem } from "chart.js";
 import { Bar } from "react-chartjs-2";
 import lojaService from "../../../services/lojaService";
+import dashboardService from "../../../services/dashboardService";
 import type { Loja } from "../../../types/Loja";
 import type { DashboardLojaData, DashboardLancamentoFiltros } from "../../../types/Dashboard";
 import { ModalComparativo } from "../ModalComparativo";
@@ -57,7 +58,7 @@ export function ComparativoLojas({ filtros }: Props) {
             loja_ids: String(loja.id),
           });
           const produtosDistintos = new Set(
-            res.ranking.map((i) => i.produto_generico_id || i.produto_id),
+            res.ranking.map((i: { produto_generico_id: number; produto_id: number }) => i.produto_generico_id || i.produto_id),
           ).size;
           return {
             loja_id: loja.id,
