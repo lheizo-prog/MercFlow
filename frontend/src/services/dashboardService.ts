@@ -1,4 +1,4 @@
-import api from "./api";
+﻿import api from "./api";
 import type {
   DashboardLancamentoFiltros,
   DashboardLancamentoResponse,
@@ -12,7 +12,6 @@ const dashboardService = {
       "/dashboard/lancamentos",
       { params: filtros },
     );
-
     return response.data;
   },
 };

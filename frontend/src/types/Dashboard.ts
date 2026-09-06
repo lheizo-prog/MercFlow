@@ -1,4 +1,4 @@
-export interface DashboardLancamentoFiltros {
+﻿export interface DashboardLancamentoFiltros {
   tipo?: "QUEBRA" | "TRANSFERENCIA";
   data_inicio?: string;
   data_fim?: string;
@@ -32,4 +32,12 @@ export interface DashboardLancamentoResponse {
   };
   resumo: DashboardLancamentoResumo;
   ranking: DashboardLancamentoRankingItem[];
+}
+
+export interface DashboardLojaData {
+  loja_id: number;
+  loja_nome: string;
+  total_quantidade: number;
+  quantidade_registros: number;
+  produtos_distintos: number;
 }
