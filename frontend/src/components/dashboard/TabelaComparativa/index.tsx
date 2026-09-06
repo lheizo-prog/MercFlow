@@ -216,3 +216,4 @@ export function TabelaComparativa({ rankingA, rankingB, labelA, labelB }: Props)
     </div>
   );
 }
+

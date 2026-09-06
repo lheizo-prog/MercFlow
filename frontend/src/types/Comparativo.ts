@@ -1,19 +1,17 @@
-﻿export type RankingItem = DashboardLancamentoRankingItem;
+﻿import type { DashboardLancamentoRankingItem } from "./Dashboard";
 
-import type { DashboardLancamentoRankingItem } from "./Dashboard";
+export type RankingItem = DashboardLancamentoRankingItem;
+
 export interface ComparativoLojaSelecionada {
   id: number;
   nome: string;
 }
-
 export interface ComparativoRange {
   dataInicio: string;
   dataFim: string;
 }
-
 export type ComparativoModo = "duas_lojas" | "mesma_loja";
 export type ComparativoTipo = "" | "QUEBRA" | "TRANSFERENCIA";
-
 export interface ComparativoDuasLojasConfig {
   modo: "duas_lojas";
   tipo: ComparativoTipo;
@@ -23,7 +21,6 @@ export interface ComparativoDuasLojasConfig {
   rangeA: ComparativoRange;
   rangeB: ComparativoRange;
 }
-
 export interface ComparativoMesmaLojaConfig {
   modo: "mesma_loja";
   tipo: ComparativoTipo;
@@ -32,9 +29,7 @@ export interface ComparativoMesmaLojaConfig {
   rangeA: ComparativoRange;
   rangeB: ComparativoRange;
 }
-
 export type ComparativoConfig = ComparativoDuasLojasConfig | ComparativoMesmaLojaConfig;
-
 export interface ComparativoLojaData {
   loja_id: number;
   loja_nome: string;
@@ -46,5 +41,3 @@ export interface ComparativoLojaData {
   loading: boolean;
   error: string | null;
 }
-
-
