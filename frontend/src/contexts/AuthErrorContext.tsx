@@ -1,7 +1,6 @@
-import {
+﻿import {
   createContext,
   useCallback,
-  useContext,
   useEffect,
   useState,
   type ReactNode,
@@ -44,10 +43,5 @@ export function AuthErrorProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useAuthError(): AuthErrorContextType {
-  const context = useContext(AuthErrorContext);
-  if (!context) {
-    throw new Error("useAuthError deve ser usado dentro de um AuthErrorProvider");
-  }
-  return context;
-}
+export { AuthErrorContext };
+export type { AuthErrorContextType };

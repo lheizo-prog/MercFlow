@@ -1,0 +1,19 @@
+﻿{
+  "name": "MercFlow - Gestao de Estoque",
+  "short_name": "MercFlow",
+  "description": "Sistema de Gestao de Quebras e Transferencias",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f8f9fa",
+  "theme_color": "#0d6efd",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

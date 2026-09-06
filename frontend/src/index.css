@@ -1,4 +1,4 @@
-.dashboard-pizza {
+﻿.dashboard-pizza {
   width: min(210px, 68vw);
   height: min(210px, 68vw);
 }
@@ -163,3 +163,4 @@
     animation: none;
   }
 }
+

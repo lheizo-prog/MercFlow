@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+﻿import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 
@@ -36,7 +36,7 @@ function LoginPage() {
         }),
       );
       navigate("/", { replace: true });
-    } catch (error) {
+    } catch {
       setErro("Usuário ou senha inválidos.");
     } finally {
       setLoading(false);
