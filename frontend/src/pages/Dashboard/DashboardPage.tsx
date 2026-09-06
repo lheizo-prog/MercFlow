@@ -13,6 +13,7 @@ import { KPIsGrid } from "../../components/dashboard/KPIsGrid";
 import { FiltrosDashboard } from "../../components/dashboard/FiltrosDashboard";
 import { ComparativoLojas } from "../../components/dashboard/ComparativoLojas";
 import { useAuth } from "../../hooks/useAuth";
+import { formatarDataHora } from "../../utils/format";
 
 const vazio: DashboardLancamentoResponse = {
   filtros: { tipo: "", data_inicio: "", data_fim: "", departamento_id: 0, produto_id: 0, produto_generico_id: 0 },
@@ -53,8 +54,6 @@ function DashboardPage() {
   }, [filtros]);
 
   const totalProdutos = new Set(dashboard.ranking.map((i) => i.produto_generico_id || i.produto_id)).size;
-  const dataAtual = new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
-  const horaAtual = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 
   return (
     <Container className="py-4">
@@ -65,7 +64,7 @@ function DashboardPage() {
             <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
             <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
           </svg>
-          {dataAtual} as {horaAtual}
+          {formatarDataHora()}
         </div>
       </div>
 
@@ -94,7 +93,7 @@ function DashboardPage() {
       )}
 
       <div className="row g-4">
-        <div className="col-12 col-lg-8">
+        <div className="col-12">
           <div className="card border-0 shadow-sm h-100">
             <div className="card-header bg-white border-bottom">
               <h5 className="mb-0">Ranking de Produtos</h5>
@@ -113,29 +112,6 @@ function DashboardPage() {
                   <p className="mb-0">Nenhum dado encontrado para os filtros selecionados.</p>
                 </div>
               )}
-            </div>
-          </div>
-        </div>
-        <div className="col-12 col-lg-4">
-          <div className="card border-0 shadow-sm h-100">
-            <div className="card-header bg-white border-bottom">
-              <h5 className="mb-0">Resumo</h5>
-            </div>
-            <div className="card-body">
-              <div className="p-3 bg-light border rounded">
-                <div className="d-flex justify-content-between">
-                  <span className="text-body-secondary small">Total</span>
-                  <div className="fw-bold">{dashboard.resumo.total_quantidade.toLocaleString("pt-BR")} kg</div>
-                </div>
-                <div className="d-flex justify-content-between mt-2">
-                  <span className="text-body-secondary small">Registros</span>
-                  <div className="fw-bold">{dashboard.resumo.quantidade_registros.toLocaleString("pt-BR")}</div>
-                </div>
-                <div className="d-flex justify-content-between mt-2">
-                  <span className="text-body-secondary small">Produtos</span>
-                  <div className="fw-bold">{totalProdutos.toLocaleString("pt-BR")}</div>
-                </div>
-              </div>
             </div>
           </div>
         </div>

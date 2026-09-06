@@ -1,4 +1,4 @@
-import {
+﻿import {
   BrowserRouter,
   Navigate,
   Route,
@@ -16,6 +16,7 @@ import ProdutoDepartamentoPage from "../pages/ProdutoDepartamento/ProdutoDeparta
 import ProdutoMerceariaPage from "../pages/ProdutoMercearia/ProdutoMerceariaPage";
 import LancamentoPage from "../pages/Lancamento/LancamentoPage";
 import UsuariosPage from "../pages/Usuarios/UsuariosPage";
+import ComparativoPage from "../pages/Comparativo/ComparativoPage";
 
 function ProtectedLayout() {
   const { isAuthenticated } = useAuth();
@@ -36,6 +37,7 @@ function AppRoutes() {
 
         <Route element={<ProtectedLayout />}>
           <Route path="/" element={<DashboardPage />} />
+          <Route path="/dashboard/comparativo" element={<ComparativoPage />} />
           <Route path="/produtos_genericos" element={<ProdutoGenericoPage />} />
           <Route path="/departamentos" element={<DepartamentosPage />} />
           <Route

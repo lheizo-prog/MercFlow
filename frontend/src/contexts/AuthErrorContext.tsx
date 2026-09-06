@@ -1,10 +1,4 @@
-﻿import {
-  createContext,
-  useCallback,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
+﻿import { createContext, useCallback, useEffect, useState, type ReactNode } from "react";
 
 interface AuthErrorContextType {
   erro: string | null;
@@ -31,9 +25,7 @@ export function AuthErrorProvider({ children }: { children: ReactNode }) {
       setErro(customEvent.detail.mensagem);
     }
     window.addEventListener("auth-error", handleAuthError);
-    return () => {
-      window.removeEventListener("auth-error", handleAuthError);
-    };
+    return () => window.removeEventListener("auth-error", handleAuthError);
   }, []);
 
   return (

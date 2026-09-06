@@ -1,12 +1,14 @@
 ﻿import { useEffect, useMemo, useState } from "react";
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Tooltip, Legend, type ChartOptions, type TooltipItem } from "chart.js";
+import type { ChartOptions, TooltipItem } from "chart.js";
 import { Bar } from "react-chartjs-2";
-import dashboardService from "../../../services/dashboardService";
 import lojaService from "../../../services/lojaService";
 import type { Loja } from "../../../types/Loja";
 import type { DashboardLojaData, DashboardLancamentoFiltros } from "../../../types/Dashboard";
+import { ModalComparativo } from "../ModalComparativo";
+import { useNavigate } from "react-router-dom";
+import type { ComparativoDuasLojasConfig, ComparativoMesmaLojaConfig } from "../../../types/Comparativo";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
+type ComparativoConfig = ComparativoDuasLojasConfig | ComparativoMesmaLojaConfig;
 
 interface Props {
   filtros: {
@@ -18,11 +20,13 @@ interface Props {
 }
 
 export function ComparativoLojas({ filtros }: Props) {
+  const navigate = useNavigate();
   const [lojas, setLojas] = useState<Loja[]>([]);
   const [dados, setDados] = useState<DashboardLojaData[]>([]);
   const [loading, setLoading] = useState(false);
   const [ordenacao, setOrdenacao] = useState<"quantidade" | "registros" | "produtos" | "nome">("quantidade");
   const [direcao, setDirecao] = useState<"asc" | "desc">("desc");
+  const [modalAberto, setModalAberto] = useState(false);
 
   useEffect(() => {
     lojaService.listar()
@@ -101,6 +105,11 @@ export function ComparativoLojas({ filtros }: Props) {
   }, [dados, ordenacao, direcao]);
 
   const maxQuantidade = Math.max(...dados.map((d) => d.total_quantidade), 1);
+
+  function handleGerar(config: ComparativoConfig) {
+    setModalAberto(false);
+    navigate("/dashboard/comparativo", { state: { config } });
+  }
 
   const headerIcon = (
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16" className="me-2">
@@ -186,103 +195,127 @@ export function ComparativoLojas({ filtros }: Props) {
   };
 
   return (
-    <div className="card border-0 shadow-sm mb-4">
-      <div className="card-header bg-white border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h5 className="mb-0 d-flex align-items-center">{headerIcon}Comparativo entre Lojas</h5>
-        <div className="d-flex align-items-center gap-2">
-          <label className="small text-body-secondary mb-0">Ordenar por:</label>
-          <select
-            className="form-select form-select-sm"
-            value={ordenacao}
-            onChange={(e) => setOrdenacao(e.target.value as typeof ordenacao)}
-            style={{ width: "auto" }}
-          >
-            <option value="quantidade">Quantidade</option>
-            <option value="registros">Registros</option>
-            <option value="produtos">Produtos</option>
-            <option value="nome">Nome</option>
-          </select>
-          <button
-            type="button"
-            className="btn btn-sm btn-outline-secondary"
-            onClick={() => setDirecao(direcao === "asc" ? "desc" : "asc")}
-            title={direcao === "asc" ? "Ascendente" : "Descendente"}
-          >
-            {direcao === "asc" ? "Asc" : "Desc"}
-          </button>
-        </div>
-      </div>
-      <div className="card-body">
-        <div className="row g-3 mb-3">
-          <div className="col-12 col-md-4">
-            <div className="p-3 bg-primary bg-opacity-10 border border-primary border-opacity-25 rounded text-center">
-              <div className="text-primary small fw-semibold">Total Geral</div>
-              <div className="h4 mb-0 fw-bold">{totalGeral.total_quantidade.toLocaleString("pt-BR")}</div>
-              <div className="text-muted small">quantidade</div>
+    <>
+      <div className="card border-0 shadow-sm mb-4">
+        <div className="card-header bg-white border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <h5 className="mb-0 d-flex align-items-center">{headerIcon}Comparativo entre Lojas</h5>
+          <div className="d-flex align-items-center gap-2">
+            <div className="d-flex align-items-center gap-1 me-2">
+              <label className="small text-body-secondary mb-0">Ordenar:</label>
+              <select
+                className="form-select form-select-sm"
+                value={ordenacao}
+                onChange={(e) => setOrdenacao(e.target.value as typeof ordenacao)}
+                style={{ width: "auto" }}
+              >
+                <option value="quantidade">Quantidade</option>
+                <option value="registros">Registros</option>
+                <option value="produtos">Produtos</option>
+                <option value="nome">Nome</option>
+              </select>
+              <button
+                type="button"
+                className="btn btn-sm btn-outline-secondary"
+                onClick={() => setDirecao(direcao === "asc" ? "desc" : "asc")}
+                title={direcao === "asc" ? "Ascendente" : "Descendente"}
+              >
+                {direcao === "asc" ? "Asc" : "Desc"}
+              </button>
             </div>
-          </div>
-          <div className="col-12 col-md-4">
-            <div className="p-3 bg-success bg-opacity-10 border border-success border-opacity-25 rounded text-center">
-              <div className="text-success small fw-semibold">Registros</div>
-              <div className="h4 mb-0 fw-bold">{totalGeral.quantidade_registros.toLocaleString("pt-BR")}</div>
-              <div className="text-muted small">lancamentos</div>
-            </div>
-          </div>
-          <div className="col-12 col-md-4">
-            <div className="p-3 bg-info bg-opacity-10 border border-info border-opacity-25 rounded text-center">
-              <div className="text-info small fw-semibold">Lojas Ativas</div>
-              <div className="h4 mb-0 fw-bold">{dados.length}</div>
-              <div className="text-muted small">no periodo</div>
-            </div>
+            <button
+              type="button"
+              className="btn btn-sm btn-primary d-flex align-items-center gap-1"
+              onClick={() => setModalAberto(true)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 3a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-.5.5H4a.5.5 0 0 1 0-1h3.5V3.5A.5.5 0 0 1 8 3z"/>
+                <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
+              </svg>
+              <span className="d-none d-sm-inline">Comparar Lojas</span>
+              <span className="d-inline d-sm-none">Comparar</span>
+            </button>
           </div>
         </div>
-        <div className="row g-3 mb-4">
-          {dadosOrdenados.map((loja) => {
-            const percentual = (loja.total_quantidade / maxQuantidade) * 100;
-            return (
-              <div key={loja.loja_id} className="col-12 col-md-6 col-lg-4">
-                <div className="card border h-100">
-                  <div className="card-body p-3">
-                    <div className="d-flex justify-content-between align-items-start mb-2">
-                      <h6 className="mb-0 fw-semibold text-truncate" title={loja.loja_nome}>{loja.loja_nome}</h6>
-                      <span className="badge text-bg-primary">#{loja.loja_id}</span>
-                    </div>
-                    <div className="mb-2">
-                      <div className="d-flex justify-content-between small mb-1">
-                        <span className="text-body-secondary">Quantidade</span>
-                        <span className="fw-bold">{loja.total_quantidade.toLocaleString("pt-BR")}</span>
+        <div className="card-body">
+          <div className="row g-3 mb-3">
+            <div className="col-12 col-md-4">
+              <div className="p-3 bg-primary bg-opacity-10 border border-primary border-opacity-25 rounded text-center">
+                <div className="text-primary small fw-semibold">Total Geral</div>
+                <div className="h4 mb-0 fw-bold">{totalGeral.total_quantidade.toLocaleString("pt-BR")}</div>
+                <div className="text-muted small">quantidade</div>
+              </div>
+            </div>
+            <div className="col-12 col-md-4">
+              <div className="p-3 bg-success bg-opacity-10 border border-success border-opacity-25 rounded text-center">
+                <div className="text-success small fw-semibold">Registros</div>
+                <div className="h4 mb-0 fw-bold">{totalGeral.quantidade_registros.toLocaleString("pt-BR")}</div>
+                <div className="text-muted small">lancamentos</div>
+              </div>
+            </div>
+            <div className="col-12 col-md-4">
+              <div className="p-3 bg-info bg-opacity-10 border border-info border-opacity-25 rounded text-center">
+                <div className="text-info small fw-semibold">Lojas Ativas</div>
+                <div className="h4 mb-0 fw-bold">{dados.length}</div>
+                <div className="text-muted small">no periodo</div>
+              </div>
+            </div>
+          </div>
+          <div className="row g-3 mb-4">
+            {dadosOrdenados.map((loja) => {
+              const percentual = (loja.total_quantidade / maxQuantidade) * 100;
+              return (
+                <div key={loja.loja_id} className="col-12 col-md-6 col-lg-4">
+                  <div className="card border h-100">
+                    <div className="card-body p-3">
+                      <div className="d-flex justify-content-between align-items-start mb-2">
+                        <h6 className="mb-0 fw-semibold text-truncate" title={loja.loja_nome}>{loja.loja_nome}</h6>
+                        <span className="badge text-bg-primary">#{loja.loja_id}</span>
                       </div>
-                      <div className="progress" style={{ height: "6px" }}>
-                        <div
-                          className="progress-bar bg-primary"
-                          role="progressbar"
-                          style={{ width: `${percentual}%` }}
-                          aria-valuenow={percentual}
-                          aria-valuemin={0}
-                          aria-valuemax={100}
-                        />
+                      <div className="mb-2">
+                        <div className="d-flex justify-content-between small mb-1">
+                          <span className="text-body-secondary">Quantidade</span>
+                          <span className="fw-bold">{loja.total_quantidade.toLocaleString("pt-BR")}</span>
+                        </div>
+                        <div className="progress" style={{ height: "6px" }}>
+                          <div
+                            className="progress-bar bg-primary"
+                            role="progressbar"
+                            style={{ width: `${percentual}%` }}
+                            aria-valuenow={percentual}
+                            aria-valuemin={0}
+                            aria-valuemax={100}
+                          />
+                        </div>
                       </div>
-                    </div>
-                    <div className="d-flex justify-content-between small">
-                      <span className="text-body-secondary">Registros</span>
-                      <span className="fw-semibold">{loja.quantidade_registros.toLocaleString("pt-BR")}</span>
-                    </div>
-                    <div className="d-flex justify-content-between small">
-                      <span className="text-body-secondary">Produtos</span>
-                      <span className="fw-semibold">{loja.produtos_distintos.toLocaleString("pt-BR")}</span>
+                      <div className="d-flex justify-content-between small">
+                        <span className="text-body-secondary">Registros</span>
+                        <span className="fw-semibold">{loja.quantidade_registros.toLocaleString("pt-BR")}</span>
+                      </div>
+                      <div className="d-flex justify-content-between small">
+                        <span className="text-body-secondary">Produtos</span>
+                        <span className="fw-semibold">{loja.produtos_distintos.toLocaleString("pt-BR")}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-        {dadosOrdenados.length > 0 && (
-          <div style={{ height: Math.max(250, dadosOrdenados.length * 40) }}>
-            <Bar data={chartData} options={chartOptions} />
+              );
+            })}
           </div>
-        )}
+          {dadosOrdenados.length > 0 && (
+            <div style={{ height: Math.max(250, dadosOrdenados.length * 40) }}>
+              <Bar data={chartData} options={chartOptions} />
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+
+      <ModalComparativo
+        show={modalAberto}
+        onHide={() => setModalAberto(false)}
+        onGerar={handleGerar}
+      />
+    </>
   );
 }
+
+

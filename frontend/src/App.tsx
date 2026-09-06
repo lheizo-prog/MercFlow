@@ -1,3 +1,4 @@
+﻿import "./chartSetup";
 import AppRoutes from "./routes/AppRoutes";
 import ErroAutorizacaoModal from "./components/common/ErroAutorizacaoModal";
 import { AuthErrorProvider } from "./contexts/AuthErrorContext";
