@@ -1,8 +1,7 @@
-﻿import { createContext, useCallback, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useEffect, useState, type ReactNode } from "react";
 
 interface AuthErrorContextType {
   erro: string | null;
-  mostrarErro: (mensagem: string) => void;
   fechar: () => void;
 }
 
@@ -11,9 +10,6 @@ const AuthErrorContext = createContext<AuthErrorContextType | undefined>(undefin
 export function AuthErrorProvider({ children }: { children: ReactNode }) {
   const [erro, setErro] = useState<string | null>(null);
 
-  const mostrarErro = useCallback((mensagem: string) => {
-    setErro(mensagem);
-  }, []);
 
   const fechar = useCallback(() => {
     setErro(null);
@@ -29,7 +25,7 @@ export function AuthErrorProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthErrorContext.Provider value={{ erro, mostrarErro, fechar }}>
+    <AuthErrorContext.Provider value={{ erro, fechar }}>
       {children}
     </AuthErrorContext.Provider>
   );

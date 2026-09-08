@@ -13,6 +13,7 @@ import { TabelaComparativa } from "../../components/dashboard/TabelaComparativa"
 import { ExportControls } from "../../components/dashboard/ExportControls";
 import type { RankingItem } from "../../types/Comparativo";
 import { Container } from "react-bootstrap";
+import { formatarRange } from "../../utils/format";
 
 type TipoGrafico = "barras" | "pizza";
 
@@ -33,17 +34,6 @@ function vazio(
     loading: true,
     error: null,
   };
-}
-
-function formatarRange(range: { dataInicio: string; dataFim: string }): string {
-  if (!range.dataInicio && !range.dataFim) return "Todo o periodo";
-  const inicio = range.dataInicio
-    ? new Date(range.dataInicio + "T00:00:00").toLocaleDateString("pt-BR")
-    : "inicio";
-  const fim = range.dataFim
-    ? new Date(range.dataFim + "T00:00:00").toLocaleDateString("pt-BR")
-    : "hoje";
-  return `${inicio} a ${fim}`;
 }
 
 function ComparativoPage() {
