@@ -1,4 +1,4 @@
-﻿import { NavLink } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { useEffect, useRef } from "react";
 import { Collapse } from "bootstrap";
 import { useAuth } from "../../../hooks/useAuth";
@@ -16,6 +16,7 @@ function Sidebar({ aberto, onNavegar }: Props) {
 
   const links = [
     { to: "/", label: "Dashboard" },
+     { to: "/dashboard/comparativo", label: "Comparativo" },
     ...(isAdmin ? [{ to: "/usuarios", label: "Usuarios" }, { to: "/produtos_genericos", label: "Produtos Base" }] : []),
     { to: "/departamentos", label: "Departamentos" },
     { to: "/produtos_mercearia", label: "Produtos Mercearia" },
