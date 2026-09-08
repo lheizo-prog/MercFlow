@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Container } from "react-bootstrap";
 import dashboardService from "../../services/dashboardService";
 import departamentoService from "../../services/departamentoService";
@@ -81,7 +81,7 @@ function DashboardPage() {
         onFiltrosChanged={setFiltros}
       />
 
-      {isAdmin && (
+      {(
         <ComparativoLojas
           filtros={{
             dataInicio: filtros.dataInicio || undefined,
