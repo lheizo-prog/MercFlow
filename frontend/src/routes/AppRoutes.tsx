@@ -5,18 +5,29 @@
   Routes,
   useLocation,
 } from "react-router-dom";
-import DashboardPage from "../pages/Dashboard/DashboardPage";
 import MainLayout from "../layouts/MainLayout";
-import LoginPage from "../pages/Login/LoginPage";
 import { useAuth } from "../hooks/useAuth";
+import { Suspense, lazy } from "react";
 
-import DepartamentosPage from "../pages/Departamentos/DepartamentosPage";
-import ProdutoGenericoPage from "../pages/ProdutoGenerico/ProdutoGenericoPage";
-import ProdutoDepartamentoPage from "../pages/ProdutoDepartamento/ProdutoDepartamentoPage";
-import ProdutoMerceariaPage from "../pages/ProdutoMercearia/ProdutoMerceariaPage";
-import LancamentoPage from "../pages/Lancamento/LancamentoPage";
-import UsuariosPage from "../pages/Usuarios/UsuariosPage";
-import ComparativoPage from "../pages/Comparativo/ComparativoPage";
+const LoginPage = lazy(() => import("../pages/Login/LoginPage"));
+const DashboardPage = lazy(() => import("../pages/Dashboard/DashboardPage"));
+const ComparativoPage = lazy(() => import("../pages/Comparativo/ComparativoPage"));
+const DepartamentosPage = lazy(() => import("../pages/Departamentos/DepartamentosPage"));
+const ProdutoGenericoPage = lazy(() => import("../pages/ProdutoGenerico/ProdutoGenericoPage"));
+const ProdutoDepartamentoPage = lazy(() => import("../pages/ProdutoDepartamento/ProdutoDepartamentoPage"));
+const ProdutoMerceariaPage = lazy(() => import("../pages/ProdutoMercearia/ProdutoMerceariaPage"));
+const LancamentoPage = lazy(() => import("../pages/Lancamento/LancamentoPage"));
+const UsuariosPage = lazy(() => import("../pages/Usuarios/UsuariosPage"));
+
+function LoadingFallback() {
+  return (
+    <div className="d-flex align-items-center justify-content-center min-vh-100">
+      <div className="spinner-border text-primary" role="status">
+        <span className="visually-hidden">Carregando...</span>
+      </div>
+    </div>
+  );
+}
 
 function ProtectedLayout() {
   const { isAuthenticated } = useAuth();
@@ -32,28 +43,24 @@ function ProtectedLayout() {
 function AppRoutes() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
+      <Suspense fallback={<LoadingFallback />}>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
 
-        <Route element={<ProtectedLayout />}>
-          <Route path="/" element={<DashboardPage />} />
-          <Route path="/dashboard/comparativo" element={<ComparativoPage />} />
-          <Route path="/produtos_genericos" element={<ProdutoGenericoPage />} />
-          <Route path="/departamentos" element={<DepartamentosPage />} />
-          <Route
-            path="/produtos_departamento"
-            element={<ProdutoDepartamentoPage />}
-          />
-          <Route
-            path="/produtos_mercearia"
-            element={<ProdutoMerceariaPage />}
-          />
-          <Route path="/usuarios" element={<UsuariosPage />} />
-          <Route path="/lancamentos" element={<LancamentoPage />} />
-        </Route>
+          <Route element={<ProtectedLayout />}>
+            <Route path="/" element={<DashboardPage />} />
+            <Route path="/dashboard/comparativo" element={<ComparativoPage />} />
+            <Route path="/produtos_genericos" element={<ProdutoGenericoPage />} />
+            <Route path="/departamentos" element={<DepartamentosPage />} />
+            <Route path="/produtos_departamento" element={<ProdutoDepartamentoPage />} />
+            <Route path="/produtos_mercearia" element={<ProdutoMerceariaPage />} />
+            <Route path="/usuarios" element={<UsuariosPage />} />
+            <Route path="/lancamentos" element={<LancamentoPage />} />
+          </Route>
 
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }
