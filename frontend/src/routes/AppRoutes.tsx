@@ -58,7 +58,7 @@ function AppRoutes() {
           <Route path="/login" element={<LoginPage />} />
 
           <Route element={<ProtectedLayout />}>
-            <Route path="/" element={<DashboardPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/comparativo" element={<ComparativoPage />} />
             <Route
               path="/produtos_genericos"

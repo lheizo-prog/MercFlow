@@ -21,7 +21,7 @@ function Sidebar({ aberto, onNavegar }: Props) {
   }, [aberto]);
 
   const links = [
-    { to: "/", label: "Dashboard" },
+    { to: "/dashboard", label: "Dashboard" },
     ...(isAdmin
       ? [
           { to: "/comparativo", label: "Comparativo" },
