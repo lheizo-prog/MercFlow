@@ -24,7 +24,7 @@ function Sidebar({ aberto, onNavegar }: Props) {
     { to: "/", label: "Dashboard" },
     ...(isAdmin
       ? [
-          { to: "/dashboard/comparativo", label: "Comparativo" },
+          { to: "/comparativo", label: "Comparativo" },
           { to: "/usuarios", label: "Usuarios" },
           { to: "/produtos_genericos", label: "Produtos Base" },
         ]
