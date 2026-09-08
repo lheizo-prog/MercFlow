@@ -12,7 +12,7 @@ import { GraficoPizza } from "../../components/dashboard/GraficoPizza";
 import { KPIsGrid } from "../../components/dashboard/KPIsGrid";
 import { FiltrosDashboard } from "../../components/dashboard/FiltrosDashboard";
 import { ComparativoLojas } from "../../components/dashboard/ComparativoLojas";
-import { useAuth } from "../../hooks/useAuth";
+
 import { formatarDataHora } from "../../utils/format";
 
 const vazio: DashboardLancamentoResponse = {
@@ -22,7 +22,7 @@ const vazio: DashboardLancamentoResponse = {
 };
 
 function DashboardPage() {
-  const { isAdmin } = useAuth();
+  
   const [dashboard, setDashboard] = useState<DashboardLancamentoResponse>(vazio);
   const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
   const [loading, setLoading] = useState(true);
