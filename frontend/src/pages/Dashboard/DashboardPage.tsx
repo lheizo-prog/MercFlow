@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Container } from "react-bootstrap";
 import dashboardService from "../../services/dashboardService";
 import departamentoService from "../../services/departamentoService";
@@ -79,16 +79,14 @@ function DashboardPage() {
         onFiltrosChanged={setFiltros}
       />
 
-      {
-        <ComparativoLojas
-          filtros={{
-            dataInicio: filtros.dataInicio || undefined,
-            dataFim: filtros.dataFim || undefined,
-            departamentoId: filtros.departamentoId || undefined,
-            tipo: filtros.tipo,
-          }}
-        />
-      }
+      <ComparativoLojas
+        filtros={{
+          dataInicio: filtros.dataInicio || undefined,
+          dataFim: filtros.dataFim || undefined,
+          departamentoId: filtros.departamentoId || undefined,
+          tipo: filtros.tipo,
+        }}
+      />
 
       <div className="row g-4">
         <div className="col-12">
