@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import dashboardService from "../../services/dashboardService";
 import lojaService from "../../services/lojaService";
+import { useAuth } from "../../hooks/useAuth";
 import type {
   ComparativoConfig,
   ComparativoDuasLojasConfig,
@@ -40,10 +41,17 @@ function vazio(
 }
 
 function ComparativoPage() {
+  const { isAdmin } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  
+
+  useEffect(() => {
+    if (!isAdmin) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [isAdmin, navigate]);
+
   const stateConfig = (location.state as { config?: ComparativoConfig } | null)
     ?.config;
 
