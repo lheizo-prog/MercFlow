@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export interface AuthUser {
   username: string;
@@ -21,33 +21,41 @@ export interface UseAuthReturn {
 }
 
 export function useAuth(): UseAuthReturn {
-  const user = useMemo((): AuthUser | null => {
-    try {
-      const stored = localStorage.getItem("mercflow_usuario");
-      if (!stored) return null;
-      return JSON.parse(stored) as AuthUser;
-    } catch {
-      return null;
-    }
+  const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
+
+  useEffect(() => {
+    const handleStorage = () => {
+      const newToken = localStorage.getItem("mercflow_token");
+      const newUser = localStorage.getItem("mercflow_usuario");
+      
+      setToken(newToken);
+      
+      if (newUser) {
+        try {
+          setUser(JSON.parse(newUser) as AuthUser);
+        } catch {
+          setUser(null);
+        }
+      } else {
+        setUser(null);
+      }
+    };
+
+    handleStorage();
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
-  const isAuthenticated = useMemo(() => {
-    return localStorage.getItem("mercflow_token") !== null;
-  }, []);
+  const isAuthenticated = token !== null;
 
-  const isAdmin = useMemo(
-    () => user?.perfil === "admin" || user?.perfil === "super_admin",
-    [user?.perfil],
-  );
+  const isAdmin = user?.perfil === "admin" || user?.perfil === "super_admin";
 
-  const isSuperAdmin = useMemo(() => user?.perfil === "super_admin", [user?.perfil]);
+  const isSuperAdmin = user?.perfil === "super_admin";
 
-  const isOperador = useMemo(() => user?.perfil === "operador", [user?.perfil]);
+  const isOperador = user?.perfil === "operador";
 
-  const isVisualizador = useMemo(
-    () => user?.perfil === "visualizador",
-    [user?.perfil],
-  );
+  const isVisualizador = user?.perfil === "visualizador";
 
   const hasPermission = useCallback(
     (permission: string): boolean => {
