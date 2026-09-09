@@ -5,7 +5,7 @@ import lojaService from "../../../services/lojaService";
 import dashboardService from "../../../services/dashboardService";
 import type { Loja } from "../../../types/Loja";
 import type { DashboardLojaData, DashboardLancamentoFiltros } from "../../../types/Dashboard";
-import { ModalComparativo } from "../ModalComparativo";
+import { ModalComparativo } from "../../common/ModalComparativo";
 import { useNavigate } from "react-router-dom";
 import type { ComparativoDuasLojasConfig, ComparativoMesmaLojaConfig } from "../../../types/Comparativo";
 
@@ -109,7 +109,7 @@ export function ComparativoLojas({ filtros }: Props) {
 
   function handleGerar(config: ComparativoConfig) {
     setModalAberto(false);
-    navigate("/dashboard/comparativo", { state: { config } });
+    navigate("/comparativo", { state: { config } });
   }
 
   const headerIcon = (

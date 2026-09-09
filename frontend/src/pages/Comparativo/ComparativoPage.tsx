@@ -1,17 +1,21 @@
 import { useState, useEffect, useMemo } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import dashboardService from "../../services/dashboardService";
+import lojaService from "../../services/lojaService";
 import type {
   ComparativoConfig,
   ComparativoDuasLojasConfig,
   ComparativoMesmaLojaConfig,
   ComparativoLojaData,
 } from "../../types/Comparativo";
+import type { Loja } from "../../types/Loja";
+
 import { ComparativoGraficos } from "../../components/dashboard/ComparativoGraficos";
 import { TabelaComparativa } from "../../components/dashboard/TabelaComparativa";
 import { ExportControls } from "../../components/dashboard/ExportControls";
+import { ModalComparativo } from "../../components/common/ModalComparativo";
 import type { RankingItem } from "../../types/Comparativo";
-import { Container } from "react-bootstrap";
+import { Container, Spinner } from "react-bootstrap";
 import { formatarRange } from "../../utils/format";
 
 type TipoGrafico = "barras" | "pizza";
@@ -38,19 +42,100 @@ function vazio(
 function ComparativoPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const config = (location.state as { config?: ComparativoConfig } | null)
+  const [searchParams] = useSearchParams();
+  
+  const stateConfig = (location.state as { config?: ComparativoConfig } | null)
     ?.config;
 
   const [dadoA, setDadoA] = useState<ComparativoLojaData | null>(null);
   const [dadoB, setDadoB] = useState<ComparativoLojaData | null>(null);
   const [tipoGrafico, setTipoGrafico] = useState<TipoGrafico>("barras");
   const [filtroProduto, setFiltroProduto] = useState("");
+  const [modalAberto, setModalAberto] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const [config, setConfig] = useState<ComparativoConfig | null>(null);
 
   useEffect(() => {
-    if (!config) {
-      navigate("/", { replace: true });
+    async function loadConfig() {
+      setLoading(true);
+      if (stateConfig) {
+        setConfig(stateConfig);
+        setLoading(false);
+        return;
+      }
+
+      const modo = searchParams.get("modo") as "duas_lojas" | "mesma_loja" | null;
+      const tipo = searchParams.get("tipo") as "" | "QUEBRA" | "TRANSFERENCIA" | null;
+      const lojaAId = searchParams.get("lojaA");
+      const lojaBId = searchParams.get("lojaB");
+      const lojaId = searchParams.get("loja");
+      const dataInicioA = searchParams.get("dataInicioA");
+      const dataFimA = searchParams.get("dataFimA");
+      const dataInicioB = searchParams.get("dataInicioB");
+      const dataFimB = searchParams.get("dataFimB");
+      const dataInicio = searchParams.get("dataInicio");
+      const dataFim = searchParams.get("dataFim");
+      
+      const lojasList = await lojaService.listar().catch(() => [] as Loja[]);
+      const lojasAtivas = lojasList.filter((l) => l.ativo);
+      setLoading(false);
+
+      if (modo && lojaAId && lojaBId && dataInicio && dataFim) {
+        const lojaA = lojasAtivas.find(l => l.id === Number(lojaAId));
+        const lojaB = lojasAtivas.find(l => l.id === Number(lojaBId));
+        
+        if (lojaA && lojaB) {
+          const cfg: ComparativoDuasLojasConfig = {
+            modo: "duas_lojas",
+            tipo: tipo || "",
+            usarDatasIguais: true,
+            lojaA: { id: lojaA.id, nome: lojaA.nome },
+            lojaB: { id: lojaB.id, nome: lojaB.nome },
+            rangeA: { dataInicio, dataFim },
+            rangeB: { dataInicio, dataFim },
+          };
+          setConfig(cfg);
+          return;
+        }
+      }
+
+      if (modo && lojaId && dataInicioA && dataFimA && dataInicioB && dataFimB) {
+        const loja = lojasAtivas.find(l => l.id === Number(lojaId));
+        
+        if (loja) {
+          const cfg: ComparativoMesmaLojaConfig = {
+            modo: "mesma_loja",
+            tipo: tipo || "",
+            usarDatasIguais: false,
+            loja: { id: loja.id, nome: loja.nome },
+            rangeA: { dataInicio: dataInicioA, dataFim: dataFimA },
+            rangeB: { dataInicio: dataInicioB, dataFim: dataFimB },
+          };
+          setConfig(cfg);
+          return;
+        }
+      }
+
+      if (lojasAtivas.length > 0) {
+        setModalAberto(true);
+      } else {
+        navigate("/dashboard", { replace: true });
+      }
     }
-  }, [config, navigate]);
+
+    loadConfig();
+  }, [stateConfig, searchParams, navigate]);
+
+  function handleGerar(config: ComparativoConfig) {
+    setConfig(config);
+    setModalAberto(false);
+    window.history.replaceState({}, "", "/comparativo");
+  }
+
+  function handleVoltar() {
+    navigate("/dashboard");
+  }
 
   useEffect(() => {
     if (!config) return;
@@ -186,7 +271,23 @@ function ComparativoPage() {
     };
   }, [config, dadoA, dadoB]);
 
-  if (!config) return null;
+  if (!config) {
+    if (loading) {
+      return (
+        <Container className="py-4">
+          <div className="d-flex align-items-center justify-content-center py-5">
+            <div className="text-center">
+              <Spinner animation="border" role="status" className="me-2">
+                <span className="visually-hidden">Carregando...</span>
+              </Spinner>
+              <span>Carregando configuração...</span>
+            </div>
+          </div>
+        </Container>
+      );
+    }
+    return null;
+  }
 
   let labelA: string;
   let labelB: string;
@@ -214,13 +315,14 @@ function ComparativoPage() {
   }
 
   return (
-    <Container className="py-4" id="comparativo-area">
+    <>
+      <Container className="py-4" id="comparativo-area">
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-stretch align-items-md-center mb-4 gap-2">
         <div>
           <button
             type="button"
             className="btn btn-sm btn-link text-decoration-none mb-1 ps-0"
-            onClick={() => navigate("/")}
+            onClick={handleVoltar}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -531,6 +633,15 @@ function ComparativoPage() {
         )}
       </div>
     </Container>
+    <ModalComparativo
+      show={modalAberto}
+      onHide={() => {
+        setModalAberto(false);
+        if (!config) navigate("/dashboard");
+      }}
+      onGerar={handleGerar}
+    />
+    </>
   );
 }
 

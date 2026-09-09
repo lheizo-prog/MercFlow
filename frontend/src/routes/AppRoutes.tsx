@@ -1,4 +1,4 @@
-﻿import {
+import {
   BrowserRouter,
   Navigate,
   Route,
@@ -58,6 +58,7 @@ function AppRoutes() {
           <Route path="/login" element={<LoginPage />} />
 
           <Route element={<ProtectedLayout />}>
+            <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/comparativo" element={<ComparativoPage />} />
             <Route
