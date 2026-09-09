@@ -35,7 +35,7 @@ function LoginPage() {
           permissoes: response.data?.permissoes ?? [],
         }),
       );
-      navigate("/", { replace: true });
+      navigate("/dashboard", { replace: true });
     } catch {
       setErro("Usuário ou senha inválidos.");
     } finally {

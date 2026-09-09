@@ -1,4 +1,5 @@
 ﻿import api from "./api";
+import { DashboardLancamentoResponseSchema } from "../types/Dashboard";
 import type {
   DashboardLancamentoFiltros,
   DashboardLancamentoResponse,
@@ -12,7 +13,12 @@ const dashboardService = {
       "/dashboard/lancamentos",
       { params: filtros },
     );
-    return response.data;
+    const result = DashboardLancamentoResponseSchema.safeParse(response.data);
+    if (!result.success) {
+      console.error("Invalid dashboard response:", result.error);
+      throw new Error("Resposta inválida do servidor");
+    }
+    return result.data;
   },
 };
 

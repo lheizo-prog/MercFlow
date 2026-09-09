@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Container } from "react-bootstrap";
 import dashboardService from "../../services/dashboardService";
 import departamentoService from "../../services/departamentoService";
@@ -12,17 +12,15 @@ import { GraficoPizza } from "../../components/dashboard/GraficoPizza";
 import { KPIsGrid } from "../../components/dashboard/KPIsGrid";
 import { FiltrosDashboard } from "../../components/dashboard/FiltrosDashboard";
 import { ComparativoLojas } from "../../components/dashboard/ComparativoLojas";
-
 import { formatarDataHora } from "../../utils/format";
 
 const vazio: DashboardLancamentoResponse = {
-  filtros: { tipo: "", data_inicio: "", data_fim: "", departamento_id: 0, produto_id: 0, produto_generico_id: 0 },
+  filtros: { tipo: undefined, data_inicio: "", data_fim: "", departamento_id: 0, produto_id: 0, produto_generico_id: 0 },
   resumo: { total_quantidade: 0, quantidade_registros: 0 },
   ranking: [],
 };
 
 function DashboardPage() {
-  
   const [dashboard, setDashboard] = useState<DashboardLancamentoResponse>(vazio);
   const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
   const [loading, setLoading] = useState(true);
@@ -81,7 +79,7 @@ function DashboardPage() {
         onFiltrosChanged={setFiltros}
       />
 
-      {(
+      {
         <ComparativoLojas
           filtros={{
             dataInicio: filtros.dataInicio || undefined,
@@ -90,7 +88,7 @@ function DashboardPage() {
             tipo: filtros.tipo,
           }}
         />
-      )}
+      }
 
       <div className="row g-4">
         <div className="col-12">
