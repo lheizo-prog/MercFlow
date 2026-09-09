@@ -1,5 +1,6 @@
-﻿import { useEffect, useState } from "react";
-import { Container } from "react-bootstrap";
+import { useEffect, useState } from "react";
+import { Container, Button } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 import dashboardService from "../../services/dashboardService";
 import departamentoService from "../../services/departamentoService";
 import { useAuth } from "../../hooks/useAuth";
@@ -12,7 +13,6 @@ import { GraficoBarras } from "../../components/dashboard/GraficoBarras";
 import { GraficoPizza } from "../../components/dashboard/GraficoPizza";
 import { KPIsGrid } from "../../components/dashboard/KPIsGrid";
 import { FiltrosDashboard } from "../../components/dashboard/FiltrosDashboard";
-import { ComparativoLojas } from "../../components/dashboard/ComparativoLojas";
 import { formatarDataHora } from "../../utils/format";
 
 const vazio: DashboardLancamentoResponse = {
@@ -23,6 +23,7 @@ const vazio: DashboardLancamentoResponse = {
 
 function DashboardPage() {
   const { isAdmin } = useAuth();
+  const navigate = useNavigate();
   const [dashboard, setDashboard] = useState<DashboardLancamentoResponse>(vazio);
   const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
   const [loading, setLoading] = useState(true);
@@ -75,22 +76,25 @@ function DashboardPage() {
         loading={loading}
       />
 
-      <FiltrosDashboard
-        departamentos={departamentos}
-        filtros={filtros}
-        onFiltrosChanged={setFiltros}
-      />
-
-      {isAdmin && (
-        <ComparativoLojas
-          filtros={{
-            dataInicio: filtros.dataInicio || undefined,
-            dataFim: filtros.dataFim || undefined,
-            departamentoId: filtros.departamentoId || undefined,
-            tipo: filtros.tipo,
-          }}
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <FiltrosDashboard
+          departamentos={departamentos}
+          filtros={filtros}
+          onFiltrosChanged={setFiltros}
         />
-      )}
+        {isAdmin && (
+          <Button
+            variant="primary"
+            onClick={() => navigate("/comparativo")}
+            className="d-flex align-items-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M0 0h1v15h15v1H0V0Zm14.817 3.113a.5.5 0 0 1 .07.704l-4.5 5.5a.5.5 0 0 1-.74.037L7.06 6.767l-3.656 5.027a.5.5 0 0 1-.808-.588l4-5.5a.5.5 0 0 1 .758-.06l2.609 2.61 4.15-5.073a.5.5 0 0 1 .704-.07Z"/>
+            </svg>
+            Comparar Lojas
+          </Button>
+        )}
+      </div>
 
       <div className="row g-4">
         <div className="col-12">
