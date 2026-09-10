@@ -1,6 +1,5 @@
 ﻿import { useEffect, useState } from "react";
 import { Container, Button } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
 import dashboardService from "../../services/dashboardService";
 import departamentoService from "../../services/departamentoService";
 import { useAuth } from "../../hooks/useAuth";
@@ -13,6 +12,7 @@ import { GraficoBarras } from "../../components/dashboard/GraficoBarras";
 import { GraficoPizza } from "../../components/dashboard/GraficoPizza";
 import { KPIsGrid } from "../../components/dashboard/KPIsGrid";
 import { FiltrosDashboard } from "../../components/dashboard/FiltrosDashboard";
+import { ComparativoForm } from "../../components/dashboard/ComparativoForm";
 import { formatarDataHora } from "../../utils/format";
 
 const vazio: DashboardLancamentoResponse = {
@@ -23,10 +23,10 @@ const vazio: DashboardLancamentoResponse = {
 
 function DashboardPage() {
   const { isAdmin } = useAuth();
-  const navigate = useNavigate();
   const [dashboard, setDashboard] = useState<DashboardLancamentoResponse>(vazio);
   const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showComparativo, setShowComparativo] = useState(false);
   const [filtros, setFiltros] = useState({
     tipo: "" as "" | "QUEBRA" | "TRANSFERENCIA",
     dataInicio: "",
@@ -85,7 +85,7 @@ function DashboardPage() {
         {isAdmin && (
           <Button
             variant="primary"
-            onClick={() => navigate("/comparativo")}
+            onClick={() => setShowComparativo(true)}
             className="d-flex align-items-center gap-2"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -120,6 +120,7 @@ function DashboardPage() {
           </div>
         </div>
       </div>
+      {showComparativo && <ComparativoForm onClose={() => setShowComparativo(false)} />}
     </Container>
   );
 }

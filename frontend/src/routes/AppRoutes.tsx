@@ -1,4 +1,4 @@
-﻿import {
+import {
   BrowserRouter,
   Navigate,
   Route,
@@ -11,21 +11,10 @@ import { Suspense, lazy } from "react";
 
 const LoginPage = lazy(() => import("../pages/Login/LoginPage"));
 const DashboardPage = lazy(() => import("../pages/Dashboard/DashboardPage"));
-const ComparativoPage = lazy(
-  () => import("../pages/Comparativo/ComparativoPage"),
-);
-const DepartamentosPage = lazy(
-  () => import("../pages/Departamentos/DepartamentosPage"),
-);
-const ProdutoGenericoPage = lazy(
-  () => import("../pages/ProdutoGenerico/ProdutoGenericoPage"),
-);
-const ProdutoDepartamentoPage = lazy(
-  () => import("../pages/ProdutoDepartamento/ProdutoDepartamentoPage"),
-);
-const ProdutoMerceariaPage = lazy(
-  () => import("../pages/ProdutoMercearia/ProdutoMerceariaPage"),
-);
+const DepartamentosPage = lazy(() => import("../pages/Departamentos/DepartamentosPage"));
+const ProdutoGenericoPage = lazy(() => import("../pages/ProdutoGenerico/ProdutoGenericoPage"));
+const ProdutoDepartamentoPage = lazy(() => import("../pages/ProdutoDepartamento/ProdutoDepartamentoPage"));
+const ProdutoMerceariaPage = lazy(() => import("../pages/ProdutoMercearia/ProdutoMerceariaPage"));
 const LancamentoPage = lazy(() => import("../pages/Lancamento/LancamentoPage"));
 const UsuariosPage = lazy(() => import("../pages/Usuarios/UsuariosPage"));
 
@@ -58,27 +47,17 @@ function AppRoutes() {
           <Route path="/login" element={<LoginPage />} />
 
           <Route element={<ProtectedLayout />}>
-            <Route index element={<Navigate to="/dashboard" replace />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/comparativo" element={<ComparativoPage />} />
-            <Route
-              path="/produtos_genericos"
-              element={<ProdutoGenericoPage />}
-            />
+            <Route path="/produtos_genericos" element={<ProdutoGenericoPage />} />
             <Route path="/departamentos" element={<DepartamentosPage />} />
-            <Route
-              path="/produtos_departamento"
-              element={<ProdutoDepartamentoPage />}
-            />
-            <Route
-              path="/produtos_mercearia"
-              element={<ProdutoMerceariaPage />}
-            />
+            <Route path="/produtos_departamento" element={<ProdutoDepartamentoPage />} />
+            <Route path="/produtos_mercearia" element={<ProdutoMerceariaPage />} />
             <Route path="/usuarios" element={<UsuariosPage />} />
             <Route path="/lancamentos" element={<LancamentoPage />} />
           </Route>
 
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </Suspense>
     </BrowserRouter>
