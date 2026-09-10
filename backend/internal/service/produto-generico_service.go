@@ -18,9 +18,17 @@ func NovoProdutoService(repo repository.ProdutoGenericoRepository) *ProdutoServi
 }
 
 func (s *ProdutoService) Criar(p *models.ProdutoGenerico, lojas ...int) (*models.ProdutoGenerico, error) {
-	if p != nil {
-		p.LojaID = lojaSolicitada(lojas)
+	if p == nil {
+		return nil, errors.New("produto inválido")
 	}
+	
+	// Validar que pelo menos uma loja foi fornecida
+	lojaID := lojaSolicitada(lojas)
+	if lojaID <= 0 {
+		return nil, errors.New("loja é obrigatória para criar produto")
+	}
+	p.LojaID = lojaID
+	
 	if err := s.ValidarProduto(p); err != nil {
 		return nil, err
 	}
