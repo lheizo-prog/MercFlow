@@ -40,7 +40,16 @@ func (s *ProdutoService) Atualizar(p *models.ProdutoGenerico, lojas ...int) (*mo
 		return nil, err
 	}
 	atual, err := s.repo.BuscarID(p.ID)
-	if err != nil || !pertenceALoja(lojaSolicitada(lojas), atual.LojaID) {
+	if err != nil {
+		return nil, err
+	}
+	
+	lojaID := lojaSolicitada(lojas)
+	if lojaID <= 0 {
+		return nil, errors.New("loja é obrigatória para atualizar produto")
+	}
+	
+	if !pertenceALoja(lojaID, atual.LojaID) {
 		return nil, erroAcessoLoja()
 	}
 	return s.repo.Atualizar(p)
@@ -52,7 +61,16 @@ func (s *ProdutoService) RemoverID(id int, lojas ...int) error {
 	}
 
 	produto, err := s.repo.BuscarID(id)
-	if err != nil || !pertenceALoja(lojaSolicitada(lojas), produto.LojaID) {
+	if err != nil {
+		return err
+	}
+	
+	lojaID := lojaSolicitada(lojas)
+	if lojaID <= 0 {
+		return errors.New("loja é obrigatória para remover produto")
+	}
+	
+	if !pertenceALoja(lojaID, produto.LojaID) {
 		return erroAcessoLoja()
 	}
 	return s.repo.RemoverID(id)
@@ -61,6 +79,7 @@ func (s *ProdutoService) RemoverID(id int, lojas ...int) error {
 func (s *ProdutoService) Listar(lojas ...int) ([]*models.ProdutoGenerico, error) {
 	lojaID := lojaSolicitada(lojas)
 	if lojaID <= 0 {
+		// Se nenhuma loja fornecida, lista todos (para super_admin)
 		return s.repo.Listar()
 	}
 	return s.repo.ListarPorLoja(lojaID)
@@ -71,7 +90,9 @@ func (s *ProdutoService) BuscarID(id int, lojas ...int) (*models.ProdutoGenerico
 	if err != nil {
 		return nil, err
 	}
-	if !pertenceALoja(lojaSolicitada(lojas), produto.LojaID) {
+	
+	lojaID := lojaSolicitada(lojas)
+	if lojaID > 0 && !pertenceALoja(lojaID, produto.LojaID) {
 		return nil, erroAcessoLoja()
 	}
 	return produto, nil
@@ -82,7 +103,9 @@ func (s *ProdutoService) BuscarCodigo(codigo string, lojas ...int) (*models.Prod
 	if err != nil {
 		return nil, err
 	}
-	if !pertenceALoja(lojaSolicitada(lojas), produto.LojaID) {
+	
+	lojaID := lojaSolicitada(lojas)
+	if lojaID > 0 && !pertenceALoja(lojaID, produto.LojaID) {
 		return nil, erroAcessoLoja()
 	}
 	return produto, nil
