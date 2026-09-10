@@ -1,5 +1,6 @@
-﻿import { useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import DOMPurify from "dompurify";
 import api from "../../services/api";
 
 function LoginPage() {
@@ -15,7 +16,26 @@ function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await api.post("/login", { username, password });
+      // Sanitizar inputs para prevenir XSS
+      const cleanUsername = DOMPurify.sanitize(username.trim());
+      const cleanPassword = password; // Senha não precisa de sanitização HTML
+      
+      if (!cleanUsername) {
+        setErro("Usuário é obrigatório");
+        setLoading(false);
+        return;
+      }
+
+      if (!cleanPassword) {
+        setErro("Senha é obrigatória");
+        setLoading(false);
+        return;
+      }
+
+      const response = await api.post("/login", { 
+        username: cleanUsername, 
+        password: cleanPassword 
+      });
       const token = response.data?.token as string | undefined;
 
       if (!token) {

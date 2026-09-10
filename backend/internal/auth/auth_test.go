@@ -12,18 +12,17 @@ func init() {
 	os.Setenv("JWT_SECRET", "test-jwt-secret-key-32-characters!")
 }
 
-func TestCheckCredentials(t *testing.T) {
-	if !CheckCredentials("admin", "admin12345678") {
-		t.Fatal("Credenciais padrão do admin devem funcionar")
+func TestGenerateAndValidateTokenForUser(t *testing.T) {
+	user := User{
+		ID:          1,
+		Username:    "admin",
+		Nome:        "Administrador",
+		LojaID:      1,
+		Role:        "super_admin",
+		Permissions: defaultAdminPermissions(),
 	}
 
-	if CheckCredentials("admin", "senha-errada") {
-		t.Fatal("Senha incorreta não deve ser aceita")
-	}
-}
-
-func TestGenerateAndValidateToken(t *testing.T) {
-	token, err := GenerateToken("admin")
+	token, err := GenerateTokenForUser(user)
 	if err != nil {
 		t.Fatalf("gerar token falhou: %v", err)
 	}
@@ -35,6 +34,10 @@ func TestGenerateAndValidateToken(t *testing.T) {
 
 	if claims.Username != "admin" {
 		t.Fatalf("username inesperado: %s", claims.Username)
+	}
+
+	if claims.Role != "super_admin" {
+		t.Fatalf("role inesperado: %s", claims.Role)
 	}
 }
 

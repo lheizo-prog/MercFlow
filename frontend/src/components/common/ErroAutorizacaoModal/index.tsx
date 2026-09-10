@@ -1,9 +1,13 @@
-﻿import { useAuthError } from "../../../hooks/useAuthError";
+import DOMPurify from "dompurify";
+import { useAuthError } from "../../../hooks/useAuthError";
 
 function ErroAutorizacaoModal() {
   const { erro, fechar } = useAuthError();
 
   if (!erro) return null;
+
+  // Sanitização defensiva (embora já sanitizado no provider)
+  const safeErro = DOMPurify.sanitize(erro);
 
   return (
     <div
@@ -18,7 +22,7 @@ function ErroAutorizacaoModal() {
             <button type="button" className="btn-close" onClick={fechar}></button>
           </div>
           <div className="modal-body">
-            <p className="mb-0">{erro}</p>
+            <p className="mb-0">{safeErro}</p>
           </div>
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" onClick={fechar}>

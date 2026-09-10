@@ -246,14 +246,11 @@ Em um banco existente, faça backup antes de aplicar migrations que alteram tabe
 pg_dump "${DATABASE_URL}" > backup.sql
 ```
 
-Depois das migrations, o backend cria ou atualiza o administrador padrão ao iniciar. As credenciais padrão são:
+Depois das migrations, o backend cria ou atualiza o administrador padrão ao iniciar.
 
-```text
-Usuário: admin
-Senha: admin123
-```
+**IMPORTANTE:** Em produção, **SEMPRE** configure credenciais próprias com as variáveis de ambiente `ADMIN_USERNAME` e `ADMIN_PASSWORD`. Nunca utilize credenciais padrão em ambiente de produção.
 
-Em produção, configure credenciais próprias com `ADMIN_USERNAME` e `ADMIN_PASSWORD`.
+Em ambiente de desenvolvimento, o administrador padrão é criado automaticamente usando as variáveis `ADMIN_USERNAME` e `ADMIN_PASSWORD` definidas no arquivo `.env`.
 
 ## Recriar um banco de desenvolvimento
 

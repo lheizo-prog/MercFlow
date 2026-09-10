@@ -1,4 +1,5 @@
 import { createContext, useCallback, useEffect, useState, type ReactNode } from "react";
+import DOMPurify from "dompurify";
 
 interface AuthErrorContextType {
   erro: string | null;
@@ -10,7 +11,6 @@ const AuthErrorContext = createContext<AuthErrorContextType | undefined>(undefin
 export function AuthErrorProvider({ children }: { children: ReactNode }) {
   const [erro, setErro] = useState<string | null>(null);
 
-
   const fechar = useCallback(() => {
     setErro(null);
   }, []);
@@ -18,7 +18,9 @@ export function AuthErrorProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     function handleAuthError(event: Event) {
       const customEvent = event as CustomEvent<{ mensagem: string }>;
-      setErro(customEvent.detail.mensagem);
+      // Sanitizar mensagem para prevenir XSS
+      const sanitizedMensagem = DOMPurify.sanitize(customEvent.detail.mensagem);
+      setErro(sanitizedMensagem);
     }
     window.addEventListener("auth-error", handleAuthError);
     return () => window.removeEventListener("auth-error", handleAuthError);
