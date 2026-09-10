@@ -1,4 +1,4 @@
-import DOMPurify from "dompurify";
+﻿import DOMPurify from "dompurify";
 import { useAuthError } from "../../../hooks/useAuthError";
 
 function ErroAutorizacaoModal() {
