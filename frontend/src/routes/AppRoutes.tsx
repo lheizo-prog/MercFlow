@@ -71,6 +71,7 @@ function AppRoutes() {
             />
             <Route path="/usuarios" element={<UsuariosPage />} />
             <Route path="/lancamentos" element={<LancamentoPage />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Route>
         </Routes>
       </Suspense>

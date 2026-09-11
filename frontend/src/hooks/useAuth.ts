@@ -21,8 +21,20 @@ export interface UseAuthReturn {
 }
 
 export function useAuth(): UseAuthReturn {
-  const [token, setToken] = useState<string | null>(null);
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const [token, setToken] = useState<string | null>(() =>
+    localStorage.getItem("mercflow_token"),
+  );
+  const [user, setUser] = useState<AuthUser | null>(() => {
+    const stored = localStorage.getItem("mercflow_usuario");
+    if (stored) {
+      try {
+        return JSON.parse(stored) as AuthUser;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
 
   useEffect(() => {
     const handleStorage = () => {
@@ -42,7 +54,6 @@ export function useAuth(): UseAuthReturn {
       }
     };
 
-    handleStorage();
     window.addEventListener("storage", handleStorage);
     return () => window.removeEventListener("storage", handleStorage);
   }, []);
