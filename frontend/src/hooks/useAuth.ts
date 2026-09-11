@@ -28,9 +28,9 @@ export function useAuth(): UseAuthReturn {
     const handleStorage = () => {
       const newToken = localStorage.getItem("mercflow_token");
       const newUser = localStorage.getItem("mercflow_usuario");
-      
+
       setToken(newToken);
-      
+
       if (newUser) {
         try {
           setUser(JSON.parse(newUser) as AuthUser);
@@ -62,7 +62,7 @@ export function useAuth(): UseAuthReturn {
       if (!user?.permissoes) return false;
       return user.permissoes.includes(permission);
     },
-    [user?.permissoes],
+    [user],
   );
 
   const logout = useCallback(() => {
