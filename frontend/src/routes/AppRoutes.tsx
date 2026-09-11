@@ -55,7 +55,6 @@ function AppRoutes() {
           <Route path="/login" element={<LoginPage />} />
 
           <Route element={<ProtectedLayout />}>
-            
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route
               path="/produtos_genericos"
@@ -73,8 +72,6 @@ function AppRoutes() {
             <Route path="/usuarios" element={<UsuariosPage />} />
             <Route path="/lancamentos" element={<LancamentoPage />} />
           </Route>
-
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </Suspense>
     </BrowserRouter>
