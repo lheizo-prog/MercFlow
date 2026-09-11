@@ -19,7 +19,7 @@ function LoginPage() {
       // Sanitizar inputs para prevenir XSS
       const cleanUsername = DOMPurify.sanitize(username.trim());
       const cleanPassword = password; // Senha não precisa de sanitização HTML
-      
+
       if (!cleanUsername) {
         setErro("Usuário é obrigatório");
         setLoading(false);
@@ -32,9 +32,9 @@ function LoginPage() {
         return;
       }
 
-      const response = await api.post("/login", { 
-        username: cleanUsername, 
-        password: cleanPassword 
+      const response = await api.post("/login", {
+        username: cleanUsername,
+        password: cleanPassword,
       });
       const token = response.data?.token as string | undefined;
 

@@ -54,7 +54,6 @@ const permissoesLabels: Record<string, string> = {
   "usuario.update": "Editar Usuarios",
 };
 
-
 function UsuariosPage() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [loading, setLoading] = useState(true);
@@ -287,7 +286,9 @@ function UsuariosPage() {
                           checked={form.permissoes.includes(permissao)}
                           onChange={() => togglePermissao(permissao)}
                         />
-                        <span className="small">{permissoesLabels[permissao] ?? permissao}</span>
+                        <span className="small">
+                          {permissoesLabels[permissao] ?? permissao}
+                        </span>
                       </label>
                     </div>
                   ))}
@@ -336,7 +337,10 @@ function UsuariosPage() {
                           <td>{usuario.nome}</td>
                           <td>{usuario.username}</td>
                           <td>{usuario.perfil}</td>
-                          <td>{lojas.find((l) => l.id === usuario.loja_id)?.nome ?? ("Loja " + usuario.loja_id)}</td>
+                          <td>
+                            {lojas.find((l) => l.id === usuario.loja_id)
+                              ?.nome ?? "Loja " + usuario.loja_id}
+                          </td>
                         </tr>
                       ))}
                     </tbody>

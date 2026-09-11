@@ -5,7 +5,9 @@ import type { AuthErrorContextType } from "../contexts/AuthErrorContext";
 export function useAuthError(): AuthErrorContextType {
   const context = useContext(AuthErrorContext);
   if (!context) {
-    throw new Error("useAuthError deve ser usado dentro de um AuthErrorProvider");
+    throw new Error(
+      "useAuthError deve ser usado dentro de um AuthErrorProvider",
+    );
   }
   return context;
 }
