@@ -37,17 +37,14 @@ function TabelaProdutoMercearia({
                 <h5 className="card-title mb-1">
                   <strong>{produto.sku}</strong>
                 </h5>
-                <p className="card-text small mb-1">
-                  Marca: {produto.marca}
-                </p>
-                <p className="card-text small mb-1">
-                  {produto.descricao}
-                </p>
+                <p className="card-text small mb-1">Marca: {produto.marca}</p>
+                <p className="card-text small mb-1">{produto.descricao}</p>
                 <p className="card-text small mb-1">
                   Código Barras: {produto.codigo_barras}
                 </p>
                 <p className="card-text small mb-3 text-muted">
-                  Embalagem: {produto.quantidade_embalagem} {produto.unidade_medida}
+                  Embalagem: {produto.quantidade_embalagem}{" "}
+                  {produto.unidade_medida}
                 </p>
                 <div className="mt-auto">
                   <div className="d-flex gap-2">

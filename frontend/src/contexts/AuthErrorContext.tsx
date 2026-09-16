@@ -1,4 +1,10 @@
-import { createContext, useCallback, useEffect, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 import DOMPurify from "dompurify";
 
 interface AuthErrorContextType {
@@ -6,7 +12,9 @@ interface AuthErrorContextType {
   fechar: () => void;
 }
 
-const AuthErrorContext = createContext<AuthErrorContextType | undefined>(undefined);
+const AuthErrorContext = createContext<AuthErrorContextType | undefined>(
+  undefined,
+);
 
 export function AuthErrorProvider({ children }: { children: ReactNode }) {
   const [erro, setErro] = useState<string | null>(null);

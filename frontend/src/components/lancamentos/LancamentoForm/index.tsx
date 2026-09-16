@@ -630,7 +630,6 @@ function LancamentoForm({
           ? "Quebra registrada com sucesso"
           : "Transferência registrada com sucesso",
       );
-    
     } catch (error: unknown) {
       console.error("Erro ao criar lançamento:", error);
       setTipoMensagem("erro");
@@ -923,7 +922,8 @@ function LancamentoForm({
               <div className="alert alert-danger border rounded-3">
                 <strong>Erro na conversao:</strong> {erroConversao}
                 <div className="mt-2 small">
-                  Verifique se os produtos selecionados sao compativeis (mesmo produto base e unidades de medida conversiveis).
+                  Verifique se os produtos selecionados sao compativeis (mesmo
+                  produto base e unidades de medida conversiveis).
                 </div>
               </div>
             </div>
@@ -970,8 +970,7 @@ function LancamentoForm({
               <div className="alert alert-primary border rounded-3 mb-0">
                 <div className="row g-2">
                   <div className="col-12 col-md-4">
-                    <strong>Origem:</strong>{" "}
-                                        {itemAtual.unidadeMercearia}
+                    <strong>Origem:</strong> {itemAtual.unidadeMercearia}
                   </div>
                   <div className="col-12 col-md-4">
                     <strong>Destino:</strong> {itemAtual.unidadeDepartamento}

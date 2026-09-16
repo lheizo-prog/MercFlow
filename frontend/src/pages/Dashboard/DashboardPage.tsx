@@ -11,7 +11,7 @@ import { GraficoBarras } from "../../components/dashboard/GraficoBarras";
 import { GraficoPizza } from "../../components/dashboard/GraficoPizza";
 import { KPIsGrid } from "../../components/dashboard/KPIsGrid";
 import { FiltrosDashboard } from "../../components/dashboard/FiltrosDashboard";
-import { ComparativoForm } from "../../components/dashboard/ComparativoForm";
+import { ComparativoModal } from "../../components/comparativo/ComparativoModal";
 import { formatarDataHora } from "../../utils/format";
 
 const vazio: DashboardLancamentoResponse = {
@@ -32,7 +32,7 @@ function DashboardPage() {
     useState<DashboardLancamentoResponse>(vazio);
   const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showComparativo, setShowComparativo] = useState(false);
+  const [comparativoAberto, setComparativoAberto] = useState(false);
   const [filtros, setFiltros] = useState({
     tipo: "" as "" | "QUEBRA" | "TRANSFERENCIA",
     dataInicio: "",
@@ -104,7 +104,7 @@ function DashboardPage() {
         {
           <Button
             variant="primary"
-            onClick={() => setShowComparativo(true)}
+            onClick={() => setComparativoAberto(true)}
             className="d-flex align-items-center gap-2"
           >
             <svg
@@ -154,8 +154,8 @@ function DashboardPage() {
           </div>
         </div>
       </div>
-      {showComparativo && (
-        <ComparativoForm onClose={() => setShowComparativo(false)} />
+      {comparativoAberto && (
+        <ComparativoModal onClose={() => setComparativoAberto(false)} />
       )}
     </Container>
   );
