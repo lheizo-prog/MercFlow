@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import type { DashboardLancamentoRankingItem as RankingItem } from "../../../types/Dashboard";
+import type { DashboardLancamentoRankingItem as RankingItem } from "../../types/Dashboard";
 import type { ChartOptions, TooltipItem } from "chart.js";
 import { Bar, Doughnut } from "react-chartjs-2";
 

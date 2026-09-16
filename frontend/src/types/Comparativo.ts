@@ -15,7 +15,6 @@ export type ComparativoTipo = "" | "QUEBRA" | "TRANSFERENCIA";
 export interface ComparativoDuasLojasConfig {
   modo: "duas_lojas";
   tipo: ComparativoTipo;
-  usarDatasIguais: boolean;
   lojaA: ComparativoLojaSelecionada;
   lojaB: ComparativoLojaSelecionada;
   rangeA: ComparativoRange;
@@ -24,7 +23,6 @@ export interface ComparativoDuasLojasConfig {
 export interface ComparativoMesmaLojaConfig {
   modo: "mesma_loja";
   tipo: ComparativoTipo;
-  usarDatasIguais: false;
   loja: ComparativoLojaSelecionada;
   rangeA: ComparativoRange;
   rangeB: ComparativoRange;

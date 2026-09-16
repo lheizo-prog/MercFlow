@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import type { RankingItem } from "../../../types/Comparativo";
+import type { RankingItem } from "../../types/Comparativo";
 
 type ColunaOrdenacao = "produto" | "qtdA" | "qtdB" | "delta";
 
@@ -67,6 +67,28 @@ export function TabelaComparativa({ rankingA, rankingB, labelA, labelB }: Props)
       const dir = direcao === "desc" ? -1 : 1;
       switch (ordenacao) {
         case "produto": return a.produto.localeCompare(b.produto) * dir;
+        case "qtdA": return (a.qtdA - b.qtdA) * dir;
+        case "qtdB": return (a.qtdB - b.qtdB) * dir;
+        case "delta": return (a.delta - b.delta) * dir;
+        default: return 0;
+      }
+    });
+  }, [linhas, busca, ordenacao, direcao]);
+
+  function alternarOrdenacao(col: ColunaOrdenacao) {
+    if (ordenacao === col) setDirecao((d) => (d === "asc" ? "desc" : "asc"));
+    else { setOrdenacao(col); setDirecao("desc"); }
+  }
+
+  function setaOrdenacao(col: ColunaOrdenacao) {
+    if (ordenacao !== col) return " ↕";
+    return direcao === "desc" ? " ↓" : " ↑";
+  }
+
+  function classeDelta(delta: number) {
+    return delta > 0 ? "text-success" : delta < 0 ? "text-danger" : "text-body-secondary";
+  }
+
   return (
     <div>
       <div className="d-flex justify-content-between align-items-center mb-2">
@@ -106,23 +128,3 @@ export function TabelaComparativa({ rankingA, rankingB, labelA, labelB }: Props)
     </div>
   );
 }
-        case "qtdA": return (a.qtdA - b.qtdA) * dir;
-        case "qtdB": return (a.qtdB - b.qtdB) * dir;
-        case "delta": return (a.delta - b.delta) * dir;
-      }
-    });
-  }, [linhas, busca, ordenacao, direcao]);
-
-  function alternarOrdenacao(col: ColunaOrdenacao) {
-    if (ordenacao === col) setDirecao((d) => (d === "asc" ? "desc" : "asc"));
-    else { setOrdenacao(col); setDirecao("desc"); }
-  }
-
-  function setaOrdenacao(col: ColunaOrdenacao) {
-    if (ordenacao !== col) return " ↕";
-    return direcao === "desc" ? " ↓" : " ↑";
-  }
-
-  function classeDelta(delta: number) {
-    return delta > 0 ? "text-success" : delta < 0 ? "text-danger" : "text-body-secondary";
-  }

@@ -1,5 +1,5 @@
 ﻿import type { DashboardLancamentoRankingItem } from "../../types/Dashboard";
-import { ComparativoGraficos } from "./ComparativoGraficos";
+import { ComparativoGraficos } from "../comparativo/GraficosComparativo";
 
 interface Props {
   ranking: DashboardLancamentoRankingItem[];
