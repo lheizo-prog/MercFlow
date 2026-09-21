@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import axios from "axios";
 import usuarioService from "../../services/usuarioService";
 import lojaService from "../../services/lojaService";
+import { useRefetchOnFocus } from "../../hooks/useRefetchOnFocus";
 import type { Usuario, UsuarioPayload } from "../../types/Usuario";
 import type { Loja } from "../../types/Loja";
 
@@ -83,32 +84,34 @@ function UsuariosPage() {
     }
   }
 
-  useEffect(() => {
-    const carregarUsuariosAtualizados = async () => {
-      try {
-        setUsuarios(await usuarioService.listar());
-      } catch (error) {
-        console.error("Erro ao recarregar usuários:", error);
-      }
-    };
-    void carregarUsuarios();
-    void lojaService
-      .listar()
-      .then((lista) => {
-        setLojas(lista.filter((loja) => loja.ativo));
-        setForm((anterior) => ({
-          ...anterior,
-          loja_id:
-            anterior.loja_id || lista.find((loja) => loja.ativo)?.id || 0,
-        }));
-      })
-      .catch((error) => {
-        console.error(error);
-        setErro("Não foi possível carregar as lojas.");
-      });
-
-    void carregarUsuariosAtualizados();
+  const carregarLojas = useCallback(async () => {
+    try {
+      const lista = await lojaService.listar();
+      setLojas(lista.filter((loja) => loja.ativo));
+      setForm((anterior) => ({
+        ...anterior,
+        loja_id: anterior.loja_id || lista.find((loja) => loja.ativo)?.id || 0,
+      }));
+    } catch (error) {
+      console.error(error);
+      setErro("Não foi possível carregar as lojas.");
+    }
   }, []);
+
+  useEffect(() => {
+    void carregarUsuarios();
+    void carregarLojas();
+  }, [carregarLojas]);
+
+  // Recarrega usuários e lojas quando o usuário volta para esta aba: cobre
+  // um usuário ou loja criado/editado/desativado em outra sessão enquanto
+  // esta página seguia aberta.
+  const recarregarEmSegundoPlano = useCallback(() => {
+    void carregarUsuarios();
+    void carregarLojas();
+  }, [carregarLojas]);
+
+  useRefetchOnFocus(recarregarEmSegundoPlano);
 
   const opcoesPermissoes = useMemo(
     () => [

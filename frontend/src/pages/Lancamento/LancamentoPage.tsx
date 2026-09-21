@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import lancamentoService from "../../services/lancamentoService";
 import produtoMerceariaService from "../../services/produtoMerceariaService";
 import produtoDepartamentoService from "../../services/produtoDepartamentoService";
 import departamentoService from "../../services/departamentoService";
+import { useRefetchOnFocus } from "../../hooks/useRefetchOnFocus";
 
 import type { LancamentoPayload } from "../../types/Lancamento";
 import type { ProdutoMercearia } from "../../types/ProdutoMercearia";
@@ -95,6 +96,20 @@ function LancamentoPage() {
 
     carregarDados();
   }, []);
+
+  // Recarrega produtos/departamentos silenciosamente (sem tela de loading)
+  // quando o usuário volta para esta aba. Cobre o caso de um produto ou
+  // departamento ter sido criado/editado/excluído em outra aba, outra
+  // sessão, ou por outro usuário enquanto esta página seguia aberta — sem
+  // isso, os dropdowns do formulário continuariam mostrando dados que já
+  // não existem mais no backend até o próximo envio bem-sucedido.
+  const recarregarEmSegundoPlano = useCallback(() => {
+    void carregarProdutosMercearia();
+    void carregarProdutosDepartamento();
+    void carregarDepartamentos();
+  }, []);
+
+  useRefetchOnFocus(recarregarEmSegundoPlano);
 
   async function criarLancamento(lancamento: LancamentoPayload): Promise<void> {
     try {

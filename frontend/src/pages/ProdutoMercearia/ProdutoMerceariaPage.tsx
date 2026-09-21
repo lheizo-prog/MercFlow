@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import produtoMerceariaService from "../../services/produtoMerceariaService";
 import produtoService from "../../services/produtoGenericoService";
+import { useRefetchOnFocus } from "../../hooks/useRefetchOnFocus";
 
 import type { ProdutoMercearia } from "../../types/ProdutoMercearia";
 import type { ProdutoGenerico } from "../../types/ProdutoGenerico";
@@ -55,6 +56,23 @@ function ProdutoMerceariaPage() {
     carregarProdutosMercearia();
     carregarProdutosBase();
   }, []);
+
+  // Recarrega ambas as listas silenciosamente quando o usuário volta para
+  // esta aba: sem isso, um produto genérico ou um produto de mercearia
+  // criado/editado/excluído em outra aba ou sessão continuaria aparecendo
+  // (ou faltando) aqui até um refresh manual da página.
+  const recarregarEmSegundoPlano = useCallback(() => {
+    produtoMerceariaService
+      .buscarTodos()
+      .then(setProdutosMercearia)
+      .catch((error) => console.error(error));
+    produtoService
+      .buscarTodos()
+      .then(setProdutosGenericos)
+      .catch((error) => console.error(error));
+  }, []);
+
+  useRefetchOnFocus(recarregarEmSegundoPlano);
 
   async function limparPesquisa() {
     setPesquisa("");

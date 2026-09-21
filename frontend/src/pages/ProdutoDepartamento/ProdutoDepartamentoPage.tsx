@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import produtoDepartamentoService from "../../services/produtoDepartamentoService";
 import produtoService from "../../services/produtoGenericoService";
 import departamentoService from "../../services/departamentoService";
+import { useRefetchOnFocus } from "../../hooks/useRefetchOnFocus";
 
 import type { ProdutoDepartamento } from "../../types/ProdutoDepartamento";
 import type { ProdutoGenerico } from "../../types/ProdutoGenerico";
@@ -67,6 +68,27 @@ function ProdutoDepartamentoPage() {
     carregarProdutosBase();
     carregarDepartamentos();
   }, []);
+
+  // Recarrega as três listas silenciosamente quando o usuário volta para
+  // esta aba: sem isso, um produto genérico, departamento ou produto de
+  // departamento criado/editado/excluído em outra aba ou sessão continuaria
+  // aparecendo (ou faltando) aqui até um refresh manual da página.
+  const recarregarEmSegundoPlano = useCallback(() => {
+    produtoDepartamentoService
+      .buscarTodos()
+      .then(setProdutosDepartamento)
+      .catch((error) => console.error(error));
+    produtoService
+      .buscarTodos()
+      .then(setProdutosGenericos)
+      .catch((error) => console.error(error));
+    departamentoService
+      .buscarTodos()
+      .then(setDepartamentos)
+      .catch((error) => console.error(error));
+  }, []);
+
+  useRefetchOnFocus(recarregarEmSegundoPlano);
 
   async function criarProdutoDepartamento(produto: ProdutoDepartamento) {
     try {

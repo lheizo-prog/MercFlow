@@ -13,6 +13,7 @@ import { GraficoBarras } from "../../components/dashboard/GraficoBarras";
 import { GraficoPizza } from "../../components/dashboard/GraficoPizza";
 import { KPIsGrid } from "../../components/dashboard/KPIsGrid";
 import { FiltrosDashboard } from "../../components/dashboard/FiltrosDashboard";
+import { useRefetchOnFocus } from "../../hooks/useRefetchOnFocus";
 import { ComparativoModal } from "../../components/comparativo/ComparativoModal";
 import { formatarDataHora } from "../../utils/format";
 
@@ -43,7 +44,7 @@ function DashboardPage() {
     produtoGenericoId: 0,
   });
 
-  useEffect(() => {
+  const carregarDepartamentos = useCallback(() => {
     departamentoService
       .buscarTodos()
       .then(setDepartamentos)
@@ -51,19 +52,13 @@ function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    // Recarrega os departamentos sempre que um novo lançamento é criado
-    // (evento WebSocket), garantindo que os filtros do dashboard estejam
-    // atualizados com a estrutura mais recente.
-    const carregarDepartamentosAtualizados = async () => {
-      try {
-        setDepartamentos(await departamentoService.buscarTodos());
-      } catch (error) {
-        console.error("Erro ao recarregar departamentos:", error);
-      }
-    };
+    carregarDepartamentos();
+  }, [carregarDepartamentos]);
 
-    void carregarDepartamentosAtualizados();
-  }, []);
+  // Recarrega departamentos quando o usuário volta para esta aba, para o
+  // filtro do dashboard não continuar oferecendo um departamento que já foi
+  // excluído (ou deixar de oferecer um recém-criado) em outra sessão.
+  useRefetchOnFocus(carregarDepartamentos);
 
   const carregarDashboardRequestId = useRef(0);
 
