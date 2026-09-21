@@ -101,6 +101,14 @@ function LancamentoPage() {
       await lancamentoService.criar(lancamento);
 
       console.log("Lançamento criado com sucesso");
+
+      // Invalidação: recarrega produtos e departamentos para que
+      // exclusões feitas em outra aba/sessão se reflitam imediatamente.
+      await Promise.all([
+        carregarProdutosMercearia(),
+        carregarProdutosDepartamento(),
+        carregarDepartamentos(),
+      ]);
     } catch (error) {
       console.error("Erro ao criar lançamento:", error);
       throw error;

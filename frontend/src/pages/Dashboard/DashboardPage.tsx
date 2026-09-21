@@ -50,6 +50,21 @@ function DashboardPage() {
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    // Recarrega os departamentos sempre que um novo lançamento é criado
+    // (evento WebSocket), garantindo que os filtros do dashboard estejam
+    // atualizados com a estrutura mais recente.
+    const carregarDepartamentosAtualizados = async () => {
+      try {
+        setDepartamentos(await departamentoService.buscarTodos());
+      } catch (error) {
+        console.error("Erro ao recarregar departamentos:", error);
+      }
+    };
+
+    void carregarDepartamentosAtualizados();
+  }, []);
+
   const carregarDashboardRequestId = useRef(0);
 
   const carregarDashboard = useCallback(() => {

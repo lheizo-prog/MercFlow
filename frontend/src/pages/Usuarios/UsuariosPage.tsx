@@ -84,6 +84,13 @@ function UsuariosPage() {
   }
 
   useEffect(() => {
+    const carregarUsuariosAtualizados = async () => {
+      try {
+        setUsuarios(await usuarioService.listar());
+      } catch (error) {
+        console.error("Erro ao recarregar usuários:", error);
+      }
+    };
     void carregarUsuarios();
     void lojaService
       .listar()
@@ -99,6 +106,8 @@ function UsuariosPage() {
         console.error(error);
         setErro("Não foi possível carregar as lojas.");
       });
+
+    void carregarUsuariosAtualizados();
   }, []);
 
   const opcoesPermissoes = useMemo(
