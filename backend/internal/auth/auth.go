@@ -104,7 +104,6 @@ func HasPermission(permissions []string, permission string) bool {
 	return false
 }
 
-
 func GenerateTokenForUser(user User) (string, error) {
 	header := map[string]string{"alg": "HS256", "typ": "JWT"}
 	claims := Claims{
@@ -239,6 +238,37 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		claims, err := ValidateToken(parts[1])
+		if err != nil {
+			ctx.JSON(401, gin.H{"erro": err.Error()})
+			ctx.Abort()
+			return
+		}
+
+		ctx.Set("username", claims.Username)
+		ctx.Set("user_id", claims.UserID)
+		ctx.Set("loja_id", claims.LojaID)
+		ctx.Set("role", claims.Role)
+		ctx.Set("permissions", claims.Permissions)
+		ctx.Set("claims", claims)
+		ctx.Next()
+	}
+}
+
+// WSAuthMiddleware autentica conexões WebSocket via token na query string
+// (?token=...). É necessário porque a API WebSocket dos navegadores não
+// permite o envio de headers customizados (como Authorization) durante o
+// handshake, tornando o AuthMiddleware baseado em header inutilizável para
+// essas conexões.
+func WSAuthMiddleware() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		token := strings.TrimSpace(ctx.Query("token"))
+		if token == "" {
+			ctx.JSON(401, gin.H{"erro": "token de acesso obrigatório"})
+			ctx.Abort()
+			return
+		}
+
+		claims, err := ValidateToken(token)
 		if err != nil {
 			ctx.JSON(401, gin.H{"erro": err.Error()})
 			ctx.Abort()

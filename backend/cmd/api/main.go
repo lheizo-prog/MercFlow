@@ -7,7 +7,7 @@ import (
 
 func main() {
 	app, err := bootstrap.New()
-	if err != nil{
+	if err != nil {
 		log.Fatal(err)
 	}
 
@@ -15,7 +15,7 @@ func main() {
 
 	log.Println("Servidor iniciado em http://localhost:8080")
 
-	if err := app.Router.Run(":8080"); err != nil{
+	if err := app.Router.Run(":8080"); err != nil {
 		log.Fatal(err)
 	}
 }

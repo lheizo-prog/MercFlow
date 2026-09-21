@@ -21,14 +21,14 @@ func (s *ProdutoService) Criar(p *models.ProdutoGenerico, lojas ...int) (*models
 	if p == nil {
 		return nil, errors.New("produto inválido")
 	}
-	
+
 	// Validar que pelo menos uma loja foi fornecida
 	lojaID := lojaSolicitada(lojas)
 	if lojaID <= 0 {
 		return nil, errors.New("loja é obrigatória para criar produto")
 	}
 	p.LojaID = lojaID
-	
+
 	if err := s.ValidarProduto(p); err != nil {
 		return nil, err
 	}
@@ -43,12 +43,12 @@ func (s *ProdutoService) Atualizar(p *models.ProdutoGenerico, lojas ...int) (*mo
 	if err != nil {
 		return nil, err
 	}
-	
+
 	lojaID := lojaSolicitada(lojas)
 	if lojaID <= 0 {
 		return nil, errors.New("loja é obrigatória para atualizar produto")
 	}
-	
+
 	if !pertenceALoja(lojaID, atual.LojaID) {
 		return nil, erroAcessoLoja()
 	}
@@ -64,12 +64,12 @@ func (s *ProdutoService) RemoverID(id int, lojas ...int) error {
 	if err != nil {
 		return err
 	}
-	
+
 	lojaID := lojaSolicitada(lojas)
 	if lojaID <= 0 {
 		return errors.New("loja é obrigatória para remover produto")
 	}
-	
+
 	if !pertenceALoja(lojaID, produto.LojaID) {
 		return erroAcessoLoja()
 	}
@@ -90,7 +90,7 @@ func (s *ProdutoService) BuscarID(id int, lojas ...int) (*models.ProdutoGenerico
 	if err != nil {
 		return nil, err
 	}
-	
+
 	lojaID := lojaSolicitada(lojas)
 	if lojaID > 0 && !pertenceALoja(lojaID, produto.LojaID) {
 		return nil, erroAcessoLoja()
@@ -103,7 +103,7 @@ func (s *ProdutoService) BuscarCodigo(codigo string, lojas ...int) (*models.Prod
 	if err != nil {
 		return nil, err
 	}
-	
+
 	lojaID := lojaSolicitada(lojas)
 	if lojaID > 0 && !pertenceALoja(lojaID, produto.LojaID) {
 		return nil, erroAcessoLoja()

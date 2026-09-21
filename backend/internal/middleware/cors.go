@@ -10,7 +10,7 @@ import (
 func CORS() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		origin := strings.TrimSpace(ctx.GetHeader("Origin"))
-		
+
 		// Obter URL do frontend das variáveis de ambiente
 		frontendURL := strings.TrimSpace(os.Getenv("FRONTEND_URL"))
 		if frontendURL == "" {

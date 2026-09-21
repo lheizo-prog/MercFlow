@@ -1,7 +1,9 @@
-﻿import { useEffect, useState } from "react";
+﻿import { useCallback, useEffect, useRef, useState } from "react";
 import { Container, Button } from "react-bootstrap";
 import dashboardService from "../../services/dashboardService";
 import departamentoService from "../../services/departamentoService";
+import { useAuth } from "../../hooks/useAuth";
+import { useLancamentoWebSocket } from "../../hooks/useLancamentoWebSocket";
 import type {
   DashboardLancamentoResponse,
   DashboardLancamentoFiltros,
@@ -48,7 +50,9 @@ function DashboardPage() {
       .catch(() => {});
   }, []);
 
-  useEffect(() => {
+  const carregarDashboardRequestId = useRef(0);
+
+  const carregarDashboard = useCallback(() => {
     const apiFiltros: DashboardLancamentoFiltros = {
       tipo: filtros.tipo || undefined,
       data_inicio: filtros.dataInicio || undefined,
@@ -56,13 +60,41 @@ function DashboardPage() {
       departamento_id: filtros.departamentoId || undefined,
       produto_generico_id: filtros.produtoGenericoId || undefined,
     };
+    // Guard contra respostas fora de ordem: como o dashboard agora pode ser
+    // recarregado tanto pela mudança de filtros quanto por um evento WS de
+    // novo lançamento, duas chamadas podem ficar em voo ao mesmo tempo. Sem
+    // isso, uma resposta mais antiga que chega depois de uma mais recente
+    // sobrescreveria o estado com dados desatualizados.
+    const requestId = ++carregarDashboardRequestId.current;
     setLoading(true);
     dashboardService
       .buscarLancamentos(apiFiltros)
-      .then(setDashboard)
-      .catch(() => setDashboard(vazio))
-      .finally(() => setLoading(false));
+      .then((data) => {
+        if (requestId !== carregarDashboardRequestId.current) return;
+        setDashboard(data);
+      })
+      .catch(() => {
+        if (requestId !== carregarDashboardRequestId.current) return;
+        setDashboard(vazio);
+      })
+      .finally(() => {
+        if (requestId !== carregarDashboardRequestId.current) return;
+        setLoading(false);
+      });
   }, [filtros]);
+
+  useEffect(() => {
+    carregarDashboard();
+  }, [carregarDashboard]);
+
+  const { isAuthenticated } = useAuth();
+
+  // Atualiza o dashboard automaticamente quando qualquer usuário da mesma
+  // loja cria um novo lançamento, sem precisar de polling.
+  useLancamentoWebSocket({
+    enabled: isAuthenticated,
+    onNovoLancamento: carregarDashboard,
+  });
 
   const totalProdutos = new Set(
     dashboard.ranking.map((i) => i.produto_generico_id || i.produto_id),

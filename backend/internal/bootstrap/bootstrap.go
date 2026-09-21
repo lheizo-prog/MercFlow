@@ -74,7 +74,9 @@ func New() (*Application, error) {
 
 	lancamentoRepo := lancamento.NovoLancamentoPostgresRepositoy(db)
 	lancamentoService := service.NovoLancamentoService(lancamentoRepo, produto_mRepo, produto_dRepo, departamentoRepo)
-	lancamentoHandler := handlers.NovoLancamentoHandler(lancamentoService)
+	wsHub := handlers.NewWSHub()
+	go wsHub.Run()
+	lancamentoHandler := handlers.NovoLancamentoHandler(lancamentoService, wsHub)
 
 	dashboardRepository := dashboardrepo.NovoDashboardPostgresRepository(db)
 	dashboardService := service.NovoDashboardService(dashboardRepository)
@@ -93,6 +95,12 @@ func New() (*Application, error) {
 		lancamentoHandler.HandleLancamentos(protected)
 		dashboardHandler.HandleDashboard(protected)
 	}
+
+	// Rota de WebSocket fora do grupo `protected`: usa autenticação própria
+	// via token na query string (auth.WSAuthMiddleware), pois o
+	// AuthMiddleware baseado em header Authorization não é compatível com o
+	// handshake de WebSocket dos navegadores.
+	lancamentoHandler.HandleLancamentosWS(router)
 
 	return &Application{
 		Router: router,

@@ -70,6 +70,39 @@ func (s *LojaScope) ObterLojaDoUsuario(ctx *gin.Context) (int, bool) {
 	return claims.LojaID, true
 }
 
+// ObterLojaParaWS retorna a loja para uma conexão WebSocket. Espelha
+// ObterLojaDoUsuario, mas lê o parâmetro de loja via query string
+// (?loja_id=) em vez do header X-Loja-ID: o handshake de WebSocket dos
+// navegadores não permite enviar headers customizados, então super_admin e
+// admin precisam de uma forma alternativa de escolher a loja ao conectar.
+// Retorna (lojaID, ok). lojaID=0 significa "todas as lojas" (super_admin
+// sem filtro), assim como em ObterLojaDoUsuario.
+func (s *LojaScope) ObterLojaParaWS(ctx *gin.Context) (int, bool) {
+	claimsValue, existe := ctx.Get("claims")
+	claims, ok := claimsValue.(auth.Claims)
+	if !existe || !ok || claims.LojaID <= 0 {
+		return 0, false
+	}
+
+	if claims.Role == "super_admin" || claims.Role == "admin" {
+		lojaParam := strings.TrimSpace(ctx.Query("loja_id"))
+		if lojaParam != "" {
+			lojaID, err := strconv.Atoi(lojaParam)
+			if err != nil || lojaID <= 0 || !s.lojaValida(lojaID) {
+				return 0, false
+			}
+			return lojaID, true
+		}
+		if claims.Role == "super_admin" {
+			// Super admin sem loja_id na query = acesso a todas as lojas
+			return 0, true
+		}
+	}
+
+	// Admin sem loja_id na query, operador e visualizador: própria loja
+	return claims.LojaID, true
+}
+
 // lojaValida verifica se a loja existe, está ativa e é acessível pelo usuário
 func (s *LojaScope) lojaValida(lojaID int) bool {
 	lojaObj, err := s.lojaRepo.BuscarID(lojaID)

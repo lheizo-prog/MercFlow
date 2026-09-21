@@ -6,11 +6,10 @@ import "./index.css";
 
 import App from "./App.tsx";
 import * as Sentry from "@sentry/react";
-import { BrowserTracing } from "@sentry/tracing";
 
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN || "https://o0.ingest.sentry.io/0",
-  integrations: [new BrowserTracing() as any],
+  integrations: [Sentry.browserTracingIntegration()],
   tracesSampleRate: 1.0,
   replaysSessionSampleRate: 0.1,
   replaysOnErrorSampleRate: 1.0,

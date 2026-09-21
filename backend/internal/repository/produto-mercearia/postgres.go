@@ -387,5 +387,3 @@ func (r *ProdutoMerceariaPostgresRepository) BuscarPorLoja(texto string, lojaID 
 
 	return lista, nil
 }
-
-

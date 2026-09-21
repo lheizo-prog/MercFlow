@@ -36,6 +36,11 @@ func lojaParaCriacao(ctx *gin.Context) (int, bool) {
 	return GetScope().ObterLojaParaCriacao(ctx)
 }
 
+// lojaParaWS retorna a loja para uma conexão WebSocket (função legacy para compatibilidade)
+func lojaParaWS(ctx *gin.Context) (int, bool) {
+	return GetScope().ObterLojaParaWS(ctx)
+}
+
 // perfilPodeNavegarLojas retorna true se o perfil pode navegar entre lojas
 func perfilPodeNavegarLojas(claims auth.Claims) bool {
 	return PerfilPodeNavegarLojas(claims)
