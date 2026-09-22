@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type FormEvent,
+} from "react";
 import axios from "axios";
 import usuarioService from "../../services/usuarioService";
 import lojaService from "../../services/lojaService";
@@ -169,7 +175,7 @@ function UsuariosPage() {
         perfil: "operador",
         permissoes: [...permissoesPadrao.operador],
       });
-      await carregarUsuarios();
+      await Promise.all([carregarUsuarios(), carregarLojas()]);
     } catch (error) {
       console.error(error);
       if (axios.isAxiosError(error)) {
