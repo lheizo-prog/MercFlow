@@ -14,11 +14,6 @@ api.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
-  const lojaSelecionada = localStorage.getItem("mercflow_loja_id");
-  if (lojaSelecionada && config.headers) {
-    config.headers["X-Loja-ID"] = lojaSelecionada;
-  }
-
   return config;
 });
 

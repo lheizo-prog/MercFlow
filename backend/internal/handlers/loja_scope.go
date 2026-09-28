@@ -18,7 +18,8 @@ func NovoLojaScope(lojaRepo *loja.PostgresLojaRepository) *LojaScope {
 	return &LojaScope{lojaRepo: lojaRepo}
 }
 
-// obterLojaDoUsuario retorna a loja que o usuário está acessando.
+// ObterLojaDoUsuario retorna a loja do usuário a partir do JWT claims.
+// O header X-Loja-ID é completamente ignorado para evitar manipulação.
 // Retorna (lojaID, ok). Se ok=false, houve erro de autorização.
 // Se lojaID=0, significa "todas as lojas" (super_admin sem filtro).
 func (s *LojaScope) ObterLojaDoUsuario(ctx *gin.Context) (int, bool) {
@@ -28,45 +29,8 @@ func (s *LojaScope) ObterLojaDoUsuario(ctx *gin.Context) (int, bool) {
 		return 0, false
 	}
 
-	// Super admin pode acessar múltiplas lojas
-	if claims.Role == "super_admin" {
-		lojaHeader := strings.TrimSpace(ctx.GetHeader("X-Loja-ID"))
-		if lojaHeader == "" {
-			// Super admin sem header = acesso a todas as lojas
-			return 0, true
-		}
-
-		lojaID, err := strconv.Atoi(lojaHeader)
-		if err != nil || lojaID <= 0 {
-			// Header inválido = rejeitar
-			return 0, false
-		}
-
-		// Validar que a loja existe e está ativa
-		if !s.lojaValida(lojaID) {
-			return 0, false
-		}
-		return lojaID, true
-	}
-
-	// Admin pode filtrar por loja
-	if claims.Role == "admin" {
-		lojaHeader := strings.TrimSpace(ctx.GetHeader("X-Loja-ID"))
-		if lojaHeader != "" {
-			lojaID, err := strconv.Atoi(lojaHeader)
-			if err == nil && lojaID > 0 {
-				// Validar que a loja existe e está ativa
-				if !s.lojaValida(lojaID) {
-					return 0, false
-				}
-				return lojaID, true
-			}
-		}
-		// Sem header ou inválido = usa própria loja
-		return claims.LojaID, true
-	}
-
-	// Operador e visualizador só podem acessar a própria loja
+	// O header X-Loja-ID é ignorado. O usuário sempre usa
+	// a própria loja do JWT (claims.LojaID), independente do role.
 	return claims.LojaID, true
 }
 

@@ -9,10 +9,20 @@ import (
 	"log"
 	"os"
 	"strings"
+	"sync"
 	"time"
+
+	"MercFlow/internal/service"
 
 	"github.com/gin-gonic/gin"
 )
+
+var usuarioService *service.UsuarioService
+
+// Init inicializa o pacote auth com as dependências necessárias
+func Init(us *service.UsuarioService) {
+	usuarioService = us
+}
 
 type User struct {
 	ID          int      `json:"id"`
@@ -200,12 +210,101 @@ func RequirePermission(permission string) gin.HandlerFunc {
 			return
 		}
 
-		if claims.Role != "super_admin" && !HasPermission(claims.Permissions, permission) {
+		// Buscar o estado atual do usuário no banco para evitar
+		// autorização baseada em JWT desatualizado. O JWT pode carregar
+		// role/permissões antigas por até 8 horas; esta validação garante
+		// que revogações, mudanças de perfil e desativações tenham efeito
+		// imediato na próxima requisição.
+		usuario, err := usuarioService.BuscarPorID(claims.UserID)
+		if err != nil {
+			ctx.JSON(401, gin.H{"erro": "usuário não encontrado"})
+			ctx.Abort()
+			return
+		}
+		if usuario == nil {
+			ctx.JSON(401, gin.H{"erro": "usuário não encontrado"})
+			ctx.Abort()
+			return
+		}
+		if !usuario.Ativo {
+			ctx.JSON(401, gin.H{"erro": "usuário inativo"})
+			ctx.Abort()
+			return
+		}
+
+		// O papel atual do usuário deve vir do banco, não do JWT.
+		// Usuários super_admin continuam tendo acesso total.
+		if usuario.Perfil != "super_admin" && !HasPermission(usuario.Permissoes, permission) {
 			ctx.JSON(403, gin.H{"erro": "permissão insuficiente"})
 			ctx.Abort()
 			return
 		}
 
+		ctx.Next()
+	}
+}
+
+// RateLimitLogin middleware que aplica rate limiting no endpoint de login.
+// Limita 10 tentativas por minuto por IP.
+type loginLimiter struct {
+	mu      sync.Mutex
+	visitors map[string]*visitor
+}
+
+type visitor struct {
+	count    int
+	expiresAt time.Time
+}
+
+var (
+	loginRateLimiter = &loginLimiter{visitors: make(map[string]*visitor)}
+	loginLimitCount  = 10
+	loginLimitWindow = time.Minute
+)
+
+// AllowLogin verifica se o IP pode fazer login. Retorna true se permitido.
+func (l *loginLimiter) AllowLogin(ip string) bool {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	now := time.Now()
+	v, exists := l.visitors[ip]
+	if !exists || now.After(v.expiresAt) {
+		l.visitors[ip] = &visitor{count: 1, expiresAt: now.Add(loginLimitWindow)}
+		return true
+	}
+
+	if v.count >= loginLimitCount {
+		return false
+	}
+	v.count++
+	return true
+}
+
+// clientIP retorna o IP do cliente (IP externo ou remote address).
+func clientIP(ctx *gin.Context) string {
+	ip := ctx.ClientIP()
+	if ip == "" {
+		ip = ctx.Request.RemoteAddr
+	}
+	// Normaliza IPv6 loopback
+	if ip == "[::1]" {
+		ip = "127.0.0.1"
+	}
+	return ip
+}
+
+// RateLimitLogin middleware que aplica rate limiting no endpoint de login.
+func RateLimitLogin() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		ip := clientIP(ctx)
+		if !loginRateLimiter.AllowLogin(ip) {
+			ctx.JSON(429, gin.H{
+				"erro": "muitas tentativas de login. Tente novamente em 1 minuto.",
+			})
+			ctx.Abort()
+			return
+		}
 		ctx.Next()
 	}
 }

@@ -85,3 +85,25 @@ func TestGenerateTokenForUser(t *testing.T) {
 		t.Fatal("permissão do usuário não foi carregada no token")
 	}
 }
+
+// Testes de rate limiting do login
+func TestAllowLogin(t *testing.T) {
+	l := &loginLimiter{visitors: make(map[string]*visitor)}
+
+	// Mesmo IP pode fazer login até o limite
+	for i := 0; i < loginLimitCount; i++ {
+		if !l.AllowLogin("192.168.1.1") {
+			t.Fatalf("tentativa %d não deveria ser bloqueada", i+1)
+		}
+	}
+
+	// Após o limite, deve ser bloqueado
+	if l.AllowLogin("192.168.1.1") {
+		t.Fatal("tentativa excedente deveria ser bloqueada")
+	}
+
+	// IP diferente não é afetado
+	if !l.AllowLogin("10.0.0.1") {
+		t.Fatal("IP diferente não deveria ser bloqueado")
+	}
+}

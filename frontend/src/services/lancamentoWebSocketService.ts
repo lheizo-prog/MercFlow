@@ -78,10 +78,6 @@ export function connectLancamentoWS(
 
     const url = new URL(getWSUrl("/ws/lancamentos"));
     url.searchParams.set("token", token);
-    const lojaOverride = localStorage.getItem("mercflow_loja_id");
-    if (lojaOverride) {
-      url.searchParams.set("loja_id", lojaOverride);
-    }
 
     const ws = new WebSocket(url.toString());
     socket = ws;

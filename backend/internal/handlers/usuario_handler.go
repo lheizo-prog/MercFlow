@@ -67,6 +67,24 @@ func (h *UsuarioHandler) Criar(ctx *gin.Context) {
 		payload.Perfil = "operador"
 	}
 
+	// P0-3: Validar que o criador pode criar o perfil solicitado
+	perfilMaximoPermitido := perfilMaximoParaCriador(claims.Role)
+	if !perfilEhValido(payload.Perfil) {
+		ctx.JSON(http.StatusBadRequest, gin.H{"erro": "perfil inválido"})
+		return
+	}
+	if !perfilPodeCriar(claims.Role, payload.Perfil, perfilMaximoPermitido) {
+		ctx.JSON(http.StatusForbidden, gin.H{"erro": "perfil não permitido para este role"})
+		return
+	}
+
+	// P0-3: Validar que as permissões enviadas são subconjunto das oficiais do perfil
+	permissoesOficiais := permissoesOficiaisDoPerfil(payload.Perfil)
+	if !contemTodas(permissoesOficiais, payload.Permissoes) {
+		ctx.JSON(http.StatusBadRequest, gin.H{"erro": "permissões inválidas para o perfil selecionado"})
+		return
+	}
+
 	usuario, err := h.service.Criar(&models.Usuario{
 		Nome:       payload.Nome,
 		Username:   payload.Username,
@@ -142,4 +160,109 @@ func (h *UsuarioHandler) BuscarPorID(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, usuario)
+}
+
+// perfilMaximoParaCriador retorna o máximo perfil que um role pode criar.
+// super_admin pode criar qualquer perfil; admin pode criar admin e operador;
+// operadores/visualizadores não podem criar usuários (isso já é bloqueado por RequirePermission).
+func perfilMaximoParaCriador(role string) string {
+	if strings.EqualFold(role, "super_admin") {
+		return "super_admin"
+	}
+	if strings.EqualFold(role, "admin") {
+		return "admin"
+	}
+	return "operador"
+}
+
+func perfilEhValido(perfil string) bool {
+	switch strings.ToLower(strings.TrimSpace(perfil)) {
+	case "operador", "admin", "visualizador", "super_admin":
+		return true
+	default:
+		return false
+	}
+}
+
+func perfilPodeCriar(criadorRole, perfilCriado, maxPermitido string) bool {
+	if strings.EqualFold(criadorRole, "super_admin") {
+		return true
+	}
+	if strings.EqualFold(criadorRole, "admin") {
+		return perfilCriado == "admin" || perfilCriado == "operador"
+	}
+	return false
+}
+
+func permissoesOficiaisDoPerfil(perfil string) []string {
+	switch strings.ToLower(strings.TrimSpace(perfil)) {
+	case "operador":
+		return []string{
+			"dashboard.read",
+			"lancamento.create",
+			"lancamento.read",
+			"lancamento.calculate",
+			"produto.read",
+			"departamento.read",
+		}
+	case "admin":
+		return []string{
+			"dashboard.read",
+			"dashboard.export",
+			"lancamento.create",
+			"lancamento.read",
+			"lancamento.calculate",
+			"produto.read",
+			"produto.create",
+			"produto.update",
+			"departamento.read",
+			"departamento.create",
+			"usuario.read",
+			"usuario.create",
+			"usuario.update",
+		}
+	case "visualizador":
+		return []string{
+			"dashboard.read",
+			"lancamento.read",
+			"lancamento.calculate",
+			"produto.read",
+			"departamento.read",
+		}
+	case "super_admin":
+		return []string{
+			"dashboard.read",
+			"dashboard.compare",
+			"loja.switch",
+			"lancamento.create",
+			"lancamento.read",
+			"lancamento.calculate",
+			"produto.read",
+			"produto.create",
+			"produto.update",
+			"departamento.read",
+			"departamento.create",
+			"usuario.read",
+			"usuario.create",
+			"usuario.update",
+		}
+	default:
+		return nil
+	}
+}
+
+func contemTodas(oficiais []string, solicitadas []string) bool {
+	for _, perm := range solicitadas {
+		encontrou := false
+		for _, oficial := range oficiais {
+			if strings.EqualFold(strings.TrimSpace(perm), strings.TrimSpace(oficial)) {
+				encontrou = true
+				break
+			}
+		}
+		if !encontrou {
+			return false
+		}
+	}
+	return true
 }
