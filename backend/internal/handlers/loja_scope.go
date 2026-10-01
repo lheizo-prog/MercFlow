@@ -25,7 +25,19 @@ func NovoLojaScope(lojaRepo *loja.PostgresLojaRepository) *LojaScope {
 func (s *LojaScope) ObterLojaDoUsuario(ctx *gin.Context) (int, bool) {
 	claimsValue, existe := ctx.Get("claims")
 	claims, ok := claimsValue.(auth.Claims)
-	if !existe || !ok || claims.LojaID <= 0 {
+	if !existe || !ok {
+		return 0, false
+	}
+
+	// Super admin tem acesso mesmo se LojaID não estiver configurada
+	if claims.Role == "super_admin" {
+		if claims.LojaID <= 0 {
+			return 0, true
+		}
+		return claims.LojaID, true
+	}
+
+	if claims.LojaID <= 0 {
 		return 0, false
 	}
 

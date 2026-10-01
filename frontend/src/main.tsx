@@ -1,4 +1,4 @@
-﻿import { StrictMode } from "react";
+import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -22,6 +22,17 @@ createRoot(document.getElementById("root")!).render(
 );
 
 if ("serviceWorker" in navigator) {
+  // Limpa explicitamente caches legados que possam estar servindo dados ou 401 antigos
+  if ("caches" in window) {
+    caches.keys().then((names) => {
+      for (const name of names) {
+        if (name === "mercflow-v1") {
+          caches.delete(name);
+        }
+      }
+    });
+  }
+
   window.addEventListener("load", () => {
     navigator.serviceWorker
       .register("/sw.js")

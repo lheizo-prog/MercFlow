@@ -30,6 +30,7 @@ api.interceptors.response.use(
           new CustomEvent("auth-error", { detail: { mensagem } }),
         );
       } else if (status === 401) {
+        console.warn("Erro 401 retornado pelo backend:", error.response?.data);
         localStorage.removeItem("mercflow_token");
         localStorage.removeItem("mercflow_usuario");
         const mensagem =
