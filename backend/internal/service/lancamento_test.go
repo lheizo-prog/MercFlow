@@ -39,10 +39,10 @@ func (m *produtoMerceariaRepositoryMock) RemoverID(id int) error {
 func (m *produtoMerceariaRepositoryMock) BuscarID(id int) (*models.ProdutoMercearia, error) {
 	return m.produto, m.err
 }
-func (m *produtoMerceariaRepositoryMock) BuscarSKU(sku string) (*models.ProdutoMercearia, error) {
+func (m *produtoMerceariaRepositoryMock) BuscarSKU(sku string, lojaID int) (*models.ProdutoMercearia, error) {
 	return m.produto, m.err
 }
-func (m *produtoMerceariaRepositoryMock) BuscarCodigoBarras(codigo string) (*models.ProdutoMercearia, error) {
+func (m *produtoMerceariaRepositoryMock) BuscarCodigoBarras(codigo string, lojaID int) (*models.ProdutoMercearia, error) {
 	return m.produto, m.err
 }
 func (m *produtoMerceariaRepositoryMock) Buscar(texto string) ([]*models.ProdutoMercearia, error) {
@@ -54,7 +54,7 @@ func (m *produtoMerceariaRepositoryMock) ListarPorLoja(lojaID int) ([]*models.Pr
 func (m *produtoMerceariaRepositoryMock) BuscarPorLoja(texto string, lojaID int) ([]*models.ProdutoMercearia, error) {
 	return nil, m.err
 }
-func (m *produtoMerceariaRepositoryMock) BuscarInativo(sku string) (*models.ProdutoMercearia, error) {
+func (m *produtoMerceariaRepositoryMock) BuscarInativo(sku string, lojaID int) (*models.ProdutoMercearia, error) {
 	return m.produto, m.err
 }
 func (m *produtoMerceariaRepositoryMock) Reativar(id int) error {

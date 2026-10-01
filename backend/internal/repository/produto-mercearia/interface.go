@@ -9,10 +9,10 @@ type ProdutoMerceariaRepository interface {
 	ListarPorLoja(lojaID int) ([]*models.ProdutoMercearia, error)
 	RemoverID(id int) error
 	BuscarID(id int) (*models.ProdutoMercearia, error)
-	BuscarSKU(sku string) (*models.ProdutoMercearia, error)
-	BuscarCodigoBarras(codigoBarras string) (*models.ProdutoMercearia, error)
+	BuscarSKU(sku string, lojaID int) (*models.ProdutoMercearia, error)
+	BuscarCodigoBarras(codigoBarras string, lojaID int) (*models.ProdutoMercearia, error)
 	Buscar(texto string) ([]*models.ProdutoMercearia, error)
 	BuscarPorLoja(texto string, lojaID int) ([]*models.ProdutoMercearia, error)
-	BuscarInativo(sku string) (*models.ProdutoMercearia, error)
+	BuscarInativo(sku string, lojaID int) (*models.ProdutoMercearia, error)
 	Reativar(id int) error
 }

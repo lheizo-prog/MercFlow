@@ -65,6 +65,7 @@ func (h *WSHub) Run() {
 			h.mu.Unlock()
 
 		case message := <-h.broadcast:
+			var deadClients []*WSClient
 			h.mu.RLock()
 			for client := range h.clients {
 				// Cliente vê tudo (LojaTodas) ou é exatamente da loja do evento.
@@ -74,12 +75,22 @@ func (h *WSHub) Run() {
 				select {
 				case client.send <- message.payload:
 				default:
-					// Cliente lento/travado: fecha e remove para não bloquear o hub.
-					close(client.send)
-					delete(h.clients, client)
+					// Cliente lento/travado: marca para exclusão posterior
+					deadClients = append(deadClients, client)
 				}
 			}
 			h.mu.RUnlock()
+
+			if len(deadClients) > 0 {
+				h.mu.Lock()
+				for _, client := range deadClients {
+					if _, ok := h.clients[client]; ok {
+						delete(h.clients, client)
+						close(client.send)
+					}
+				}
+				h.mu.Unlock()
+			}
 		}
 	}
 }

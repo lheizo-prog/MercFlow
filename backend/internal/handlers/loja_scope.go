@@ -19,9 +19,9 @@ func NovoLojaScope(lojaRepo *loja.PostgresLojaRepository) *LojaScope {
 }
 
 // ObterLojaDoUsuario retorna a loja do usuário a partir do JWT claims.
-// O header X-Loja-ID é completamente ignorado para evitar manipulação.
 // Retorna (lojaID, ok). Se ok=false, houve erro de autorização.
-// Se lojaID=0, significa "todas as lojas" (super_admin sem filtro).
+// A loja é obtida a partir do claim LojaID do JWT (claims.LojaID),
+// que é ignorado qualquer header X-Loja-ID enviado pela frontend.
 func (s *LojaScope) ObterLojaDoUsuario(ctx *gin.Context) (int, bool) {
 	claimsValue, existe := ctx.Get("claims")
 	claims, ok := claimsValue.(auth.Claims)
@@ -29,16 +29,12 @@ func (s *LojaScope) ObterLojaDoUsuario(ctx *gin.Context) (int, bool) {
 		return 0, false
 	}
 
-	// O header X-Loja-ID é ignorado. O usuário sempre usa
-	// a própria loja do JWT (claims.LojaID), independente do role.
 	return claims.LojaID, true
 }
 
 // ObterLojaParaWS retorna a loja para uma conexão WebSocket. Espelha
 // ObterLojaDoUsuario, mas lê o parâmetro de loja via query string
-// (?loja_id=) em vez do header X-Loja-ID: o handshake de WebSocket dos
-// navegadores não permite enviar headers customizados, então super_admin e
-// admin precisam de uma forma alternativa de escolher a loja ao conectar.
+// (?loja_id=). O header X-Loja-ID não é mais suportado.
 // Retorna (lojaID, ok). lojaID=0 significa "todas as lojas" (super_admin
 // sem filtro), assim como em ObterLojaDoUsuario.
 func (s *LojaScope) ObterLojaParaWS(ctx *gin.Context) (int, bool) {

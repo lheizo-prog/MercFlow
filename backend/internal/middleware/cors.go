@@ -35,7 +35,7 @@ func CORS() gin.HandlerFunc {
 		}
 
 		ctx.Header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
-		ctx.Header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Loja-ID")
+		ctx.Header("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		ctx.Header("Access-Control-Allow-Credentials", "true")
 
 		if ctx.Request.Method == "OPTIONS" {

@@ -30,7 +30,7 @@ func (s *ProdutoMerceariaService) Criar(p *models.ProdutoMercearia, lojas ...int
 	if err := s.ValidarProduto(p); err != nil {
 		return nil, err
 	}
-	res, err := s.ProdutoMerceariaRepo.BuscarInativo(p.SKU)
+	res, err := s.ProdutoMerceariaRepo.BuscarInativo(p.SKU, p.LojaID)
 	if err == nil {
 		if !pertenceALoja(p.LojaID, res.LojaID) {
 			return nil, erroAcessoLoja()
@@ -90,24 +90,26 @@ func (s *ProdutoMerceariaService) BuscarID(id int, lojas ...int) (*models.Produt
 }
 
 func (s *ProdutoMerceariaService) BuscarSKU(sku string, lojas ...int) (*models.ProdutoMercearia, error) {
-	produto, err := s.ProdutoMerceariaRepo.BuscarSKU(sku)
+	lojaID := lojaSolicitada(lojas)
+	produto, err := s.ProdutoMerceariaRepo.BuscarSKU(sku, lojaID)
 	if err != nil {
 		return nil, err
 	}
 
-	if !pertenceALoja(lojaSolicitada(lojas), produto.LojaID) {
+	if !pertenceALoja(lojaID, produto.LojaID) {
 		return nil, erroAcessoLoja()
 	}
 	return produto, nil
 }
 
 func (s *ProdutoMerceariaService) BuscarCodigoBarras(codigo_barras string, lojas ...int) (*models.ProdutoMercearia, error) {
-	produto, err := s.ProdutoMerceariaRepo.BuscarCodigoBarras(codigo_barras)
+	lojaID := lojaSolicitada(lojas)
+	produto, err := s.ProdutoMerceariaRepo.BuscarCodigoBarras(codigo_barras, lojaID)
 	if err != nil {
 		return nil, err
 	}
 
-	if !pertenceALoja(lojaSolicitada(lojas), produto.LojaID) {
+	if !pertenceALoja(lojaID, produto.LojaID) {
 		return nil, erroAcessoLoja()
 	}
 	return produto, nil

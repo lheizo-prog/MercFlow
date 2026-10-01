@@ -306,7 +306,7 @@ VITE_API_URL=https://seu-backend.exemplo.com
 - `admin`: pode navegar entre lojas e comparar lojas quando autorizado.
 - `super_admin`: acesso global às lojas e bypass das permissões de recurso.
 
-Usuários comuns recebem apenas os dados da loja associada à sua conta. Administradores podem selecionar uma loja na navbar. No dashboard, o intervalo da Loja 1 e o intervalo da Loja 2 são consultados separadamente.
+Todos os usuários são vinculados à loja associada à sua conta (claim LojaID no JWT) e recebem apenas os dados da sua loja. No dashboard, o intervalo da Loja 1 e o intervalo da Loja 2 são consultados separadamente.
 
 ---
 
