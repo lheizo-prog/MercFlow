@@ -312,13 +312,7 @@ func validarLancamentoRequest(request *request.LancamentoRequest) error {
 }
 
 func normalizarUnidade(unidade string) string {
-	unidade = strings.ToLower(strings.TrimSpace(unidade))
-
-	if unidade == "g" {
-		return "gr"
-	}
-
-	return unidade
+	return strings.ToLower(normalizarUnidadeMedida(unidade))
 }
 
 // normalizarUnidadeMedida padroniza valores de unidades de medida para o formato superior consistente (KG, GR, L, ML, UN)
@@ -333,10 +327,10 @@ func normalizarUnidadeMedida(valor string) string {
 		return "L"
 	case "ML", "MILLILITRO":
 		return "ML"
-	case "UN", "U", "UNIDADE":
+	case "UN", "U", "UNIDADE", "UND":
 		return "UN"
 	default:
-		return ""
+		return u
 	}
 }
 
@@ -347,7 +341,7 @@ func calcularFatorConversao(
 	origem := normalizarUnidade(unidadeOrigem)
 	destino := normalizarUnidade(unidadeDestino)
 
-	if origem == destino {
+	if origem == destino && origem != "" {
 		return 1, nil
 	}
 

@@ -144,13 +144,14 @@ func (r *DashboardPostgresRepository) BuscarLancamentos(
 					pd.nome
 				) AS produto,
 
+				(li.quantidade * COALESCE(pm.quantidade_embalagem, 1)) *
 				CASE LOWER(TRIM(COALESCE(pm.unidade_medida, pd.unidade_medida)))
-					WHEN 'kg' THEN li.quantidade
-					WHEN 'g' THEN li.quantidade / 1000
-					WHEN 'gr' THEN li.quantidade / 1000
-					WHEN 'l' THEN li.quantidade
-					WHEN 'ml' THEN li.quantidade / 1000
-					ELSE li.quantidade
+					WHEN 'kg' THEN 1.0
+					WHEN 'g' THEN 0.001
+					WHEN 'gr' THEN 0.001
+					WHEN 'l' THEN 1.0
+					WHEN 'ml' THEN 0.001
+					ELSE 1.0
 				END AS quantidade,
 
 				CASE LOWER(TRIM(COALESCE(pm.unidade_medida, pd.unidade_medida)))
