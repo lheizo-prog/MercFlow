@@ -60,7 +60,7 @@ func (r *PostgresUsuarioRepository) BuscarPorID(id int) (*models.Usuario, error)
 	row := r.db.QueryRow(context.Background(), `
 		SELECT u.id, u.nome, u.username, u.senha_hash, u.loja_id, l.nome, u.perfil, u.permissoes, u.ativo, u.criado_em::text
 		FROM usuarios u JOIN lojas l ON l.id = u.loja_id
-		WHERE id = $1
+		WHERE u.id = $1
 		LIMIT 1;
 	`, id)
 
@@ -90,8 +90,8 @@ func (r *PostgresUsuarioRepository) ListarPorLoja(lojaID int) ([]*models.Usuario
 	rows, err := r.db.Query(context.Background(), `
 		SELECT u.id, u.nome, u.username, u.senha_hash, u.loja_id, l.nome, u.perfil, u.permissoes, u.ativo, u.criado_em::text
 		FROM usuarios u JOIN lojas l ON l.id = u.loja_id
-		WHERE loja_id = $1
-		ORDER BY nome ASC;
+		WHERE u.loja_id = $1
+		ORDER BY u.nome ASC;
 	`, lojaID)
 	if err != nil {
 		return nil, err

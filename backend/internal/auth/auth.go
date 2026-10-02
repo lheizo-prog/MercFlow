@@ -217,11 +217,13 @@ func RequirePermission(permission string) gin.HandlerFunc {
 		// imediato na próxima requisição.
 		usuario, err := usuarioService.BuscarPorID(claims.UserID)
 		if err != nil {
+			log.Printf("RequirePermission: falha ao buscar usuario id=%d: %v", claims.UserID, err)
 			ctx.JSON(401, gin.H{"erro": "usuário não encontrado"})
 			ctx.Abort()
 			return
 		}
 		if usuario == nil {
+			log.Printf("RequirePermission: usuario id=%d nao encontrado", claims.UserID)
 			ctx.JSON(401, gin.H{"erro": "usuário não encontrado"})
 			ctx.Abort()
 			return
