@@ -30,6 +30,7 @@ func New() (*Application, error) {
 
 	router := gin.Default()
 	router.Use(middleware.CORS())
+	router.Use(middleware.SecurityHeaders())
 
 	cfg, err := config.Load()
 	if err != nil {

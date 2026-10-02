@@ -14,4 +14,21 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules/chart.js") || id.includes("node_modules/react-chartjs-2")) {
+            return "vendor_charts";
+          }
+          if (id.includes("node_modules/jspdf") || id.includes("node_modules/html2canvas")) {
+            return "vendor_pdf";
+          }
+          if (id.includes("node_modules/react-bootstrap") || id.includes("node_modules/bootstrap")) {
+            return "vendor_ui";
+          }
+        },
+      },
+    },
+  },
 });
