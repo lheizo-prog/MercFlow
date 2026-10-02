@@ -18,10 +18,10 @@ func NovoLojaScope(lojaRepo *loja.PostgresLojaRepository) *LojaScope {
 	return &LojaScope{lojaRepo: lojaRepo}
 }
 
-// ObterLojaDoUsuario retorna a loja do usuário a partir do JWT claims.
-// Retorna (lojaID, ok). Se ok=false, houve erro de autorização.
-// A loja é obtida a partir do claim LojaID do JWT (claims.LojaID),
-// que é ignorado qualquer header X-Loja-ID enviado pela frontend.
+// ObterLojaDoUsuario retorna a loja do usuário.
+// Administradores (super_admin, admin ou usuários com permissão loja.switch)
+// podem alternar de loja informando o header "X-Loja-ID" ou o parâmetro "loja_id".
+// Para usuários padrão, retorna a loja fixa do token JWT.
 func (s *LojaScope) ObterLojaDoUsuario(ctx *gin.Context) (int, bool) {
 	claimsValue, existe := ctx.Get("claims")
 	claims, ok := claimsValue.(auth.Claims)
@@ -29,12 +29,33 @@ func (s *LojaScope) ObterLojaDoUsuario(ctx *gin.Context) (int, bool) {
 		return 0, false
 	}
 
-	// Super admin tem acesso mesmo se LojaID não estiver configurada
-	if claims.Role == "super_admin" {
-		if claims.LojaID <= 0 {
+	podeAlternar := PerfilPodeNavegarLojas(claims) || auth.HasPermission(claims.Permissions, "loja.switch")
+
+	if podeAlternar {
+		// 1. Tentar ler do Header X-Loja-ID
+		headerLoja := strings.TrimSpace(ctx.GetHeader("X-Loja-ID"))
+		if headerLoja != "" {
+			if id, err := strconv.Atoi(headerLoja); err == nil && id > 0 {
+				if s.lojaValida(id) {
+					return id, true
+				}
+			}
+		}
+
+		// 2. Tentar ler do query param loja_id
+		queryLoja := strings.TrimSpace(ctx.Query("loja_id"))
+		if queryLoja != "" {
+			if id, err := strconv.Atoi(queryLoja); err == nil && id > 0 {
+				if s.lojaValida(id) {
+					return id, true
+				}
+			}
+		}
+
+		// Super admin sem loja fixa ou sem seleção tem fallback para 0 (todas) ou loja do token
+		if claims.Role == "super_admin" && claims.LojaID <= 0 {
 			return 0, true
 		}
-		return claims.LojaID, true
 	}
 
 	if claims.LojaID <= 0 {
@@ -97,8 +118,20 @@ func (s *LojaScope) ObterLojaParaCriacao(ctx *gin.Context) (int, bool) {
 		return 0, false
 	}
 
-	// Super admin e admin podem especificar loja via query param
-	if claims.Role == "super_admin" || claims.Role == "admin" {
+	podeAlternar := PerfilPodeNavegarLojas(claims) || auth.HasPermission(claims.Permissions, "loja.switch")
+
+	if podeAlternar {
+		// 1. Tentar ler do Header X-Loja-ID
+		headerLoja := strings.TrimSpace(ctx.GetHeader("X-Loja-ID"))
+		if headerLoja != "" {
+			if id, err := strconv.Atoi(headerLoja); err == nil && id > 0 {
+				if s.lojaValida(id) {
+					return id, true
+				}
+			}
+		}
+
+		// 2. Tentar ler do query param loja_id
 		if lojaID, err := strconv.Atoi(ctx.Query("loja_id")); err == nil && lojaID > 0 {
 			if !s.lojaValida(lojaID) {
 				return 0, false

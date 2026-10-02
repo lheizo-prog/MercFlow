@@ -1,4 +1,4 @@
-﻿import { useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import DOMPurify from "dompurify";
 import api from "../../services/api";
@@ -55,6 +55,9 @@ function LoginPage() {
           permissoes: response.data?.permissoes ?? [],
         }),
       );
+      if (response.data?.loja_id) {
+        localStorage.setItem("mercflow_loja_id", String(response.data.loja_id));
+      }
       navigate("/dashboard", { replace: true });
     } catch {
       setErro("Usuário ou senha inválidos.");

@@ -9,9 +9,14 @@ const api = axios.create({
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("mercflow_token");
+  const lojaId = localStorage.getItem("mercflow_loja_id");
 
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  if (lojaId && config.headers) {
+    config.headers["X-Loja-ID"] = lojaId;
   }
 
   return config;
