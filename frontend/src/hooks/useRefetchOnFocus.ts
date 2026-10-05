@@ -19,7 +19,7 @@ export interface UseRefetchOnFocusOptions {
  */
 export function useRefetchOnFocus(
   refetch: () => void,
-  { enabled = true, minIntervalMs = 2000 }: UseRefetchOnFocusOptions = {},
+  { enabled = true, minIntervalMs = 15000 }: UseRefetchOnFocusOptions = {},
 ): void {
   const refetchRef = useRef(refetch);
   const lastRunRef = useRef(0);
