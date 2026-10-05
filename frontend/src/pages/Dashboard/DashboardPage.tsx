@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Container, Button } from "react-bootstrap";
 import dashboardService from "../../services/dashboardService";
 import departamentoService from "../../services/departamentoService";
@@ -112,24 +112,51 @@ function DashboardPage() {
 
   return (
     <Container className="py-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1 className="h3 mb-0">Dashboard</h1>
-        <div className="text-muted small d-flex align-items-center">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="14"
-            height="14"
-            fill="currentColor"
-            viewBox="0 0 16 16"
-            className="me-1"
+      {/* Cabeçalho do Dashboard */}
+      <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4 pb-2 border-bottom">
+        <div>
+          <h1 className="h3 mb-1 fw-bold text-dark" style={{ letterSpacing: "-0.03em" }}>Dashboard</h1>
+          <p className="text-secondary small mb-0">Visão consolidada de perdas, quebras e transferências</p>
+        </div>
+        <div className="d-flex align-items-center gap-2">
+          <div className="badge bg-light text-secondary border px-3 py-2 fw-medium d-inline-flex align-items-center gap-2" style={{ fontSize: "0.82rem" }}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              className="text-primary"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>{formatarDataHora()}</span>
+          </div>
+
+          <Button
+            variant="outline-primary"
+            size="sm"
+            onClick={() => setComparativoAberto(true)}
+            className="d-flex align-items-center gap-2 py-2 px-3 fw-semibold shadow-xs"
+            style={{ borderRadius: "8px" }}
           >
-            <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z" />
-            <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z" />
-          </svg>
-          {formatarDataHora()}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            <span>Comparar Lojas</span>
+          </Button>
         </div>
       </div>
 
+      {/* Grid de Métricas Principais (KPIs) */}
       <KPIsGrid
         totalQuantidade={dashboard.resumo.total_quantidade}
         quantidadeRegistros={dashboard.resumo.quantidade_registros}
@@ -137,58 +164,63 @@ function DashboardPage() {
         loading={loading}
       />
 
-      <div className="d-flex justify-content-between align-items-center mb-4">
+      {/* Seção de Filtros */}
+      <div className="mb-4">
         <FiltrosDashboard
           departamentos={departamentos}
           filtros={filtros}
           onFiltrosChanged={setFiltros}
         />
-        {
-          <Button
-            variant="primary"
-            onClick={() => setComparativoAberto(true)}
-            className="d-flex align-items-center gap-2"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              fill="currentColor"
-              viewBox="0 0 16 16"
-            >
-              <path d="M0 0h1v15h15v1H0V0Zm14.817 3.113a.5.5 0 0 1 .07.704l-4.5 5.5a.5.5 0 0 1-.74.037L7.06 6.767l-3.656 5.027a.5.5 0 0 1-.808-.588l4-5.5a.5.5 0 0 1 .758-.06l2.609 2.61 4.15-5.073a.5.5 0 0 1 .704-.07Z" />
-            </svg>
-            Comparar Lojas
-          </Button>
-        }
       </div>
 
+      {/* Seção de Gráficos e Ranking */}
       <div className="row g-4">
         <div className="col-12">
-          <div className="card border-0 shadow-sm h-100">
-            <div className="card-header bg-white border-bottom">
-              <h5 className="mb-0">Ranking de Produtos</h5>
+          <div className="card border-0 shadow-sm h-100 overflow-hidden">
+            <div className="card-header bg-white border-bottom py-3 px-4 d-flex align-items-center justify-content-between">
+              <div className="d-flex align-items-center gap-2">
+                <span className="p-2 rounded-2 bg-primary-subtle text-primary d-inline-flex">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </span>
+                <div>
+                  <h5 className="mb-0 fw-bold text-dark" style={{ fontSize: "1.05rem" }}>Ranking e Distribuição de Produtos</h5>
+                  <small className="text-secondary">Top produtos com maiores movimentações</small>
+                </div>
+              </div>
             </div>
-            <div className="card-body">
+            <div className="card-body p-4">
               {dashboard.ranking.length > 0 ? (
-                <>
-                  <GraficoBarras ranking={dashboard.ranking} />
-                  <GraficoPizza ranking={dashboard.ranking} />
-                </>
+                <div className="row g-4">
+                  <div className="col-12 col-lg-7">
+                    <div className="p-3 bg-light rounded-3 h-100 border">
+                      <GraficoBarras ranking={dashboard.ranking} titulo="Top 10 Produtos por Quantidade" />
+                    </div>
+                  </div>
+                  <div className="col-12 col-lg-5">
+                    <div className="p-3 bg-light rounded-3 h-100 border">
+                      <GraficoPizza ranking={dashboard.ranking} titulo="Distribuição Percentual" />
+                    </div>
+                  </div>
+                </div>
               ) : (
                 <div className="text-center py-5 text-body-secondary">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="48"
-                    height="48"
-                    fill="currentColor"
-                    viewBox="0 0 16 16"
-                    className="mb-3 opacity-25"
-                  >
-                    <path d="M0 0h1v15h15v1H0V0Zm14.817 3.113a.5.5 0 0 1 .07.704l-4.5 5.5a.5.5 0 0 1-.74.037L7.06 6.767l-3.656 5.027a.5.5 0 0 1-.808-.588l4-5.5a.5.5 0 0 1 .758-.06l2.609 2.61 4.15-5.073a.5.5 0 0 1 .704-.07Z" />
-                  </svg>
-                  <p className="mb-0">
-                    Nenhum dado encontrado para os filtros selecionados.
+                  <div className="d-inline-flex p-3 rounded-circle bg-light mb-3 text-secondary">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="40"
+                      height="40"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <h6 className="fw-semibold text-dark">Nenhum dado encontrado</h6>
+                  <p className="mb-0 small text-secondary">
+                    Ajuste o período ou os filtros selecionados para visualizar os gráficos.
                   </p>
                 </div>
               )}

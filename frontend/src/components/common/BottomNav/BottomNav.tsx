@@ -44,26 +44,37 @@ function BottomNav() {
   ];
 
   return (
-    <nav className="d-lg-none fixed-bottom bg-white border-top shadow-lg" aria-label="Navegacao inferior">
-      <div className="container-fluid">
-        <div className="row g-0">
+    <nav className="d-lg-none fixed-bottom" aria-label="Navegacao inferior">
+      <div className="container-fluid px-0">
+        <div className="row g-0 text-center">
           {items.map((item) => (
-            <div key={item.to} className="col">
+            <div key={item.to} className="col position-relative">
               <NavLink
                 to={item.to}
                 end={item.to === "/"}
                 className={({ isActive }) =>
-                  `d-flex flex-column align-items-center justify-content-center text-decoration-none py-2 ${
-                    isActive ? "text-primary" : "text-body-secondary"
+                  `d-flex flex-column align-items-center justify-content-center text-decoration-none py-2 transition-all ${
+                    isActive ? "text-primary fw-semibold" : "text-secondary opacity-75"
                   }`
                 }
-                style={{ minHeight: "60px" }}
+                style={{ minHeight: "58px", transition: "all 0.2s ease" }}
               >
                 {({ isActive }) => (
                   <>
-                    <span style={{ display: "inline-flex", alignItems: "center" }}>{item.icon}</span>
-                    <span className="small mt-1" style={{ fontSize: "0.7rem" }}>{item.label}</span>
-                    {isActive && <span className="position-absolute top-0 w-25 bg-primary" style={{ height: "3px" }}></span>}
+                    <span 
+                      className={`d-inline-flex align-items-center justify-content-center rounded-pill mb-1 transition-all ${
+                        isActive ? "bg-primary-subtle px-3 py-1 text-primary" : "p-1"
+                      }`}
+                    >
+                      {item.icon}
+                    </span>
+                    <span style={{ fontSize: "0.72rem", letterSpacing: "-0.01em" }}>{item.label}</span>
+                    {isActive && (
+                      <span 
+                        className="position-absolute top-0 start-50 translate-middle-x bg-primary rounded-pill" 
+                        style={{ height: "3px", width: "32px" }}
+                      />
+                    )}
                   </>
                 )}
               </NavLink>
