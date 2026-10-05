@@ -97,7 +97,9 @@ function DashboardPage() {
     carregarDashboard();
   }, [carregarDashboard]);
 
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, hasPermission, isAdmin } = useAuth();
+  const podeExportar = isAdmin || hasPermission("dashboard.export");
+  const [exportandoCSV, setExportandoCSV] = useState(false);
 
   // Atualiza o dashboard automaticamente quando qualquer usuário da mesma
   // loja cria um novo lançamento, sem precisar de polling.
@@ -110,15 +112,42 @@ function DashboardPage() {
     dashboard.ranking.map((i) => i.produto_generico_id || i.produto_id),
   ).size;
 
+  const handleExportarCSV = async () => {
+    try {
+      setExportandoCSV(true);
+      const apiFiltros: DashboardLancamentoFiltros = {
+        tipo: filtros.tipo || undefined,
+        data_inicio: filtros.dataInicio || undefined,
+        data_fim: filtros.dataFim || undefined,
+        departamento_id: filtros.departamentoId || undefined,
+        produto_generico_id: filtros.produtoGenericoId || undefined,
+      };
+      const blob = await dashboardService.exportarLancamentos(apiFiltros);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `relatorio_dashboard_${filtros.dataInicio || "inicio"}_${filtros.dataFim || "fim"}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error("Erro ao exportar CSV:", e);
+      alert("Não foi possível exportar os dados do relatório.");
+    } finally {
+      setExportandoCSV(false);
+    }
+  };
+
   return (
-    <Container className="py-4">
+    <Container className="py-4" id="dashboard-conteudo-export">
       {/* Cabeçalho do Dashboard */}
       <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4 pb-2 border-bottom">
         <div>
           <h1 className="h3 mb-1 fw-bold text-dark" style={{ letterSpacing: "-0.03em" }}>Dashboard</h1>
           <p className="text-secondary small mb-0">Visão consolidada de perdas, quebras e transferências</p>
         </div>
-        <div className="d-flex align-items-center gap-2">
+        <div className="d-flex align-items-center flex-wrap gap-2">
           <div className="badge bg-light text-secondary border px-3 py-2 fw-medium d-inline-flex align-items-center gap-2" style={{ fontSize: "0.82rem" }}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -133,6 +162,23 @@ function DashboardPage() {
             </svg>
             <span>{formatarDataHora()}</span>
           </div>
+
+          {podeExportar && (
+            <Button
+              variant="outline-success"
+              size="sm"
+              onClick={handleExportarCSV}
+              disabled={exportandoCSV || loading}
+              className="d-flex align-items-center gap-2 py-2 px-3 fw-semibold shadow-xs"
+              style={{ borderRadius: "8px" }}
+              title="Baixar planilha CSV para Excel / Sheets"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span>{exportandoCSV ? "Exportando..." : "Exportar CSV"}</span>
+            </Button>
+          )}
 
           <Button
             variant="outline-primary"

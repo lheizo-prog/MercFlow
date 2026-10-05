@@ -1,4 +1,4 @@
-﻿import api from "./api";
+import api from "./api";
 import { DashboardLancamentoResponseSchema } from "../types/Dashboard";
 import type {
   DashboardLancamentoFiltros,
@@ -19,6 +19,16 @@ const dashboardService = {
       throw new Error("Resposta inválida do servidor");
     }
     return result.data;
+  },
+
+  async exportarLancamentos(
+    filtros: DashboardLancamentoFiltros,
+  ): Promise<Blob> {
+    const response = await api.get("/dashboard/export", {
+      params: { ...filtros, formato: "csv" },
+      responseType: "blob",
+    });
+    return response.data;
   },
 };
 
