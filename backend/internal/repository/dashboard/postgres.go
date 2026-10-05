@@ -24,9 +24,12 @@ func NovoDashboardPostgresRepository(
 }
 
 func (r *DashboardPostgresRepository) BuscarLancamentos(
+	ctx context.Context,
 	filtros *request.DashboardLancamentoRequest,
 ) (*response.DashboardLancamentoResponse, error) {
-	ctx := context.Background()
+	if ctx == nil {
+		ctx = context.Background()
+	}
 
 	var args []interface{}
 	param := 1

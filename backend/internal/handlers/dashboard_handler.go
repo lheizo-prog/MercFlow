@@ -4,10 +4,12 @@ import (
 	"MercFlow/internal/auth"
 	request "MercFlow/internal/models/requests"
 	"MercFlow/internal/service"
+	"context"
 	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -118,11 +120,12 @@ func (h *DashboardHandler) BuscarLancamentos(ctx *gin.Context) {
 		}
 	}
 
-	resultado, err := h.service.BuscarLancamentos(&filtros)
+	reqCtx, cancel := context.WithTimeout(ctx.Request.Context(), 30*time.Second)
+	defer cancel()
+
+	resultado, err := h.service.BuscarLancamentos(reqCtx, &filtros)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"erro": err.Error(),
-		})
+		ResponderErro(ctx, err, "não foi possível consultar o dashboard")
 		return
 	}
 

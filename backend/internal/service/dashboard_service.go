@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"time"
 
@@ -22,6 +23,7 @@ func NovoDashboardService(
 }
 
 func (s *DashboardService) BuscarLancamentos(
+	ctx context.Context,
 	filtros *request.DashboardLancamentoRequest,
 ) (*response.DashboardLancamentoResponse, error) {
 
@@ -33,7 +35,7 @@ func (s *DashboardService) BuscarLancamentos(
 		return nil, err
 	}
 
-	return s.dashboardRepo.BuscarLancamentos(filtros)
+	return s.dashboardRepo.BuscarLancamentos(ctx, filtros)
 }
 
 func validarFiltrosDashboard(
