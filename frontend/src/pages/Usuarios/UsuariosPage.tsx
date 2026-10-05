@@ -1,7 +1,6 @@
 import {
   useCallback,
   useEffect,
-  useMemo,
   useState,
   type FormEvent,
 } from "react";
@@ -46,6 +45,7 @@ const permissoesPadrao = {
   ],
   super_admin: [
     "dashboard.read",
+    "dashboard.export",
     "dashboard.compare",
     "loja.switch",
     "lancamento.create",
@@ -152,26 +152,7 @@ function UsuariosPage() {
 
   useRefetchOnFocus(recarregarEmSegundoPlano);
 
-  const opcoesPermissoes = useMemo(
-    () => [
-      "dashboard.read",
-      "dashboard.export",
-      "dashboard.compare",
-      "loja.switch",
-      "lancamento.create",
-      "lancamento.read",
-      "lancamento.calculate",
-      "produto.read",
-      "produto.create",
-      "produto.update",
-      "departamento.read",
-      "departamento.create",
-      "usuario.read",
-      "usuario.create",
-      "usuario.update",
-    ],
-    [],
-  );
+
 
   function handlePerfilChange(perfil: string) {
     setForm((anterior) => ({
@@ -465,9 +446,9 @@ function UsuariosPage() {
               </div>
 
               <div className="mb-4">
-                <label className="form-label fw-semibold">Permissões</label>
+                <label className="form-label fw-semibold">Permissões Permitidas para o Perfil</label>
                 <div className="row g-2">
-                  {opcoesPermissoes.map((permissao) => (
+                  {(permissoesPadrao[form.perfil as keyof typeof permissoesPadrao] ?? []).map((permissao) => (
                     <div key={permissao} className="col-12 col-md-6">
                       <label className="form-check-label d-flex align-items-center gap-2 border rounded p-2 w-100">
                         <input
@@ -722,9 +703,9 @@ function UsuariosPage() {
                     </div>
 
                     <div className="col-12">
-                      <label className="form-label fw-semibold">Permissões de Acesso</label>
+                      <label className="form-label fw-semibold">Permissões Permitidas para o Perfil</label>
                       <div className="row g-2 border rounded p-3 bg-light">
-                        {opcoesPermissoes.map((permissao) => (
+                        {(permissoesPadrao[editForm.perfil as keyof typeof permissoesPadrao] ?? []).map((permissao) => (
                           <div key={permissao} className="col-12 col-md-6">
                             <label className="form-check-label d-flex align-items-center gap-2 p-1 w-100">
                               <input

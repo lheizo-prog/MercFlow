@@ -235,6 +235,15 @@ func RequirePermission(permission string) gin.HandlerFunc {
 		}
 
 		// O papel atual do usuário deve vir do banco, não do JWT.
+		// Atualizar as claims e o role no contexto com o estado real do banco
+		claims.Role = usuario.Perfil
+		claims.Permissions = usuario.Permissoes
+		claims.LojaID = usuario.LojaID
+		ctx.Set("claims", claims)
+		ctx.Set("role", usuario.Perfil)
+		ctx.Set("permissions", usuario.Permissoes)
+		ctx.Set("loja_id", usuario.LojaID)
+
 		// Usuários super_admin continuam tendo acesso total.
 		if usuario.Perfil != "super_admin" && !HasPermission(usuario.Permissoes, permission) {
 			ctx.JSON(403, gin.H{"erro": "permissão insuficiente"})

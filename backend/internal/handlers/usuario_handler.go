@@ -326,6 +326,7 @@ func permissoesOficiaisDoPerfil(perfil string) []string {
 	case "super_admin":
 		return []string{
 			"dashboard.read",
+			"dashboard.export",
 			"dashboard.compare",
 			"loja.switch",
 			"lancamento.create",
