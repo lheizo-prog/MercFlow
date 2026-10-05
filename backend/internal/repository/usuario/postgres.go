@@ -188,6 +188,56 @@ func (r *PostgresUsuarioRepository) Criar(usuario *models.Usuario) (*models.Usua
 	return usuario, nil
 }
 
+func (r *PostgresUsuarioRepository) Atualizar(usuario *models.Usuario) (*models.Usuario, error) {
+	if usuario == nil || usuario.ID <= 0 {
+		return nil, errors.New("usuário inválido para atualização")
+	}
+
+	var query string
+	var args []any
+
+	if usuario.SenhaHash != "" {
+		query = `
+			UPDATE usuarios
+			SET nome = $1, username = $2, senha_hash = $3, loja_id = $4, perfil = $5, permissoes = $6, ativo = $7
+			WHERE id = $8;
+		`
+		args = []any{usuario.Nome, usuario.Username, usuario.SenhaHash, usuario.LojaID, usuario.Perfil, usuario.Permissoes, usuario.Ativo, usuario.ID}
+	} else {
+		query = `
+			UPDATE usuarios
+			SET nome = $1, username = $2, loja_id = $3, perfil = $4, permissoes = $5, ativo = $6
+			WHERE id = $7;
+		`
+		args = []any{usuario.Nome, usuario.Username, usuario.LojaID, usuario.Perfil, usuario.Permissoes, usuario.Ativo, usuario.ID}
+	}
+
+	res, err := r.db.Exec(context.Background(), query, args...)
+	if err != nil {
+		return nil, err
+	}
+	if res.RowsAffected() == 0 {
+		return nil, errors.New("usuário não encontrado")
+	}
+
+	return r.BuscarPorID(usuario.ID)
+}
+
+func (r *PostgresUsuarioRepository) Excluir(id int) error {
+	if id <= 0 {
+		return errors.New("id inválido para exclusão")
+	}
+
+	res, err := r.db.Exec(context.Background(), `DELETE FROM usuarios WHERE id = $1;`, id)
+	if err != nil {
+		return err
+	}
+	if res.RowsAffected() == 0 {
+		return errors.New("usuário não encontrado")
+	}
+	return nil
+}
+
 func (r *PostgresUsuarioRepository) CriarOuAtualizarAdminPadrao() error {
 	lojaID, err := r.buscarOuCriarLojaPadrao()
 	if err != nil {

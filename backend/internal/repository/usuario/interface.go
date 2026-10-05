@@ -8,5 +8,7 @@ type UsuarioRepository interface {
 	ListarPorLoja(lojaID int) ([]*models.Usuario, error)
 	ListarTodos() ([]*models.Usuario, error)
 	Criar(usuario *models.Usuario) (*models.Usuario, error)
+	Atualizar(usuario *models.Usuario) (*models.Usuario, error)
+	Excluir(id int) error
 	CriarOuAtualizarAdminPadrao() error
 }

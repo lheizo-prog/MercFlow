@@ -246,6 +246,46 @@ func RequirePermission(permission string) gin.HandlerFunc {
 	}
 }
 
+// RequireSuperAdmin middleware que restringe o acesso exclusivamente a usuários com perfil super_admin ativo.
+func RequireSuperAdmin() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		claimsValue, exists := ctx.Get("claims")
+		if !exists {
+			ctx.JSON(401, gin.H{"erro": "usuário não autenticado"})
+			ctx.Abort()
+			return
+		}
+
+		claims, ok := claimsValue.(Claims)
+		if !ok {
+			ctx.JSON(401, gin.H{"erro": "claims inválidas"})
+			ctx.Abort()
+			return
+		}
+
+		usuario, err := usuarioService.BuscarPorID(claims.UserID)
+		if err != nil || usuario == nil {
+			log.Printf("RequireSuperAdmin: falha ao buscar usuario id=%d: %v", claims.UserID, err)
+			ctx.JSON(401, gin.H{"erro": "usuário não encontrado"})
+			ctx.Abort()
+			return
+		}
+		if !usuario.Ativo {
+			ctx.JSON(401, gin.H{"erro": "usuário inativo"})
+			ctx.Abort()
+			return
+		}
+
+		if usuario.Perfil != "super_admin" {
+			ctx.JSON(403, gin.H{"erro": "acesso restrito a super-administradores"})
+			ctx.Abort()
+			return
+		}
+
+		ctx.Next()
+	}
+}
+
 // RateLimitLogin middleware que aplica rate limiting no endpoint de login.
 // Limita 10 tentativas por minuto por IP.
 type loginLimiter struct {

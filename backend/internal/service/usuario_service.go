@@ -87,3 +87,37 @@ func (s *UsuarioService) Criar(usuario *models.Usuario) (*models.Usuario, error)
 
 	return s.repo.Criar(usuario)
 }
+
+func (s *UsuarioService) Atualizar(usuario *models.Usuario, novaSenha string) (*models.Usuario, error) {
+	if usuario == nil || usuario.ID <= 0 {
+		return nil, errors.New("usuário inválido")
+	}
+	if strings.TrimSpace(usuario.Nome) == "" {
+		return nil, errors.New("nome obrigatório")
+	}
+	if strings.TrimSpace(usuario.Username) == "" {
+		return nil, errors.New("username obrigatório")
+	}
+	if usuario.LojaID <= 0 {
+		return nil, errors.New("loja obrigatória")
+	}
+
+	if strings.TrimSpace(novaSenha) != "" {
+		hash, err := bcrypt.GenerateFromPassword([]byte(novaSenha), bcrypt.DefaultCost)
+		if err != nil {
+			return nil, err
+		}
+		usuario.SenhaHash = string(hash)
+	} else {
+		usuario.SenhaHash = ""
+	}
+
+	return s.repo.Atualizar(usuario)
+}
+
+func (s *UsuarioService) Excluir(id int) error {
+	if id <= 0 {
+		return errors.New("id inválido")
+	}
+	return s.repo.Excluir(id)
+}

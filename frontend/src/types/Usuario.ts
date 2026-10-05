@@ -4,7 +4,7 @@ export interface Usuario {
   username: string;
   senha_hash?: string;
   loja_id: number;
-  perfil: "admin" | "operador" | "visualizador" | string;
+  perfil: "super_admin" | "admin" | "operador" | "visualizador" | string;
   permissoes: string[];
   ativo?: boolean;
   criado_em?: string;
@@ -17,4 +17,14 @@ export interface UsuarioPayload {
   loja_id: number;
   perfil: string;
   permissoes: string[];
+}
+
+export interface UsuarioUpdatePayload {
+  nome: string;
+  username: string;
+  senha?: string;
+  loja_id: number;
+  perfil: string;
+  permissoes: string[];
+  ativo?: boolean;
 }

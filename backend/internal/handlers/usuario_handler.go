@@ -24,6 +24,8 @@ func (h *UsuarioHandler) HandleUsuarios(router gin.IRouter) {
 	usuarios.POST("", auth.RequirePermission("usuario.create"), h.Criar)
 	usuarios.GET("", auth.RequirePermission("usuario.read"), h.Listar)
 	usuarios.GET("/:id", auth.RequirePermission("usuario.read"), h.BuscarPorID)
+	usuarios.PUT("/:id", auth.RequireSuperAdmin(), h.Atualizar)
+	usuarios.DELETE("/:id", auth.RequireSuperAdmin(), h.Excluir)
 }
 
 type CriarUsuarioRequest struct {
@@ -160,6 +162,98 @@ func (h *UsuarioHandler) BuscarPorID(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, usuario)
+}
+
+type AtualizarUsuarioRequest struct {
+	Nome       string   `json:"nome"`
+	Username   string   `json:"username"`
+	Senha      string   `json:"senha"` // opcional se vazio
+	LojaID     int      `json:"loja_id"`
+	Perfil     string   `json:"perfil"`
+	Permissoes []string `json:"permissoes"`
+	Ativo      *bool    `json:"ativo"`
+}
+
+func (h *UsuarioHandler) Atualizar(ctx *gin.Context) {
+	idParam := ctx.Param("id")
+	id, err := strconv.Atoi(idParam)
+	if err != nil || id <= 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{"erro": "id inválido"})
+		return
+	}
+
+	var payload AtualizarUsuarioRequest
+	if err := ctx.ShouldBindJSON(&payload); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"erro": "dados inválidos"})
+		return
+	}
+
+	if strings.TrimSpace(payload.Nome) == "" || strings.TrimSpace(payload.Username) == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"erro": "nome e username são obrigatórios"})
+		return
+	}
+	if payload.LojaID <= 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{"erro": "loja obrigatória"})
+		return
+	}
+	if payload.Perfil == "" {
+		payload.Perfil = "operador"
+	}
+	if !perfilEhValido(payload.Perfil) {
+		ctx.JSON(http.StatusBadRequest, gin.H{"erro": "perfil inválido"})
+		return
+	}
+
+	permissoesOficiais := permissoesOficiaisDoPerfil(payload.Perfil)
+	if !contemTodas(permissoesOficiais, payload.Permissoes) {
+		ctx.JSON(http.StatusBadRequest, gin.H{"erro": "permissões inválidas para o perfil selecionado"})
+		return
+	}
+
+	ativo := true
+	if payload.Ativo != nil {
+		ativo = *payload.Ativo
+	}
+
+	usuarioAtualizado, err := h.service.Atualizar(&models.Usuario{
+		ID:         id,
+		Nome:       payload.Nome,
+		Username:   payload.Username,
+		LojaID:     payload.LojaID,
+		Perfil:     payload.Perfil,
+		Permissoes: payload.Permissoes,
+		Ativo:      ativo,
+	}, payload.Senha)
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"erro": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, usuarioAtualizado)
+}
+
+func (h *UsuarioHandler) Excluir(ctx *gin.Context) {
+	idParam := ctx.Param("id")
+	id, err := strconv.Atoi(idParam)
+	if err != nil || id <= 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{"erro": "id inválido"})
+		return
+	}
+
+	claimsValue, _ := ctx.Get("claims")
+	claims, ok := claimsValue.(auth.Claims)
+	if ok && claims.UserID == id {
+		ctx.JSON(http.StatusBadRequest, gin.H{"erro": "não é permitido excluir o próprio usuário logado"})
+		return
+	}
+
+	if err := h.service.Excluir(id); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"erro": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"mensagem": "usuário excluído com sucesso"})
 }
 
 // perfilMaximoParaCriador retorna o máximo perfil que um role pode criar.
