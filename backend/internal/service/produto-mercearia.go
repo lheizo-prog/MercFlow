@@ -30,14 +30,6 @@ func (s *ProdutoMerceariaService) Criar(p *models.ProdutoMercearia, lojas ...int
 	if err := s.ValidarProduto(p); err != nil {
 		return nil, err
 	}
-	res, err := s.ProdutoMerceariaRepo.BuscarInativo(p.SKU, p.LojaID)
-	if err == nil {
-		if !pertenceALoja(p.LojaID, res.LojaID) {
-			return nil, erroAcessoLoja()
-		}
-
-		return nil, s.ProdutoMerceariaRepo.Reativar(res.ID)
-	}
 
 	return s.ProdutoMerceariaRepo.Criar(p)
 }

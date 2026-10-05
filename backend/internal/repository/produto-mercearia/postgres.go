@@ -21,9 +21,23 @@ func NovoProdutoMerceariaPostgresRepository(db *pgxpool.Pool) *ProdutoMerceariaP
 }
 
 func (r *ProdutoMerceariaPostgresRepository) Criar(p *models.ProdutoMercearia) (*models.ProdutoMercearia, error) {
+	query := `
+		INSERT INTO produtos_mercearia (
+			produto_generico_id, sku, marca, descricao, codigo_barras, quantidade_embalagem, unidade_medida, loja_id, ativo
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, TRUE)
+		ON CONFLICT (loja_id, sku) DO UPDATE SET
+			produto_generico_id = EXCLUDED.produto_generico_id,
+			marca = EXCLUDED.marca,
+			descricao = EXCLUDED.descricao,
+			codigo_barras = EXCLUDED.codigo_barras,
+			quantidade_embalagem = EXCLUDED.quantidade_embalagem,
+			unidade_medida = EXCLUDED.unidade_medida,
+			ativo = TRUE
+		RETURNING id, ativo;
+	`
 	err := r.db.QueryRow(
 		context.Background(),
-		"INSERT INTO produtos_mercearia (produto_generico_id, sku, marca, descricao, codigo_barras, quantidade_embalagem, unidade_medida, loja_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, ativo",
+		query,
 		p.ProdutoGenericoID,
 		p.SKU,
 		p.Marca,

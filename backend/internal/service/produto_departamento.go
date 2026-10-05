@@ -35,13 +35,7 @@ func (s *ProdutoDepartamentoService) Criar(p *models.ProdutoDepartamento, lojas 
 	if err := s.ValidarProdutoD(p); err != nil {
 		return nil, err
 	}
-	res, err := s.ProdutoDepartamentoRepo.BuscarInativo(p.ProdutoGenericoID, p.DepartamentoID, p.Codigo)
-	if err == nil {
-		if !pertenceALoja(p.LojaID, res.LojaID) {
-			return nil, erroAcessoLoja()
-		}
-		return nil, s.ProdutoDepartamentoRepo.Reativar(res.ID)
-	}
+
 	return s.ProdutoDepartamentoRepo.Criar(p)
 }
 

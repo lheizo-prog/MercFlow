@@ -20,9 +20,20 @@ func NovoPostgresProdutoDepartamentoRepository(db *pgxpool.Pool) *PostgresProdut
 }
 
 func (r *PostgresProdutoDepartamentoRepository) Criar(p *models.ProdutoDepartamento) (*models.ProdutoDepartamento, error) {
+	query := `
+		INSERT INTO produtos_departamento (
+			produto_generico_id, departamento_id, nome, codigo, unidade_medida, loja_id, ativo
+		) VALUES ($1, $2, $3, $4, $5, $6, TRUE)
+		ON CONFLICT (loja_id, departamento_id, codigo) DO UPDATE SET
+			produto_generico_id = EXCLUDED.produto_generico_id,
+			nome = EXCLUDED.nome,
+			unidade_medida = EXCLUDED.unidade_medida,
+			ativo = TRUE
+		RETURNING id, ativo;
+	`
 	err := r.db.QueryRow(
 		context.Background(),
-		"INSERT INTO produtos_departamento (produto_generico_id, departamento_id, nome, codigo, unidade_medida, loja_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, ativo",
+		query,
 		p.ProdutoGenericoID,
 		p.DepartamentoID,
 		p.Nome,
