@@ -1,4 +1,4 @@
-﻿import axios from "axios";
+import axios from "axios";
 
 import {
   useEffect,
@@ -574,6 +574,96 @@ function LancamentoForm({
     }));
   }
 
+  function exportarCSV() {
+    if (form.itens.length === 0) return;
+
+    const escapeCsv = (val: string | number | undefined | null) => {
+      const str = val === undefined || val === null ? "" : String(val);
+      if (str.includes(";") || str.includes("\"") || str.includes("\n")) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    let cabecalho = "";
+    let linhas: string[] = [];
+
+    if (form.tipo === "TRANSFERENCIA") {
+      // Descrição | Codigo Saida | Codigo Entrada | Quantidade | Unidade Medida(Ambos separado por "|") | Fator de Conversao
+      cabecalho = "Descrição;Codigo Saida;Codigo Entrada;Quantidade;Unidade Medida;Fator de Conversao";
+      linhas = form.itens.map((item) => {
+        const produtoM = produtosMercearia.find(
+          (p) => p.id === item.produtoMerceariaID,
+        );
+        const produtoD = produtosDepartamento.find(
+          (p) => p.id === item.produtoDepartamentoID,
+        );
+
+        const descricao = produtoM?.descricao ?? produtoD?.nome ?? "";
+        const codigoSaida = produtoM
+          ? `${produtoM.sku} | ${produtoM.codigo_barras}`
+          : "";
+        const codigoEntrada = produtoD
+          ? `${produtoD.codigo} | ${produtoD.nome}`
+          : "";
+        const quantidade = item.quantidade;
+        const unidadeMedida = `${item.unidadeMercearia || "-"} | ${item.unidadeDepartamento || "-"}`;
+        const fatorConversao = item.fatorConversao || 1;
+
+        return [
+          escapeCsv(descricao),
+          escapeCsv(codigoSaida),
+          escapeCsv(codigoEntrada),
+          escapeCsv(quantidade),
+          escapeCsv(unidadeMedida),
+          escapeCsv(fatorConversao),
+        ].join(";");
+      });
+    } else {
+      // QUEBRA: Descrição | Codigo Saida | Quantidade | Unidade de Medida | Total
+      cabecalho = "Descrição;Codigo Saida;Quantidade;Unidade de Medida;Total";
+      linhas = form.itens.map((item) => {
+        const produtoM = produtosMercearia.find(
+          (p) => p.id === item.produtoMerceariaID,
+        );
+        const produtoD = produtosDepartamento.find(
+          (p) => p.id === item.produtoDepartamentoID,
+        );
+
+        const descricao = produtoM?.descricao ?? produtoD?.nome ?? "";
+        const codigoSaida = produtoM ? produtoM.sku : (produtoD?.codigo ?? "");
+        const quantidade = item.quantidade;
+        const unidadeMedida =
+          item.unidadeMercearia ||
+          item.unidadeDepartamento ||
+          produtoM?.unidade_medida ||
+          produtoD?.unidade_medida ||
+          "";
+        const total = item.totalLancado > 0 ? item.totalLancado : item.quantidade;
+
+        return [
+          escapeCsv(descricao),
+          escapeCsv(codigoSaida),
+          escapeCsv(quantidade),
+          escapeCsv(unidadeMedida),
+          escapeCsv(total),
+        ].join(";");
+      });
+    }
+
+    const csvConteudo = "\uFEFF" + [cabecalho, ...linhas].join("\r\n");
+    const blob = new Blob([csvConteudo], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const dataHoraIso = new Date().toISOString().slice(0, 10);
+    link.href = url;
+    link.download = `itens_${(form.tipo || "lancamento").toLowerCase()}_${dataHoraIso}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
   async function handleSubmit(e: SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
 
@@ -997,9 +1087,36 @@ function LancamentoForm({
               <h4 className="h5 mb-0">
                 Itens {isQuebra ? "da Quebra" : "da Transferência"}
               </h4>
-              <span className="badge text-bg-secondary">
-                {form.itens.length} {form.itens.length === 1 ? "item" : "itens"}
-              </span>
+              <div className="d-flex align-items-center gap-2">
+                <span className="badge text-bg-secondary">
+                  {form.itens.length} {form.itens.length === 1 ? "item" : "itens"}
+                </span>
+                {form.itens.length > 0 && (
+                  <button
+                    type="button"
+                    className="btn btn-outline-success btn-sm d-flex align-items-center gap-1 shadow-sm"
+                    onClick={exportarCSV}
+                    title="Exportar itens para planilha CSV"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="15"
+                      height="15"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                      />
+                    </svg>
+                    <span>Exportar CSV</span>
+                  </button>
+                )}
+              </div>
             </div>
 
             {form.itens.length === 0 ? (
