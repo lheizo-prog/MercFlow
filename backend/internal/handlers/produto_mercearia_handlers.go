@@ -51,9 +51,7 @@ func (h *ProdutoMerceariaHandler) Criar(ctx *gin.Context) {
 	}
 	produtoCriado, err := h.service.Criar(&produto, lojaID)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"erro": err.Error(),
-		})
+		ResponderErro(ctx, err, "não foi possível criar o produto de mercearia")
 		return
 	}
 
@@ -89,9 +87,7 @@ func (h *ProdutoMerceariaHandler) Atualizar(ctx *gin.Context) {
 	}
 	produtoAtualizado, err := h.service.Atualizar(&produto, lojaID)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"erro": err.Error(),
-		})
+		ResponderErro(ctx, err, "não foi possível atualizar o produto de mercearia")
 		return
 	}
 
@@ -117,9 +113,7 @@ func (h *ProdutoMerceariaHandler) RemoverID(ctx *gin.Context) {
 	err = h.service.RemoverID(id, lojaID)
 
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"erro": err.Error(),
-		})
+		ResponderErro(ctx, err, "não foi possível remover o produto de mercearia")
 		return
 	}
 
@@ -136,9 +130,7 @@ func (h *ProdutoMerceariaHandler) Listar(ctx *gin.Context) {
 	}
 	lista, err := h.service.Listar(lojaID)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"erro": err.Error(),
-		})
+		ResponderErro(ctx, err, "não foi possível listar os produtos de mercearia")
 		return
 	}
 
@@ -163,9 +155,7 @@ func (h *ProdutoMerceariaHandler) BuscarID(ctx *gin.Context) {
 	}
 	produto, err := h.service.BuscarID(id, lojaID)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"erro": err.Error(),
-		})
+		ResponderErro(ctx, err, "não foi possível buscar o produto de mercearia")
 		return
 	}
 
@@ -182,9 +172,7 @@ func (h *ProdutoMerceariaHandler) BuscarSKU(ctx *gin.Context) {
 	}
 	produto, err := h.service.BuscarSKU(sku, lojaID)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"erro": err.Error(),
-		})
+		ResponderErro(ctx, err, "não foi possível buscar o produto por SKU")
 		return
 	}
 
@@ -201,9 +189,7 @@ func (h *ProdutoMerceariaHandler) BuscarCodigoBarras(ctx *gin.Context) {
 	}
 	produto, err := h.service.BuscarCodigoBarras(codigo_barras, lojaID)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"erro": err.Error(),
-		})
+		ResponderErro(ctx, err, "não foi possível buscar o produto por código de barras")
 		return
 	}
 
@@ -220,9 +206,7 @@ func (h *ProdutoMerceariaHandler) Buscar(ctx *gin.Context) {
 	}
 	produtos, err := h.service.Buscar(texto, lojaID)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"erro": err.Error(),
-		})
+		ResponderErro(ctx, err, "não foi possível buscar produtos")
 		return
 	}
 

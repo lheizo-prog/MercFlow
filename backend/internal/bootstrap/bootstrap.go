@@ -87,6 +87,7 @@ func New() (*Application, error) {
 	// Grupo protegido — só rotas aqui exigem JWT
 	protected := router.Group("/")
 	protected.Use(auth.AuthMiddleware())
+	protected.Use(auth.RateLimitMutation())
 	{
 		usuarioHandler.HandleUsuarios(protected)
 		lojaHandler.HandleLojas(protected)

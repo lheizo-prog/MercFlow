@@ -311,6 +311,49 @@ func RateLimitLogin() gin.HandlerFunc {
 	}
 }
 
+var (
+	mutationRateLimiter = &loginLimiter{visitors: make(map[string]*visitor)}
+	mutationLimitCount  = 120
+	mutationLimitWindow = time.Minute
+)
+
+// AllowMutation verifica se o IP pode executar mutações (POST, PUT, DELETE).
+func (l *loginLimiter) AllowMutation(ip string) bool {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	now := time.Now()
+	v, exists := l.visitors[ip]
+	if !exists || now.After(v.expiresAt) {
+		l.visitors[ip] = &visitor{count: 1, expiresAt: now.Add(mutationLimitWindow)}
+		return true
+	}
+
+	if v.count >= mutationLimitCount {
+		return false
+	}
+	v.count++
+	return true
+}
+
+// RateLimitMutation middleware que protege endpoints de mutação contra DoS e flood
+func RateLimitMutation() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		method := ctx.Request.Method
+		if method == "POST" || method == "PUT" || method == "PATCH" || method == "DELETE" {
+			ip := clientIP(ctx)
+			if !mutationRateLimiter.AllowMutation(ip) {
+				ctx.JSON(429, gin.H{
+					"erro": "limite de requisições excedido. Tente novamente em 1 minuto.",
+				})
+				ctx.Abort()
+				return
+			}
+		}
+		ctx.Next()
+	}
+}
+
 func AuthMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if ctx.Request.Method == "OPTIONS" {

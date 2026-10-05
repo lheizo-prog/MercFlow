@@ -47,9 +47,7 @@ func (h *DepartamentoHandler) Criar(ctx *gin.Context) {
 	}
 	departamentoCriado, err := h.service.Criar(&departamento, lojaID)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"erro": err.Error(),
-		})
+		ResponderErro(ctx, err, "não foi possível criar o departamento")
 		return
 	}
 
@@ -83,9 +81,7 @@ func (h *DepartamentoHandler) Atualizar(ctx *gin.Context) {
 	}
 	departamentoAtualizado, err := h.service.Atualizar(&departamento, lojaID)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"erro": err.Error(),
-		})
+		ResponderErro(ctx, err, "não foi possível atualizar o departamento")
 		return
 	}
 
@@ -110,9 +106,7 @@ func (h *DepartamentoHandler) RemoverID(ctx *gin.Context) {
 	}
 	err = h.service.RemoverID(id, lojaID)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"erro": err.Error(),
-		})
+		ResponderErro(ctx, err, "não foi possível remover o departamento")
 		return
 	}
 	ctx.JSON(200, gin.H{
@@ -128,9 +122,7 @@ func (h *DepartamentoHandler) Listar(ctx *gin.Context) {
 	}
 	lista, err := h.service.Listar(lojaID)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"erro": err.Error(),
-		})
+		ResponderErro(ctx, err, "não foi possível listar os departamentos")
 		return
 	}
 
@@ -154,9 +146,7 @@ func (h *DepartamentoHandler) BuscarID(ctx *gin.Context) {
 	}
 	departamento, err := h.service.BuscarID(id, lojaID)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"erro": err.Error(),
-		})
+		ResponderErro(ctx, err, "não foi possível buscar o departamento")
 		return
 	}
 

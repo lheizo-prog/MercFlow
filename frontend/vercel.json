@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://merc-flow-back.vercel.app/api/$1"
+      "destination": "https://mercflow-back.onrender.com/$1"
     },
     {
       "source": "/(.*)",
