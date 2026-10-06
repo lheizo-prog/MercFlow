@@ -4,9 +4,11 @@ import (
 	"MercFlow/internal/auth"
 	"MercFlow/internal/models"
 	"MercFlow/internal/service"
+	"errors"
 	"net/http"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"github.com/gin-gonic/gin"
 )
@@ -50,6 +52,10 @@ func (h *UsuarioHandler) Criar(ctx *gin.Context) {
 	}
 	if strings.TrimSpace(payload.Senha) == "" {
 		ctx.JSON(http.StatusBadRequest, gin.H{"erro": "senha obrigatória"})
+		return
+	}
+	if err := validarForcaSenha(payload.Senha); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"erro": err.Error()})
 		return
 	}
 	if payload.LojaID <= 0 {
@@ -215,6 +221,13 @@ func (h *UsuarioHandler) Atualizar(ctx *gin.Context) {
 		ativo = *payload.Ativo
 	}
 
+	if strings.TrimSpace(payload.Senha) != "" {
+		if err := validarForcaSenha(payload.Senha); err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"erro": err.Error()})
+			return
+		}
+	}
+
 	usuarioAtualizado, err := h.service.Atualizar(&models.Usuario{
 		ID:         id,
 		Nome:       payload.Nome,
@@ -360,4 +373,22 @@ func contemTodas(oficiais []string, solicitadas []string) bool {
 		}
 	}
 	return true
+}
+
+func validarForcaSenha(senha string) error {
+	if len(senha) < 8 {
+		return errors.New("a senha deve ter no mínimo 8 caracteres")
+	}
+	var temLetra, temNumero bool
+	for _, char := range senha {
+		if unicode.IsLetter(char) {
+			temLetra = true
+		} else if unicode.IsNumber(char) {
+			temNumero = true
+		}
+	}
+	if !temLetra || !temNumero {
+		return errors.New("a senha deve conter pelo menos uma letra e um número")
+	}
+	return nil
 }

@@ -394,7 +394,8 @@ function UsuariosPage() {
                   type="password"
                   className="form-control"
                   required
-                  minLength={6}
+                  minLength={8}
+                  placeholder="Mínimo 8 caracteres (letras e números)"
                   value={form.senha}
                   onChange={(event) =>
                     setForm((anterior) => ({
@@ -403,6 +404,9 @@ function UsuariosPage() {
                     }))
                   }
                 />
+                <div className="form-text small text-muted">
+                  A senha deve conter no mínimo 8 caracteres, com pelo menos uma letra e um número.
+                </div>
               </div>
 
               <div className="mb-3">
@@ -638,13 +642,16 @@ function UsuariosPage() {
                       <input
                         type="password"
                         className="form-control"
-                        placeholder="Deixe em branco para manter a atual"
-                        minLength={6}
+                        placeholder="Mínimo 8 caracteres (letras e números) ou em branco"
+                        minLength={8}
                         value={editForm.senha ?? ""}
                         onChange={(e) =>
                           setEditForm((prev) => ({ ...prev, senha: e.target.value }))
                         }
                       />
+                      <div className="form-text small text-muted">
+                        Preencha apenas se desejar redefinir (mínimo 8 caracteres com letras e números).
+                      </div>
                     </div>
 
                     <div className="col-12 col-md-6">

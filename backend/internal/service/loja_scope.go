@@ -10,8 +10,11 @@ func lojaSolicitada(lojas []int) int {
 }
 
 func pertenceALoja(lojaID, recursoLojaID int) bool {
-	// Segurança: lojaID deve ser válido (> 0) E deve ser igual ao recurso
-	// Evita que lojaID <= 0 passe em todas as verificações
+	// Se lojaID == 0, o usuário tem privilégio global (super_admin sem filtro específico de loja)
+	if lojaID == 0 {
+		return true
+	}
+	// Segurança: lojaID deve ser válido (> 0) E deve ser igual à loja do recurso
 	return lojaID > 0 && lojaID == recursoLojaID
 }
 

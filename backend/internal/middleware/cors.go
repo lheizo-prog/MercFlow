@@ -11,27 +11,39 @@ func CORS() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		origin := strings.TrimSpace(ctx.GetHeader("Origin"))
 
-		// Obter URL do frontend das variáveis de ambiente
-		frontendURL := strings.TrimSpace(os.Getenv("FRONTEND_URL"))
-		if frontendURL == "" {
-			// Nenhuma origem permitida se FRONTEND_URL não estiver configurado
-			ctx.Next()
-			return
+		// Obter URLs do frontend das variáveis de ambiente (suporta múltiplas separadas por vírgula)
+		frontendURLRaw := strings.TrimSpace(os.Getenv("FRONTEND_URL"))
+		if frontendURLRaw == "" {
+			// Em desenvolvimento sem variável, permite localhost padrão
+			if gin.Mode() != gin.ReleaseMode {
+				frontendURLRaw = "http://localhost:5173,http://localhost:3000"
+			}
 		}
 
-		allowedOrigins := map[string]struct{}{
-			frontendURL: {},
+		allowedOrigins := make(map[string]struct{})
+		for _, u := range strings.Split(frontendURLRaw, ",") {
+			cleaned := strings.TrimRight(strings.TrimSpace(u), "/")
+			if cleaned != "" {
+				allowedOrigins[cleaned] = struct{}{}
+			}
 		}
 
-		// Verificar se a origem da requisição é permitida
+		origemPermitida := false
 		if origin != "" {
-			if _, ok := allowedOrigins[origin]; ok {
+			originCleaned := strings.TrimRight(origin, "/")
+			if _, ok := allowedOrigins[originCleaned]; ok {
 				ctx.Header("Access-Control-Allow-Origin", origin)
 				ctx.Header("Vary", "Origin")
+				origemPermitida = true
 			}
-		} else {
-			// Para requisições sem Origin (curl, etc), usar FRONTEND_URL
-			ctx.Header("Access-Control-Allow-Origin", frontendURL)
+		}
+
+		// Se a requisição veio de um navegador com header Origin e a origem NÃO é permitida:
+		if origin != "" && !origemPermitida {
+			if ctx.Request.Method == "OPTIONS" {
+				ctx.AbortWithStatus(403)
+				return
+			}
 		}
 
 		ctx.Header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
