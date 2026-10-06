@@ -89,6 +89,7 @@ func New() (*Application, error) {
 	protected.Use(auth.AuthMiddleware())
 	protected.Use(auth.RateLimitMutation())
 	{
+		protected.POST("/ws/ticket", authHandler.GerarWSTicket)
 		usuarioHandler.HandleUsuarios(protected)
 		lojaHandler.HandleLojas(protected)
 		produtoHandler.HandleProdutosGenericos(protected)

@@ -1,5 +1,6 @@
 import { isLancamentoWSMessage } from "../types/WebSocket";
 import type { LancamentoWSMessage } from "../types/WebSocket";
+import api from "./api";
 
 export type LancamentoWSStatus = "connecting" | "open" | "closed";
 
@@ -63,7 +64,7 @@ export function connectLancamentoWS(
     reconnectTimer = setTimeout(connect, delay);
   }
 
-  function connect() {
+  async function connect() {
     if (manuallyClosed) return;
 
     const token = localStorage.getItem("mercflow_token");
@@ -76,8 +77,20 @@ export function connectLancamentoWS(
 
     options.onStatusChange?.("connecting");
 
+    let ticket: string | null = null;
+    try {
+      const res = await api.post<{ ticket: string }>("/ws/ticket");
+      ticket = res.data.ticket;
+    } catch {
+      // Se falhar a emissão do ticket, tenta reconectar com delay
+      scheduleReconnect();
+      return;
+    }
+
+    if (manuallyClosed) return;
+
     const url = new URL(getWSUrl("/ws/lancamentos"));
-    url.searchParams.set("token", token);
+    url.searchParams.set("ticket", ticket);
     const lojaId = localStorage.getItem("mercflow_loja_id");
     if (lojaId) {
       url.searchParams.set("loja_id", lojaId);

@@ -86,24 +86,54 @@ func TestGenerateTokenForUser(t *testing.T) {
 	}
 }
 
-// Testes de rate limiting do login
+// Testes de rate limiting do login e account lockout
 func TestAllowLogin(t *testing.T) {
-	l := &loginLimiter{visitors: make(map[string]*visitor)}
+	tr := &loginTracker{
+		falhasUsuario: make(map[string]*failureRecord),
+		visitors:      make(map[string]*visitor),
+	}
 
 	// Mesmo IP pode fazer login até o limite
 	for i := 0; i < loginLimitCount; i++ {
-		if !l.AllowLogin("192.168.1.1") {
+		if !tr.AllowLogin("192.168.1.1") {
 			t.Fatalf("tentativa %d não deveria ser bloqueada", i+1)
 		}
 	}
 
 	// Após o limite, deve ser bloqueado
-	if l.AllowLogin("192.168.1.1") {
+	if tr.AllowLogin("192.168.1.1") {
 		t.Fatal("tentativa excedente deveria ser bloqueada")
 	}
 
 	// IP diferente não é afetado
-	if !l.AllowLogin("10.0.0.1") {
+	if !tr.AllowLogin("10.0.0.1") {
 		t.Fatal("IP diferente não deveria ser bloqueado")
+	}
+}
+
+func TestAccountLockout(t *testing.T) {
+	usuario := "teste_lockout"
+	ResetFailedLogins(usuario)
+
+	for i := 0; i < 4; i++ {
+		RecordFailedLogin(usuario)
+		bloqueado, _ := IsAccountLocked(usuario)
+		if bloqueado {
+			t.Fatalf("tentativa %d não deveria bloquear a conta ainda", i+1)
+		}
+	}
+
+	// 5ª falha bloqueia
+	RecordFailedLogin(usuario)
+	bloqueado, tempo := IsAccountLocked(usuario)
+	if !bloqueado || tempo <= 0 {
+		t.Fatal("conta deveria estar bloqueada após 5 falhas")
+	}
+
+	// Reset desbloqueia
+	ResetFailedLogins(usuario)
+	bloqueadoAposReset, _ := IsAccountLocked(usuario)
+	if bloqueadoAposReset {
+		t.Fatal("conta deveria estar desbloqueada após reset")
 	}
 }

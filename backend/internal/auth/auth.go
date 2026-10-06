@@ -2,8 +2,10 @@ package auth
 
 import (
 	"crypto/hmac"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"log"
@@ -124,7 +126,7 @@ func GenerateTokenForUser(user User) (string, error) {
 		Role:        user.Role,
 		Permissions: user.Permissions,
 		Iat:         time.Now().Unix(),
-		Exp:         time.Now().Add(8 * time.Hour).Unix(),
+		Exp:         time.Now().Add(2 * time.Hour).Unix(),
 	}
 
 	headerJSON, err := json.Marshal(header)
@@ -295,33 +297,43 @@ func RequireSuperAdmin() gin.HandlerFunc {
 	}
 }
 
-// RateLimitLogin middleware que aplica rate limiting no endpoint de login.
-// Limita 10 tentativas por minuto por IP.
-type loginLimiter struct {
-	mu      sync.Mutex
-	visitors map[string]*visitor
-}
-
+// Sistema de proteção contra força bruta e account lockout
 type visitor struct {
-	count    int
+	count     int
 	expiresAt time.Time
 }
 
+type loginTracker struct {
+	mu            sync.Mutex
+	falhasUsuario map[string]*failureRecord
+	visitors      map[string]*visitor
+}
+
+type failureRecord struct {
+	attempts int
+	lockedAt time.Time
+}
+
 var (
-	loginRateLimiter = &loginLimiter{visitors: make(map[string]*visitor)}
-	loginLimitCount  = 10
-	loginLimitWindow = time.Minute
+	tracker = &loginTracker{
+		falhasUsuario: make(map[string]*failureRecord),
+		visitors:      make(map[string]*visitor),
+	}
+	maxFalhasConsecutivas = 5
+	tempoBloqueioConta    = 15 * time.Minute
+	loginLimitCount       = 10
+	loginLimitWindow      = time.Minute
 )
 
-// AllowLogin verifica se o IP pode fazer login. Retorna true se permitido.
-func (l *loginLimiter) AllowLogin(ip string) bool {
-	l.mu.Lock()
-	defer l.mu.Unlock()
+// AllowLogin verifica o rate limit por IP
+func (t *loginTracker) AllowLogin(ip string) bool {
+	t.mu.Lock()
+	defer t.mu.Unlock()
 
 	now := time.Now()
-	v, exists := l.visitors[ip]
+	v, exists := t.visitors[ip]
 	if !exists || now.After(v.expiresAt) {
-		l.visitors[ip] = &visitor{count: 1, expiresAt: now.Add(loginLimitWindow)}
+		t.visitors[ip] = &visitor{count: 1, expiresAt: now.Add(loginLimitWindow)}
 		return true
 	}
 
@@ -330,6 +342,61 @@ func (l *loginLimiter) AllowLogin(ip string) bool {
 	}
 	v.count++
 	return true
+}
+
+// IsAccountLocked verifica se a conta está temporariamente bloqueada por excesso de falhas
+func IsAccountLocked(username string) (bool, time.Duration) {
+	tracker.mu.Lock()
+	defer tracker.mu.Unlock()
+
+	userKey := strings.ToLower(strings.TrimSpace(username))
+	record, exists := tracker.falhasUsuario[userKey]
+	if !exists {
+		return false, 0
+	}
+
+	if record.attempts >= maxFalhasConsecutivas {
+		tempoRestante := tempoBloqueioConta - time.Since(record.lockedAt)
+		if tempoRestante > 0 {
+			return true, tempoRestante
+		}
+		// Desbloqueia após o período
+		delete(tracker.falhasUsuario, userKey)
+	}
+
+	return false, 0
+}
+
+// RecordFailedLogin registra uma tentativa falha de login para o usuário
+func RecordFailedLogin(username string) {
+	tracker.mu.Lock()
+	defer tracker.mu.Unlock()
+
+	userKey := strings.ToLower(strings.TrimSpace(username))
+	if userKey == "" {
+		return
+	}
+
+	record, exists := tracker.falhasUsuario[userKey]
+	if !exists {
+		tracker.falhasUsuario[userKey] = &failureRecord{attempts: 1}
+		return
+	}
+
+	record.attempts++
+	if record.attempts >= maxFalhasConsecutivas && record.lockedAt.IsZero() {
+		record.lockedAt = time.Now()
+		log.Printf("[ALERTA DE SEGURANÇA] Conta %q bloqueada temporariamente após %d tentativas falhas", userKey, record.attempts)
+	}
+}
+
+// ResetFailedLogins limpa o histórico de falhas após login bem-sucedido
+func ResetFailedLogins(username string) {
+	tracker.mu.Lock()
+	defer tracker.mu.Unlock()
+
+	userKey := strings.ToLower(strings.TrimSpace(username))
+	delete(tracker.falhasUsuario, userKey)
 }
 
 // clientIP retorna o IP do cliente (IP externo ou remote address).
@@ -349,9 +416,9 @@ func clientIP(ctx *gin.Context) string {
 func RateLimitLogin() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		ip := clientIP(ctx)
-		if !loginRateLimiter.AllowLogin(ip) {
+		if !tracker.AllowLogin(ip) {
 			ctx.JSON(429, gin.H{
-				"erro": "muitas tentativas de login. Tente novamente em 1 minuto.",
+				"erro": "muitas tentativas de login deste IP. Tente novamente em 1 minuto.",
 			})
 			ctx.Abort()
 			return
@@ -360,14 +427,72 @@ func RateLimitLogin() gin.HandlerFunc {
 	}
 }
 
+// Gerenciamento de tickets descartáveis de uso único para WebSocket
+type wsTicket struct {
+	claims    Claims
+	expiresAt time.Time
+}
+
+type wsTicketStore struct {
+	mu      sync.Mutex
+	tickets map[string]*wsTicket
+}
+
+var ticketStore = &wsTicketStore{
+	tickets: make(map[string]*wsTicket),
+}
+
+// GenerateWSTicket gera um token/ticket criptográfico descartável com validade de 30 segundos
+func GenerateWSTicket(claims Claims) (string, error) {
+	bytes := make([]byte, 24)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	ticket := hex.EncodeToString(bytes)
+
+	ticketStore.mu.Lock()
+	defer ticketStore.mu.Unlock()
+
+	ticketStore.tickets[ticket] = &wsTicket{
+		claims:    claims,
+		expiresAt: time.Now().Add(30 * time.Second),
+	}
+
+	return ticket, nil
+}
+
+// ConsumeWSTicket valida e consome o ticket imediatamente (uso único)
+func ConsumeWSTicket(ticket string) (Claims, error) {
+	ticketStore.mu.Lock()
+	defer ticketStore.mu.Unlock()
+
+	item, exists := ticketStore.tickets[ticket]
+	if !exists {
+		return Claims{}, errors.New("ticket inválido ou já utilizado")
+	}
+
+	delete(ticketStore.tickets, ticket)
+
+	if time.Now().After(item.expiresAt) {
+		return Claims{}, errors.New("ticket expirado")
+	}
+
+	return item.claims, nil
+}
+
+type mutationLimiter struct {
+	mu       sync.Mutex
+	visitors map[string]*visitor
+}
+
 var (
-	mutationRateLimiter = &loginLimiter{visitors: make(map[string]*visitor)}
+	mutationRateLimiter = &mutationLimiter{visitors: make(map[string]*visitor)}
 	mutationLimitCount  = 120
 	mutationLimitWindow = time.Minute
 )
 
 // AllowMutation verifica se o IP pode executar mutações (POST, PUT, DELETE).
-func (l *loginLimiter) AllowMutation(ip string) bool {
+func (l *mutationLimiter) AllowMutation(ip string) bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
@@ -437,6 +562,19 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		if usuarioService != nil {
+			usuario, err := usuarioService.BuscarPorID(claims.UserID)
+			if err != nil || usuario == nil || !usuario.Ativo {
+				ctx.JSON(401, gin.H{"erro": "sessão encerrada ou usuário inativo"})
+				ctx.Abort()
+				return
+			}
+			// Sincroniza role, loja e permissoes diretamente do banco
+			claims.Role = usuario.Perfil
+			claims.Permissions = usuario.Permissoes
+			claims.LojaID = usuario.LojaID
+		}
+
 		ctx.Set("username", claims.Username)
 		ctx.Set("user_id", claims.UserID)
 		ctx.Set("loja_id", claims.LojaID)
@@ -447,25 +585,48 @@ func AuthMiddleware() gin.HandlerFunc {
 	}
 }
 
-// WSAuthMiddleware autentica conexões WebSocket via token na query string
-// (?token=...). É necessário porque a API WebSocket dos navegadores não
-// permite o envio de headers customizados (como Authorization) durante o
-// handshake, tornando o AuthMiddleware baseado em header inutilizável para
-// essas conexões.
+// WSAuthMiddleware autentica conexões WebSocket via ticket de uso único (?ticket=...)
+// ou token (?token=...) como fallback. O ticket de uso único protege o token JWT
+// contra exposição em URLs, histórico de navegação e logs de proxy.
 func WSAuthMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		token := strings.TrimSpace(ctx.Query("token"))
-		if token == "" {
-			ctx.JSON(401, gin.H{"erro": "token de acesso obrigatório"})
-			ctx.Abort()
-			return
+		ticket := strings.TrimSpace(ctx.Query("ticket"))
+		var claims Claims
+		var err error
+
+		if ticket != "" {
+			claims, err = ConsumeWSTicket(ticket)
+			if err != nil {
+				ctx.JSON(401, gin.H{"erro": err.Error()})
+				ctx.Abort()
+				return
+			}
+		} else {
+			token := strings.TrimSpace(ctx.Query("token"))
+			if token == "" {
+				ctx.JSON(401, gin.H{"erro": "ticket ou token de acesso obrigatório"})
+				ctx.Abort()
+				return
+			}
+
+			claims, err = ValidateToken(token)
+			if err != nil {
+				ctx.JSON(401, gin.H{"erro": err.Error()})
+				ctx.Abort()
+				return
+			}
 		}
 
-		claims, err := ValidateToken(token)
-		if err != nil {
-			ctx.JSON(401, gin.H{"erro": err.Error()})
-			ctx.Abort()
-			return
+		if usuarioService != nil {
+			usuario, err := usuarioService.BuscarPorID(claims.UserID)
+			if err != nil || usuario == nil || !usuario.Ativo {
+				ctx.JSON(401, gin.H{"erro": "sessão encerrada ou usuário inativo"})
+				ctx.Abort()
+				return
+			}
+			claims.Role = usuario.Perfil
+			claims.Permissions = usuario.Permissoes
+			claims.LojaID = usuario.LojaID
 		}
 
 		ctx.Set("username", claims.Username)
