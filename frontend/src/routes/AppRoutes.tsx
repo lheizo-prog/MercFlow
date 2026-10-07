@@ -7,24 +7,44 @@ import {
 } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
 import { useAuth } from "../hooks/useAuth";
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, type ComponentType } from "react";
 
-const LoginPage = lazy(() => import("../pages/Login/LoginPage"));
-const DashboardPage = lazy(() => import("../pages/Dashboard/DashboardPage"));
-const DepartamentosPage = lazy(
+// Função para retry automático em dynamic imports quando há novo deploy na Vercel
+function lazyWithRetry<T extends ComponentType<any>>(
+  factory: () => Promise<{ default: T }>,
+) {
+  return lazy(() =>
+    factory().catch((error) => {
+      // Se falhou ao buscar o chunk dinâmico (comum após deploy com novo hash),
+      // recarrega a página uma vez para puxar os novos scripts sem travar o usuário.
+      const hasReloaded = sessionStorage.getItem("chunk_reload_retry");
+      if (!hasReloaded) {
+        sessionStorage.setItem("chunk_reload_retry", "true");
+        window.location.reload();
+        return new Promise<{ default: T }>(() => {});
+      }
+      sessionStorage.removeItem("chunk_reload_retry");
+      throw error;
+    }),
+  );
+}
+
+const LoginPage = lazyWithRetry(() => import("../pages/Login/LoginPage"));
+const DashboardPage = lazyWithRetry(() => import("../pages/Dashboard/DashboardPage"));
+const DepartamentosPage = lazyWithRetry(
   () => import("../pages/Departamentos/DepartamentosPage"),
 );
-const ProdutoGenericoPage = lazy(
+const ProdutoGenericoPage = lazyWithRetry(
   () => import("../pages/ProdutoGenerico/ProdutoGenericoPage"),
 );
-const ProdutoDepartamentoPage = lazy(
+const ProdutoDepartamentoPage = lazyWithRetry(
   () => import("../pages/ProdutoDepartamento/ProdutoDepartamentoPage"),
 );
-const ProdutoMerceariaPage = lazy(
+const ProdutoMerceariaPage = lazyWithRetry(
   () => import("../pages/ProdutoMercearia/ProdutoMerceariaPage"),
 );
-const LancamentoPage = lazy(() => import("../pages/Lancamento/LancamentoPage"));
-const UsuariosPage = lazy(() => import("../pages/Usuarios/UsuariosPage"));
+const LancamentoPage = lazyWithRetry(() => import("../pages/Lancamento/LancamentoPage"));
+const UsuariosPage = lazyWithRetry(() => import("../pages/Usuarios/UsuariosPage"));
 
 function LoadingFallback() {
   return (

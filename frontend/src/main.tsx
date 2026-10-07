@@ -22,21 +22,19 @@ createRoot(document.getElementById("root")!).render(
 );
 
 if ("serviceWorker" in navigator) {
-  // Limpa explicitamente caches legados que possam estar servindo dados ou 401 antigos
+  // Desregistra qualquer Service Worker ativo e limpa caches para evitar que versões
+  // antigas de chunks (.js) continuem sendo interceptadas ou retornem index.html
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    for (const registration of registrations) {
+      registration.unregister();
+    }
+  });
+
   if ("caches" in window) {
     caches.keys().then((names) => {
       for (const name of names) {
-        if (name === "mercflow-v1") {
-          caches.delete(name);
-        }
+        caches.delete(name);
       }
     });
   }
-
-  window.addEventListener("load", () => {
-    navigator.serviceWorker
-      .register("/sw.js")
-      .then((reg) => console.log("Service Worker registrado:", reg.scope))
-      .catch((err) => console.log("Erro ao registrar Service Worker:", err));
-  });
 }
