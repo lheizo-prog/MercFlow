@@ -23,7 +23,7 @@ const departamentoService = {
   },
 
   async excluir(id: number): Promise<void> {
-    return api.delete(`departamentos/id/${id}`);
+    return api.delete(`/departamentos/id/${id}`);
   },
 };
 

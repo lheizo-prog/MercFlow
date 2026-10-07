@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import departamentoService from "../../services/departamentoService";
 import type { Departamento } from "../../types/Departamento";
 import TabelaDepartamentos from "../../components/departamento/TabelaDepartamentos";
 import DepartamentoModal from "../../components/departamento/DepartamentoModal";
+import { useRefetchOnFocus } from "../../hooks/useRefetchOnFocus";
 
 function DepartamentosPage() {
   const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
@@ -14,9 +15,9 @@ function DepartamentosPage() {
 
   const [pesquisa, setPesquisa] = useState("");
 
-  async function carregarDepartamentos() {
+  const carregarDepartamentos = useCallback(async (silencioso = false) => {
     try {
-      setLoading(true);
+      if (!silencioso) setLoading(true);
 
       const lista = await departamentoService.buscarTodos();
       const listaSemDuplicatas = lista.filter(
@@ -31,13 +32,16 @@ function DepartamentosPage() {
     } catch (error) {
       console.error(error);
     } finally {
-      setLoading(false);
+      if (!silencioso) setLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
-    carregarDepartamentos();
-  }, []);
+    void carregarDepartamentos();
+  }, [carregarDepartamentos]);
+
+  // Recarrega em segundo plano quando a janela recupera o foco ou a aba fica visível
+  useRefetchOnFocus(useCallback(() => void carregarDepartamentos(true), [carregarDepartamentos]));
 
   async function criarDepartamento(departamento: Departamento) {
     try {

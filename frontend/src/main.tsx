@@ -15,6 +15,18 @@ Sentry.init({
   replaysOnErrorSampleRate: 1.0,
 });
 
+// Tratamento nativo do Vite para erro de carregamento de chunk dinâmico após novo deploy
+window.addEventListener("vite:preloadError", (event) => {
+  event.preventDefault();
+  const hasReloaded = sessionStorage.getItem("vite_preload_retry");
+  if (!hasReloaded) {
+    sessionStorage.setItem("vite_preload_retry", "true");
+    window.location.reload();
+  } else {
+    sessionStorage.removeItem("vite_preload_retry");
+  }
+});
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <App />

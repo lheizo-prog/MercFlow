@@ -57,21 +57,7 @@ function LancamentoPage() {
               departamento.nome.trim().toLowerCase(),
           ) === index,
       );
-      const mercearia = listaSemDuplicatas.find(
-        (departamento) =>
-          departamento.nome.trim().toLowerCase() === "mercearia",
-      );
-
-      if (mercearia) {
-        setDepartamentos(listaSemDuplicatas);
-        return;
-      }
-
-      const departamentoMercearia = await departamentoService.criar({
-        nome: "Mercearia",
-      });
-
-      setDepartamentos([...listaSemDuplicatas, departamentoMercearia]);
+      setDepartamentos(listaSemDuplicatas);
     } catch (error) {
       console.error(error);
     }
