@@ -102,7 +102,7 @@ func (h *UsuarioHandler) Criar(ctx *gin.Context) {
 		Permissoes: payload.Permissoes,
 	})
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"erro": err.Error()})
+		ResponderErro(ctx, err, "não foi possível criar o usuário")
 		return
 	}
 
@@ -136,7 +136,7 @@ func (h *UsuarioHandler) Listar(ctx *gin.Context) {
 		usuarios, err = h.service.ListarPorLoja(claims.LojaID)
 	}
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"erro": err.Error()})
+		ResponderErro(ctx, err, "não foi possível listar os usuários")
 		return
 	}
 
@@ -159,7 +159,7 @@ func (h *UsuarioHandler) BuscarPorID(ctx *gin.Context) {
 	}
 	usuario, err := h.service.BuscarPorID(id)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"erro": err.Error()})
+		ResponderErro(ctx, err, "não foi possível buscar o usuário")
 		return
 	}
 	if claims.Role != "super_admin" && usuario.LojaID != claims.LojaID {
@@ -239,7 +239,7 @@ func (h *UsuarioHandler) Atualizar(ctx *gin.Context) {
 	}, payload.Senha)
 
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"erro": err.Error()})
+		ResponderErro(ctx, err, "não foi possível atualizar o usuário")
 		return
 	}
 
@@ -262,7 +262,7 @@ func (h *UsuarioHandler) Excluir(ctx *gin.Context) {
 	}
 
 	if err := h.service.Excluir(id); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"erro": err.Error()})
+		ResponderErro(ctx, err, "não foi possível excluir o usuário")
 		return
 	}
 
