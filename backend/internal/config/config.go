@@ -9,7 +9,8 @@ import (
 )
 
 type Config struct {
-	Database DatabaseConfig
+	Database       DatabaseConfig
+	LabelReaderURL string
 }
 
 type DatabaseConfig struct {
@@ -26,10 +27,17 @@ func Load() (*Config, error) {
 	if databaseURL == "" {
 		return nil, errors.New("sem URL do banco de dados")
 	}
+
+	labelReaderURL := os.Getenv("LABEL_READER_URL")
+	if labelReaderURL == "" {
+		labelReaderURL = "http://localhost:8001"
+	}
+
 	cfg := Config{
 		Database: DatabaseConfig{
 			URL: databaseURL,
 		},
+		LabelReaderURL: labelReaderURL,
 	}
 	return &cfg, nil
 }

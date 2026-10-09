@@ -15,3 +15,19 @@ export function formatarDataHora(data: Date = new Date()): string {
   const h = data.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
   return `${d} as ${h}`;
 }
+
+export function arredondarQuantidade(valor: number, casas = 2): number {
+  if (isNaN(valor)) return 0;
+  const fator = Math.pow(10, casas);
+  return Math.round((valor + Number.EPSILON) * fator) / fator;
+}
+
+export function formatarQuantidade(valor: number, casas = 2): string {
+  if (isNaN(valor)) return "0";
+  const arredondado = arredondarQuantidade(valor, casas);
+  return arredondado.toLocaleString("pt-BR", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: casas,
+  });
+}
+

@@ -14,10 +14,11 @@ import (
 )
 
 type LancamentoService struct {
-	lancamentoRepo   lancamento.LancamentoRepository
-	produtoMRepo     produtomercearia.ProdutoMerceariaRepository
-	produtoDRepo     produtodepartamento.ProdutoDepartamentoRepository
-	departamentoRepo departamento.DepartamentoRepository
+	lancamentoRepo    lancamento.LancamentoRepository
+	produtoMRepo      produtomercearia.ProdutoMerceariaRepository
+	produtoDRepo      produtodepartamento.ProdutoDepartamentoRepository
+	departamentoRepo  departamento.DepartamentoRepository
+	labelReaderClient *LabelReaderClient
 }
 
 func NovoLancamentoService(
@@ -36,6 +37,10 @@ func NovoLancamentoService(
 		produtoDRepo:     produtoDRepo,
 		departamentoRepo: departamentoRepo,
 	}
+}
+
+func (s *LancamentoService) SetLabelReaderClient(client *LabelReaderClient) {
+	s.labelReaderClient = client
 }
 
 func (s *LancamentoService) Criar(request *request.LancamentoRequest, lojas ...int) (*response.LancamentoResponse, error) {
@@ -372,3 +377,107 @@ func calcularFatorConversao(
 		destino,
 	)
 }
+
+func (s *LancamentoService) ScanEtiquetas(imageBytes []byte, filename string, lojaID int, departamentoID int) (*response.ScanEtiquetasResponse, error) {
+	if s.labelReaderClient == nil {
+		return nil, errors.New("serviço de leitura de etiquetas não configurado")
+	}
+
+	ocrResp, err := s.labelReaderClient.ProcessImage(imageBytes, filename)
+	if err != nil {
+		return nil, err
+	}
+
+	// Carrega produtos da loja para matching em memória/rápido
+	produtosM, err := s.produtoMRepo.ListarPorLoja(lojaID)
+	if err != nil {
+		return nil, fmt.Errorf("erro ao buscar produtos de mercearia da loja: %w", err)
+	}
+
+	var produtosD []*models.ProdutoDepartamento
+	if s.produtoDRepo != nil {
+		produtosD, _ = s.produtoDRepo.ListarPorLoja(lojaID)
+	}
+
+	res := &response.ScanEtiquetasResponse{
+		TotalDetectados: len(ocrResp.Labels),
+		Itens:           make([]response.ScanItemResponse, 0, len(ocrResp.Labels)),
+	}
+
+	for _, label := range ocrResp.Labels {
+		item := response.ScanItemResponse{
+			LabelIndex: label.LabelIndex,
+			CodigoLido: label.ParsedCode,
+			Confianca:  label.Confidence,
+			Status:     "NAO_ENCONTRADO",
+		}
+
+		codigoOriginalLimpo := strings.TrimSpace(label.ParsedCode)
+		if codigoOriginalLimpo == "" {
+			item.CodigoLido = label.RawText
+			res.Itens = append(res.Itens, item)
+			continue
+		}
+
+		// 1. Tenta Match Exato por Código de Barras ou SKU
+		var matchExatoM *models.ProdutoMercearia
+		for _, p := range produtosM {
+			if strings.EqualFold(p.CodigoBarras, codigoOriginalLimpo) || strings.EqualFold(p.SKU, codigoOriginalLimpo) {
+				matchExatoM = p
+				break
+			}
+		}
+
+		if matchExatoM != nil {
+			item.Status = "IDENTIFICADO"
+			item.ProdutoMercearia = matchExatoM
+			res.TotalIdentificados++
+
+			// Procura produto do departamento com o mesmo produto_generico_id
+			for _, pd := range produtosD {
+				if pd.ProdutoGenericoID == matchExatoM.ProdutoGenericoID {
+					if departamentoID <= 0 || pd.DepartamentoID == departamentoID {
+						item.ProdutoDepartamentoSugerido = pd
+						break
+					}
+				}
+			}
+			res.Itens = append(res.Itens, item)
+			continue
+		}
+
+		// 2. Se não encontrou exato, testa as variações de confusão visual
+		var sugestoes []response.SugestaoProdutoMercearia
+		for _, varCod := range label.CandidateVariations {
+			varCodLimpo := strings.TrimSpace(varCod)
+			if varCodLimpo == "" || varCodLimpo == codigoOriginalLimpo {
+				continue
+			}
+			for _, p := range produtosM {
+				if strings.EqualFold(p.CodigoBarras, varCodLimpo) || strings.EqualFold(p.SKU, varCodLimpo) {
+					sugestoes = append(sugestoes, response.SugestaoProdutoMercearia{
+						Produto: p,
+						Score:   0.85,
+						Motivo:  fmt.Sprintf("Variação compatível com '%s'", varCodLimpo),
+					})
+					if len(sugestoes) >= 3 {
+						break
+					}
+				}
+			}
+			if len(sugestoes) >= 3 {
+				break
+			}
+		}
+
+		if len(sugestoes) > 0 {
+			item.Status = "SUGESTAO"
+			item.Sugestoes = sugestoes
+		}
+
+		res.Itens = append(res.Itens, item)
+	}
+
+	return res, nil
+}
+

@@ -32,6 +32,7 @@ func (h *LancamentoHandler) HandleLancamentos(router gin.IRouter) {
 
 	lancamentos.GET("", auth.RequirePermission("lancamento.read"), h.Listar)
 	lancamentos.POST("", auth.RequirePermission("lancamento.create"), h.Criar)
+	lancamentos.POST("/scan-etiquetas", auth.RequirePermission("lancamento.create"), h.ScanEtiquetas)
 	lancamentos.GET("/conversao", auth.RequirePermission("lancamento.calculate"), h.CalcularConversao)
 	lancamentos.GET("/:id", auth.RequirePermission("lancamento.read"), h.BuscarID)
 }
@@ -285,3 +286,46 @@ func (h *LancamentoHandler) writePump(client *WSClient) {
 		}
 	}
 }
+
+func (h *LancamentoHandler) ScanEtiquetas(ctx *gin.Context) {
+	lojaID, ok := lojaDoUsuario(ctx)
+	if !ok {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"erro": "usuário não autenticado"})
+		return
+	}
+
+	fileHeader, err := ctx.FormFile("image")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"erro": "arquivo de imagem não informado"})
+		return
+	}
+
+	file, err := fileHeader.Open()
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"erro": "não foi possível abrir o arquivo de imagem"})
+		return
+	}
+	defer file.Close()
+
+	imageBytes := make([]byte, fileHeader.Size)
+	if _, err := file.Read(imageBytes); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"erro": "erro ao ler bytes da imagem"})
+		return
+	}
+
+	departamentoID := 0
+	if depStr := ctx.PostForm("departamento_id"); depStr != "" {
+		if id, err := strconv.Atoi(depStr); err == nil {
+			departamentoID = id
+		}
+	}
+
+	resultado, err := h.service.ScanEtiquetas(imageBytes, fileHeader.Filename, lojaID, departamentoID)
+	if err != nil {
+		ResponderErro(ctx, err, "não foi possível processar a imagem das etiquetas")
+		return
+	}
+
+	ctx.JSON(http.StatusOK, resultado)
+}
+

@@ -50,6 +50,29 @@ const LancamentoService = {
 
     return response.data;
   },
+
+  async scanEtiquetas(
+    imageFile: File,
+    departamentoId?: number,
+  ): Promise<import("../types/ScanEtiquetas").ScanEtiquetasResponse> {
+    const formData = new FormData();
+    formData.append("image", imageFile);
+    if (departamentoId && departamentoId > 0) {
+      formData.append("departamento_id", String(departamentoId));
+    }
+
+    const response = await api.post<import("../types/ScanEtiquetas").ScanEtiquetasResponse>(
+      "/lancamentos/scan-etiquetas",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
+    );
+
+    return response.data;
+  },
 };
 
 export default LancamentoService;

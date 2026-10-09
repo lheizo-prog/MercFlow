@@ -17,6 +17,9 @@ import type { ProdutoMercearia } from "../../../types/ProdutoMercearia";
 import type { ProdutoDepartamento } from "../../../types/ProdutoDepartamento";
 
 import LancamentoService from "../../../services/lancamentoService";
+import { arredondarQuantidade, formatarQuantidade } from "../../../utils/format";
+import ScanEtiquetasModal from "../ScanEtiquetasModal";
+import type { ScanEtiquetasResponse } from "../../../types/ScanEtiquetas";
 
 interface LancamentoFormProps {
   lancamento?: Lancamento;
@@ -65,6 +68,9 @@ function LancamentoForm({
   const [produtoDepartamentoBusca, setProdutoDepartamentoBusca] = useState("");
   const [mostrarSugestoesDepartamento, setMostrarSugestoesDepartamento] =
     useState(false);
+  const [escaneandoEtiquetas, setEscaneandoEtiquetas] = useState(false);
+  const [resultadoScanEtiquetas, setResultadoScanEtiquetas] =
+    useState<ScanEtiquetasResponse | null>(null);
 
   const isQuebra = form.tipo === "QUEBRA";
   const departamentosSemDuplicatas = departamentos.filter(
@@ -507,12 +513,14 @@ function LancamentoForm({
       return;
     }
 
-    const totalLancadoCalculado =
+    const totalLancadoCalculado = arredondarQuantidade(
       produtoMerceariaSelecionadoAtual && itemAtual.quantidade > 0
         ? itemAtual.quantidade *
           produtoMerceariaSelecionadoAtual.quantidade_embalagem *
           (isQuebra ? 1 : itemAtual.fatorConversao || 1)
-        : itemAtual.quantidade;
+        : itemAtual.quantidade,
+      2,
+    );
 
     setForm((anterior) => {
       const itemExistente = anterior.itens.find(
@@ -529,8 +537,10 @@ function LancamentoForm({
               ? {
                   ...item,
                   quantidade: item.quantidade + itemAtual.quantidade,
-                  totalLancado:
+                  totalLancado: arredondarQuantidade(
                     (item.totalLancado || 0) + totalLancadoCalculado,
+                    2,
+                  ),
                 }
               : item,
           ),
@@ -572,6 +582,114 @@ function LancamentoForm({
       ...anterior,
       itens: anterior.itens.filter((_, i) => i !== index),
     }));
+  }
+
+  async function handleScanEtiquetasFile(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setEscaneandoEtiquetas(true);
+      setMensagem("");
+      const res = await LancamentoService.scanEtiquetas(file, form.departamentoID);
+      setResultadoScanEtiquetas(res);
+    } catch (err: unknown) {
+      console.error("Erro ao escanear etiquetas:", err);
+      setTipoMensagem("erro");
+      setMensagem(
+        axios.isAxiosError(err) && err.response?.data?.erro
+          ? err.response.data.erro
+          : "Não foi possível processar a imagem das etiquetas. Verifique se o serviço de OCR está ativo.",
+      );
+    } finally {
+      setEscaneandoEtiquetas(false);
+      // Limpa o input file para permitir selecionar a mesma imagem se quiser
+      e.target.value = "";
+    }
+  }
+
+  async function handleAdicionarItensDoScan(
+    itensDoScan: Array<{
+      produtoMercearia: ProdutoMercearia;
+      produtoDepartamento?: ProdutoDepartamento;
+      quantidade: number;
+    }>
+  ) {
+    if (itensDoScan.length === 0) return;
+
+    for (const item of itensDoScan) {
+      const pm = item.produtoMercearia;
+      const pd = item.produtoDepartamento;
+      let fator = 1;
+      let unDept = pd?.unidade_medida ?? pm.unidade_medida;
+
+      const pmId = pm.id || 0;
+      const pdId = pd?.id || 0;
+
+      if (!isQuebra && pdId > 0 && pmId > 0) {
+        try {
+          const conv = await LancamentoService.buscarConversao(pmId, pdId);
+          fator = conv.fator_conversao || 1;
+          unDept = conv.unidade_departamento || unDept;
+        } catch {
+          fator = 1;
+        }
+      }
+
+      const totalLancado = arredondarQuantidade(
+        item.quantidade * pm.quantidade_embalagem * (isQuebra ? 1 : fator),
+        2
+      );
+
+      setForm((prev) => {
+        const itemExistente = prev.itens.find(
+          (it) =>
+            it.produtoMerceariaID === pmId &&
+            it.produtoDepartamentoID === pdId
+        );
+
+        if (itemExistente) {
+          return {
+            ...prev,
+            itens: prev.itens.map((it) =>
+              it === itemExistente
+                ? {
+                    ...it,
+                    quantidade: it.quantidade + item.quantidade,
+                    totalLancado: arredondarQuantidade(
+                      (it.totalLancado || 0) + totalLancado,
+                      2
+                    ),
+                  }
+                : it
+            ),
+          };
+        }
+
+        return {
+          ...prev,
+          itens: [
+            ...prev.itens,
+            {
+              produtoMerceariaID: pmId,
+              produtoDepartamentoID: pdId,
+              quantidade: item.quantidade,
+              unidadeMercearia: pm.unidade_medida,
+              unidadeDepartamento: unDept,
+              fatorConversao: fator,
+              totalLancado: totalLancado,
+            },
+          ],
+        };
+      });
+    }
+
+    setTipoMensagem("sucesso");
+    setMensagem(
+      `${itensDoScan.length} ${
+        itensDoScan.length === 1 ? "item adicionado" : "itens adicionados"
+      } via leitura de etiquetas!`,
+    );
   }
 
   function exportarCSV() {
@@ -1043,7 +1161,8 @@ function LancamentoForm({
                     {produtoMerceariaSelecionadoAtual.unidade_medida}
                   </div>
                   <div className="col-12 col-md-7">
-                    <strong>Total previsto:</strong> {totalCalculadoAtual}{" "}
+                    <strong>Total previsto:</strong>{" "}
+                    {formatarQuantidade(totalCalculadoAtual)}{" "}
                     {isQuebra
                       ? produtoMerceariaSelecionadoAtual.unidade_medida
                       : itemAtual.unidadeDepartamento ||
@@ -1091,6 +1210,57 @@ function LancamentoForm({
                 <span className="badge text-bg-secondary">
                   {form.itens.length} {form.itens.length === 1 ? "item" : "itens"}
                 </span>
+                <label
+                  className={`btn btn-outline-primary btn-sm d-flex align-items-center gap-1 shadow-sm mb-0 ${
+                    escaneandoEtiquetas ? "disabled" : ""
+                  }`}
+                  style={{ cursor: "pointer" }}
+                  title="Escanear etiquetas por foto"
+                >
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="d-none"
+                    disabled={escaneandoEtiquetas}
+                    onChange={handleScanEtiquetasFile}
+                  />
+                  {escaneandoEtiquetas ? (
+                    <>
+                      <span
+                        className="spinner-border spinner-border-sm"
+                        role="status"
+                        aria-hidden="true"
+                      ></span>
+                      <span>Processando OCR...</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="15"
+                        height="15"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                      </svg>
+                      <span>Escanear Etiquetas</span>
+                    </>
+                  )}
+                </label>
+
                 {form.itens.length > 0 && (
                   <button
                     type="button"
@@ -1176,24 +1346,24 @@ function LancamentoForm({
                               {produtoM ? produtoM.sku : produtoD?.codigo}
                             </td>
                           )}
-                          <td>{item.quantidade}</td>
+                          <td>{formatarQuantidade(item.quantidade)}</td>
                           <td>
                             {produtoM
-                              ? `${produtoM.quantidade_embalagem} ${produtoM.unidade_medida}`
+                              ? `${formatarQuantidade(produtoM.quantidade_embalagem)} ${produtoM.unidade_medida}`
                               : produtoD
                                 ? `${produtoD.unidade_medida || "-"}`
                                 : "-"}
                           </td>
                           <td>
                             {item.totalLancado > 0
-                              ? `${item.totalLancado} ${
+                              ? `${formatarQuantidade(item.totalLancado)} ${
                                   form.tipo === "TRANSFERENCIA"
                                     ? item.unidadeDepartamento ||
                                       item.unidadeMercearia
                                     : item.unidadeMercearia ||
                                       item.unidadeDepartamento
                                 }`
-                              : `${item.quantidade} ${
+                              : `${formatarQuantidade(item.quantidade)} ${
                                   form.tipo === "TRANSFERENCIA"
                                     ? item.unidadeMercearia
                                     : item.unidadeMercearia ||
@@ -1277,6 +1447,15 @@ function LancamentoForm({
               </div>
             </div>
           </>
+        )}
+        {resultadoScanEtiquetas && (
+          <ScanEtiquetasModal
+            resultado={resultadoScanEtiquetas}
+            produtosDepartamento={produtosDepartamento}
+            departamentoId={form.departamentoID}
+            onAdicionarItens={handleAdicionarItensDoScan}
+            onFechar={() => setResultadoScanEtiquetas(null)}
+          />
         )}
       </form>
     </>

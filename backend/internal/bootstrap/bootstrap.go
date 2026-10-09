@@ -76,6 +76,8 @@ func New() (*Application, error) {
 
 	lancamentoRepo := lancamento.NovoLancamentoPostgresRepositoy(db)
 	lancamentoService := service.NovoLancamentoService(lancamentoRepo, produto_mRepo, produto_dRepo, departamentoRepo)
+	labelReaderClient := service.NovoLabelReaderClient(cfg.LabelReaderURL)
+	lancamentoService.SetLabelReaderClient(labelReaderClient)
 	wsHub := handlers.NewWSHub()
 	go wsHub.Run()
 	lancamentoHandler := handlers.NovoLancamentoHandler(lancamentoService, wsHub)
