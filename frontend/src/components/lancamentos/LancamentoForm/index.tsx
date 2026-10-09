@@ -18,7 +18,7 @@ import type { ProdutoDepartamento } from "../../../types/ProdutoDepartamento";
 
 import LancamentoService from "../../../services/lancamentoService";
 import { arredondarQuantidade, formatarQuantidade } from "../../../utils/format";
-import ScanEtiquetasModal from "../ScanEtiquetasModal";
+import ScanEtiquetasModal, { type ItemQuebraScan } from "../ScanEtiquetasModal";
 import type { ScanEtiquetasResponse } from "../../../types/ScanEtiquetas";
 
 interface LancamentoFormProps {
@@ -588,10 +588,24 @@ function LancamentoForm({
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (!isQuebra) {
+      setTipoMensagem("erro");
+      setMensagem("A leitura de etiquetas por foto está disponível somente para Quebra.");
+      e.target.value = "";
+      return;
+    }
+
+    if (form.departamentoID <= 0) {
+      setTipoMensagem("erro");
+      setMensagem("Selecione primeiro o departamento da quebra antes de escanear as etiquetas.");
+      e.target.value = "";
+      return;
+    }
+
     try {
       setEscaneandoEtiquetas(true);
       setMensagem("");
-      const res = await LancamentoService.scanEtiquetas(file, form.departamentoID);
+      const res = await LancamentoService.scanEtiquetas(file, form.departamentoID, "QUEBRA");
       setResultadoScanEtiquetas(res);
     } catch (err: unknown) {
       console.error("Erro ao escanear etiquetas:", err);
@@ -608,44 +622,40 @@ function LancamentoForm({
     }
   }
 
-  async function handleAdicionarItensDoScan(
-    itensDoScan: Array<{
-      produtoMercearia: ProdutoMercearia;
-      produtoDepartamento?: ProdutoDepartamento;
-      quantidade: number;
-    }>
-  ) {
+  function handleAdicionarItensDoScan(itensDoScan: ItemQuebraScan[]) {
     if (itensDoScan.length === 0) return;
 
     for (const item of itensDoScan) {
       const pm = item.produtoMercearia;
       const pd = item.produtoDepartamento;
-      let fator = 1;
-      let unDept = pd?.unidade_medida ?? pm.unidade_medida;
 
-      const pmId = pm.id || 0;
-      const pdId = pd?.id || 0;
+      let pmId = 0;
+      let pdId = 0;
+      let unMercearia = "";
+      let unDepto = "";
+      let totalLancado = 0;
 
-      if (!isQuebra && pdId > 0 && pmId > 0) {
-        try {
-          const conv = await LancamentoService.buscarConversao(pmId, pdId);
-          fator = conv.fator_conversao || 1;
-          unDept = conv.unidade_departamento || unDept;
-        } catch {
-          fator = 1;
+      if (isDepartamentoMercearia && pm) {
+        pmId = pm.id ?? 0;
+        unMercearia = pm.unidade_medida;
+        totalLancado = arredondarQuantidade(item.quantidade * pm.quantidade_embalagem, 2);
+      } else if (!isDepartamentoMercearia) {
+        if (pd) {
+          pdId = pd.id ?? 0;
+          unDepto = pd.unidade_medida || "";
+          totalLancado = arredondarQuantidade(item.quantidade, 2);
+        } else if (pm) {
+          pmId = pm.id ?? 0;
+          unMercearia = pm.unidade_medida;
+          totalLancado = arredondarQuantidade(item.quantidade * pm.quantidade_embalagem, 2);
         }
       }
-
-      const totalLancado = arredondarQuantidade(
-        item.quantidade * pm.quantidade_embalagem * (isQuebra ? 1 : fator),
-        2
-      );
 
       setForm((prev) => {
         const itemExistente = prev.itens.find(
           (it) =>
-            it.produtoMerceariaID === pmId &&
-            it.produtoDepartamentoID === pdId
+            (pmId > 0 && it.produtoMerceariaID === pmId) ||
+            (pdId > 0 && it.produtoDepartamentoID === pdId)
         );
 
         if (itemExistente) {
@@ -674,9 +684,9 @@ function LancamentoForm({
               produtoMerceariaID: pmId,
               produtoDepartamentoID: pdId,
               quantidade: item.quantidade,
-              unidadeMercearia: pm.unidade_medida,
-              unidadeDepartamento: unDept,
-              fatorConversao: fator,
+              unidadeMercearia: unMercearia,
+              unidadeDepartamento: unDepto,
+              fatorConversao: 0,
               totalLancado: totalLancado,
             },
           ],
@@ -688,7 +698,7 @@ function LancamentoForm({
     setMensagem(
       `${itensDoScan.length} ${
         itensDoScan.length === 1 ? "item adicionado" : "itens adicionados"
-      } via leitura de etiquetas!`,
+      } à Quebra via leitura de etiquetas!`,
     );
   }
 
@@ -1210,56 +1220,59 @@ function LancamentoForm({
                 <span className="badge text-bg-secondary">
                   {form.itens.length} {form.itens.length === 1 ? "item" : "itens"}
                 </span>
-                <label
-                  className={`btn btn-outline-primary btn-sm d-flex align-items-center gap-1 shadow-sm mb-0 ${
-                    escaneandoEtiquetas ? "disabled" : ""
-                  }`}
-                  style={{ cursor: "pointer" }}
-                  title="Escanear etiquetas por foto"
-                >
-                  <input
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    className="d-none"
-                    disabled={escaneandoEtiquetas}
-                    onChange={handleScanEtiquetasFile}
-                  />
-                  {escaneandoEtiquetas ? (
-                    <>
-                      <span
-                        className="spinner-border spinner-border-sm"
-                        role="status"
-                        aria-hidden="true"
-                      ></span>
-                      <span>Processando OCR...</span>
-                    </>
-                  ) : (
-                    <>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="15"
-                        height="15"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                      </svg>
-                      <span>Escanear Etiquetas</span>
-                    </>
-                  )}
-                </label>
+
+                {isQuebra && form.departamentoID > 0 && (
+                  <label
+                    className={`btn btn-outline-danger btn-sm d-flex align-items-center gap-1 shadow-sm mb-0 ${
+                      escaneandoEtiquetas ? "disabled" : ""
+                    }`}
+                    style={{ cursor: "pointer" }}
+                    title="Escanear etiquetas de quebra por foto"
+                  >
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className="d-none"
+                      disabled={escaneandoEtiquetas}
+                      onChange={handleScanEtiquetasFile}
+                    />
+                    {escaneandoEtiquetas ? (
+                      <>
+                        <span
+                          className="spinner-border spinner-border-sm"
+                          role="status"
+                          aria-hidden="true"
+                        ></span>
+                        <span>Processando OCR...</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="15"
+                          height="15"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                        </svg>
+                        <span>Escanear Etiquetas</span>
+                      </>
+                    )}
+                  </label>
+                )}
 
                 {form.itens.length > 0 && (
                   <button
@@ -1451,8 +1464,7 @@ function LancamentoForm({
         {resultadoScanEtiquetas && (
           <ScanEtiquetasModal
             resultado={resultadoScanEtiquetas}
-            produtosDepartamento={produtosDepartamento}
-            departamentoId={form.departamentoID}
+            isDepartamentoMercearia={isDepartamentoMercearia}
             onAdicionarItens={handleAdicionarItensDoScan}
             onFechar={() => setResultadoScanEtiquetas(null)}
           />

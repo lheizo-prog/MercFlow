@@ -3,17 +3,16 @@ import type { ScanEtiquetasResponse } from "../../../types/ScanEtiquetas";
 import type { ProdutoMercearia } from "../../../types/ProdutoMercearia";
 import type { ProdutoDepartamento } from "../../../types/ProdutoDepartamento";
 
+export interface ItemQuebraScan {
+  produtoMercearia?: ProdutoMercearia;
+  produtoDepartamento?: ProdutoDepartamento;
+  quantidade: number;
+}
+
 interface ScanEtiquetasModalProps {
   resultado: ScanEtiquetasResponse;
-  produtosDepartamento: ProdutoDepartamento[];
-  departamentoId: number;
-  onAdicionarItens: (
-    itensParaAdicionar: Array<{
-      produtoMercearia: ProdutoMercearia;
-      produtoDepartamento?: ProdutoDepartamento;
-      quantidade: number;
-    }>
-  ) => void;
+  isDepartamentoMercearia: boolean;
+  onAdicionarItens: (itensParaAdicionar: ItemQuebraScan[]) => void;
   onFechar: () => void;
 }
 
@@ -21,57 +20,63 @@ interface ItemState {
   selecionado: boolean;
   quantidade: number;
   produtoMercearia: ProdutoMercearia | null;
-  produtoDepartamentoId: number;
+  produtoDepartamento: ProdutoDepartamento | null;
 }
 
 export function ScanEtiquetasModal({
   resultado,
-  produtosDepartamento,
-  departamentoId,
+  isDepartamentoMercearia,
   onAdicionarItens,
   onFechar,
 }: ScanEtiquetasModalProps) {
   // Inicializa o estado para cada item detectado
   const [itensState, setItensState] = useState<ItemState[]>(() =>
     resultado.itens.map((item) => {
-      const pm = item.produto_mercearia || (item.sugestoes && item.sugestoes.length > 0 ? item.sugestoes[0].produto : null);
-      const pd = item.produto_departamento_sugerido || null;
+      const pm =
+        item.produto_mercearia ||
+        (item.sugestoes && item.sugestoes.length > 0
+          ? item.sugestoes[0].produto
+          : null);
+      const pd =
+        item.produto_departamento ||
+        (item.sugestoes_departamento && item.sugestoes_departamento.length > 0
+          ? item.sugestoes_departamento[0].produto
+          : null);
+
+      const possuiProduto = isDepartamentoMercearia ? !!pm : !!(pd || pm);
+
       return {
-        selecionado: item.status === "IDENTIFICADO",
+        selecionado: item.status === "IDENTIFICADO" && possuiProduto,
         quantidade: 1,
         produtoMercearia: pm,
-        produtoDepartamentoId: (pd && pd.id) ? pd.id : 0,
+        produtoDepartamento: pd,
       };
     })
   );
 
   const toggleSelecionado = (idx: number) => {
     setItensState((prev) =>
-      prev.map((item, i) => (i === idx ? { ...item, selecionado: !item.selecionado } : item))
+      prev.map((item, i) =>
+        i === idx ? { ...item, selecionado: !item.selecionado } : item
+      )
     );
   };
 
   const setQuantidade = (idx: number, qtd: number) => {
     setItensState((prev) =>
-      prev.map((item, i) => (i === idx ? { ...item, quantidade: Math.max(1, qtd) } : item))
+      prev.map((item, i) =>
+        i === idx ? { ...item, quantidade: Math.max(1, qtd) } : item
+      )
     );
   };
 
-  const selecionarSugestao = (idx: number, pm: ProdutoMercearia) => {
-    // Ao escolher uma sugestão de mercearia, tenta encontrar o produto departamento correspondente
-    const pdMatch = produtosDepartamento.find(
-      (pd) =>
-        pd.produto_generico_id === pm.produto_generico_id &&
-        (departamentoId <= 0 || pd.departamento_id === departamentoId)
-    );
-
+  const selecionarSugestaoMercearia = (idx: number, pm: ProdutoMercearia) => {
     setItensState((prev) =>
       prev.map((item, i) =>
         i === idx
           ? {
               ...item,
               produtoMercearia: pm,
-              produtoDepartamentoId: (pdMatch && pdMatch.id) ? pdMatch.id : 0,
               selecionado: true,
             }
           : item
@@ -79,27 +84,46 @@ export function ScanEtiquetasModal({
     );
   };
 
-  const setProdutoDepartamento = (idx: number, pdId: number) => {
+  const selecionarSugestaoDepartamento = (
+    idx: number,
+    pd: ProdutoDepartamento
+  ) => {
     setItensState((prev) =>
-      prev.map((item, i) => (i === idx ? { ...item, produtoDepartamentoId: pdId } : item))
+      prev.map((item, i) =>
+        i === idx
+          ? {
+              ...item,
+              produtoDepartamento: pd,
+              selecionado: true,
+            }
+          : item
+      )
     );
   };
 
   const handleConfirmar = () => {
-    const itensValidos: Array<{
-      produtoMercearia: ProdutoMercearia;
-      produtoDepartamento?: ProdutoDepartamento;
-      quantidade: number;
-    }> = [];
+    const itensValidos: ItemQuebraScan[] = [];
 
     itensState.forEach((state) => {
-      if (state.selecionado && state.produtoMercearia) {
-        const pd = produtosDepartamento.find((p) => p.id === state.produtoDepartamentoId);
-        itensValidos.push({
-          produtoMercearia: state.produtoMercearia,
-          produtoDepartamento: pd,
-          quantidade: state.quantidade,
-        });
+      if (state.selecionado) {
+        if (isDepartamentoMercearia && state.produtoMercearia) {
+          itensValidos.push({
+            produtoMercearia: state.produtoMercearia,
+            quantidade: state.quantidade,
+          });
+        } else if (!isDepartamentoMercearia) {
+          if (state.produtoDepartamento) {
+            itensValidos.push({
+              produtoDepartamento: state.produtoDepartamento,
+              quantidade: state.quantidade,
+            });
+          } else if (state.produtoMercearia) {
+            itensValidos.push({
+              produtoMercearia: state.produtoMercearia,
+              quantidade: state.quantidade,
+            });
+          }
+        }
       }
     });
 
@@ -107,7 +131,12 @@ export function ScanEtiquetasModal({
     onFechar();
   };
 
-  const totalSelecionados = itensState.filter((it) => it.selecionado && it.produtoMercearia).length;
+  const totalSelecionados = itensState.filter((it) => {
+    if (!it.selecionado) return false;
+    return isDepartamentoMercearia
+      ? !!it.produtoMercearia
+      : !!(it.produtoDepartamento || it.produtoMercearia);
+  }).length;
 
   return (
     <div
@@ -120,13 +149,13 @@ export function ScanEtiquetasModal({
           <div className="modal-header border-bottom px-4 py-3 bg-light">
             <div>
               <h5 className="modal-title fw-bold text-dark d-flex align-items-center gap-2">
-                <span>Leitura de Etiquetas</span>
-                <span className="badge bg-primary rounded-pill small">
+                <span>Leitura de Etiquetas — Quebra</span>
+                <span className="badge bg-danger rounded-pill small">
                   {resultado.total_identificados} de {resultado.total_detectados} identificados
                 </span>
               </h5>
               <p className="text-muted small mb-0">
-                Revise os produtos identificados e confirme a adição à transferência.
+                Revise os itens avariados/quebrados identificados para adicionar à tabela de Quebra.
               </p>
             </div>
             <button type="button" className="btn-close" onClick={onFechar}></button>
@@ -142,13 +171,15 @@ export function ScanEtiquetasModal({
                 {resultado.itens.map((itemOriginal, idx) => {
                   const state = itensState[idx];
                   const pm = state.produtoMercearia;
+                  const pd = state.produtoDepartamento;
+                  const produtoExibido = isDepartamentoMercearia ? pm : (pd || pm);
 
                   return (
                     <div
                       key={idx}
                       className={`border rounded-3 p-3 transition-all ${
                         state.selecionado
-                          ? "border-primary bg-primary-subtle bg-opacity-10"
+                          ? "border-danger bg-danger-subtle bg-opacity-10"
                           : "border-secondary-subtle bg-white"
                       }`}
                     >
@@ -158,7 +189,7 @@ export function ScanEtiquetasModal({
                             type="checkbox"
                             className="form-check-input mt-0"
                             checked={state.selecionado}
-                            disabled={!pm}
+                            disabled={!produtoExibido}
                             onChange={() => toggleSelecionado(idx)}
                             id={`chk-scan-${idx}`}
                           />
@@ -178,7 +209,7 @@ export function ScanEtiquetasModal({
                           )}
                           {itemOriginal.status === "SUGESTAO" && (
                             <span className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">
-                              Sugestão por Confusão Visual
+                              Sugestão de Produto
                             </span>
                           )}
                           {itemOriginal.status === "NAO_ENCONTRADO" && (
@@ -189,41 +220,25 @@ export function ScanEtiquetasModal({
                         </div>
                       </div>
 
-                      {pm ? (
+                      {produtoExibido ? (
                         <div className="row g-2 align-items-center mt-1">
-                          <div className="col-12 col-md-5">
-                            <div className="small fw-semibold text-dark">{pm.descricao}</div>
+                          <div className="col-12 col-md-8">
+                            <div className="small fw-semibold text-dark">
+                              {"descricao" in produtoExibido
+                                ? produtoExibido.descricao
+                                : produtoExibido.nome}
+                            </div>
                             <div className="small text-muted">
-                              SKU: {pm.sku} · Emb: {pm.quantidade_embalagem} {pm.unidade_medida}
+                              {"sku" in produtoExibido
+                                ? `SKU: ${produtoExibido.sku} · C. Barras: ${produtoExibido.codigo_barras || "-"} · Emb: ${produtoExibido.quantidade_embalagem} ${produtoExibido.unidade_medida}`
+                                : `Código: ${produtoExibido.codigo} · Un: ${produtoExibido.unidade_medida}`}
                             </div>
                           </div>
 
                           <div className="col-12 col-md-4">
                             <label className="form-label small text-muted mb-1">
-                              Destino (Departamento)
+                              Qtd. de Quebra (pacotes/unidades)
                             </label>
-                            <select
-                              className="form-select form-select-sm"
-                              value={state.produtoDepartamentoId}
-                              onChange={(e) => setProdutoDepartamento(idx, Number(e.target.value))}
-                            >
-                              <option value={0}>Selecione produto destino...</option>
-                              {produtosDepartamento
-                                .filter(
-                                  (pd) =>
-                                    pd.produto_generico_id === pm.produto_generico_id &&
-                                    (departamentoId <= 0 || pd.departamento_id === departamentoId)
-                                )
-                                .map((pd) => (
-                                  <option key={pd.id} value={pd.id}>
-                                    {pd.nome} ({pd.codigo})
-                                  </option>
-                                ))}
-                            </select>
-                          </div>
-
-                          <div className="col-12 col-md-3">
-                            <label className="form-label small text-muted mb-1">Qtd. pacotes</label>
                             <input
                               type="number"
                               className="form-control form-control-sm"
@@ -236,25 +251,47 @@ export function ScanEtiquetasModal({
                       ) : (
                         <div className="mt-2">
                           <p className="small text-muted mb-1">
-                            Código lido: <strong>{itemOriginal.codigo_lido}</strong>. Não foi encontrado produto com este código na loja atual.
+                            Código lido: <strong>{itemOriginal.codigo_lido}</strong>. Não foi encontrado produto correspondente cadastrado.
                           </p>
                         </div>
                       )}
 
-                      {/* Lista de alternativas se houver sugestões */}
+                      {/* Sugestões de Departamento */}
+                      {itemOriginal.sugestoes_departamento && itemOriginal.sugestoes_departamento.length > 0 && (
+                        <div className="mt-2 pt-2 border-top">
+                          <div className="small text-muted mb-1">Produtos compatíveis no departamento:</div>
+                          <div className="d-flex flex-wrap gap-1">
+                            {itemOriginal.sugestoes_departamento.map((sug, sIdx) => (
+                              <button
+                                key={sIdx}
+                                type="button"
+                                className={`btn btn-sm ${
+                                  pd?.id === sug.produto.id ? "btn-danger" : "btn-outline-secondary"
+                                } py-0 px-2`}
+                                style={{ fontSize: "0.75rem" }}
+                                onClick={() => selecionarSugestaoDepartamento(idx, sug.produto)}
+                              >
+                                {sug.produto.nome} ({sug.produto.codigo})
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Sugestões de Mercearia */}
                       {itemOriginal.sugestoes && itemOriginal.sugestoes.length > 1 && (
                         <div className="mt-2 pt-2 border-top">
-                          <div className="small text-muted mb-1">Outras opções parecidas:</div>
+                          <div className="small text-muted mb-1">Outras opções na mercearia:</div>
                           <div className="d-flex flex-wrap gap-1">
                             {itemOriginal.sugestoes.map((sug, sIdx) => (
                               <button
                                 key={sIdx}
                                 type="button"
                                 className={`btn btn-sm ${
-                                  pm?.id === sug.produto.id ? "btn-primary" : "btn-outline-secondary"
+                                  pm?.id === sug.produto.id ? "btn-danger" : "btn-outline-secondary"
                                 } py-0 px-2`}
                                 style={{ fontSize: "0.75rem" }}
-                                onClick={() => selecionarSugestao(idx, sug.produto)}
+                                onClick={() => selecionarSugestaoMercearia(idx, sug.produto)}
                               >
                                 {sug.produto.descricao} ({sug.produto.sku})
                               </button>
@@ -275,11 +312,11 @@ export function ScanEtiquetasModal({
             </button>
             <button
               type="button"
-              className="btn btn-primary fw-semibold"
+              className="btn btn-danger fw-semibold"
               onClick={handleConfirmar}
               disabled={totalSelecionados === 0}
             >
-              Adicionar {totalSelecionados} {totalSelecionados === 1 ? "item" : "itens"} à Transferência
+              Adicionar {totalSelecionados} {totalSelecionados === 1 ? "item" : "itens"} à Quebra
             </button>
           </div>
         </div>
@@ -287,4 +324,5 @@ export function ScanEtiquetasModal({
     </div>
   );
 }
+
 export default ScanEtiquetasModal;

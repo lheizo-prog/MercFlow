@@ -54,11 +54,15 @@ const LancamentoService = {
   async scanEtiquetas(
     imageFile: File,
     departamentoId?: number,
+    tipo?: string,
   ): Promise<import("../types/ScanEtiquetas").ScanEtiquetasResponse> {
     const formData = new FormData();
     formData.append("image", imageFile);
     if (departamentoId && departamentoId > 0) {
       formData.append("departamento_id", String(departamentoId));
+    }
+    if (tipo) {
+      formData.append("tipo", tipo);
     }
 
     const response = await api.post<import("../types/ScanEtiquetas").ScanEtiquetasResponse>(

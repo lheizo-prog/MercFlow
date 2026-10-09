@@ -378,7 +378,7 @@ func calcularFatorConversao(
 	)
 }
 
-func (s *LancamentoService) ScanEtiquetas(imageBytes []byte, filename string, lojaID int, departamentoID int) (*response.ScanEtiquetasResponse, error) {
+func (s *LancamentoService) ScanEtiquetas(imageBytes []byte, filename string, lojaID int, departamentoID int, tipos ...string) (*response.ScanEtiquetasResponse, error) {
 	if s.labelReaderClient == nil {
 		return nil, errors.New("serviço de leitura de etiquetas não configurado")
 	}
@@ -386,6 +386,21 @@ func (s *LancamentoService) ScanEtiquetas(imageBytes []byte, filename string, lo
 	ocrResp, err := s.labelReaderClient.ProcessImage(imageBytes, filename)
 	if err != nil {
 		return nil, err
+	}
+
+	tipoLancamento := ""
+	if len(tipos) > 0 {
+		tipoLancamento = strings.ToUpper(strings.TrimSpace(tipos[0]))
+	}
+
+	// Verifica se o departamento informado é o departamento de Mercearia
+	isDeptoMercearia := false
+	if s.departamentoRepo != nil && departamentoID > 0 {
+		if dep, err := s.departamentoRepo.BuscarID(departamentoID); err == nil && dep != nil {
+			if strings.EqualFold(strings.TrimSpace(dep.Nome), "mercearia") {
+				isDeptoMercearia = true
+			}
+		}
 	}
 
 	// Carrega produtos da loja para matching em memória/rápido
@@ -419,7 +434,58 @@ func (s *LancamentoService) ScanEtiquetas(imageBytes []byte, filename string, lo
 			continue
 		}
 
-		// 1. Tenta Match Exato por Código de Barras ou SKU
+		// Se a Quebra for em um departamento que NÃO seja a Mercearia,
+		// busca prioritariamente nos produtos daquele departamento
+		if tipoLancamento == "QUEBRA" && departamentoID > 0 && !isDeptoMercearia {
+			var matchExatoD *models.ProdutoDepartamento
+			for _, pd := range produtosD {
+				if pd.DepartamentoID == departamentoID && strings.EqualFold(pd.Codigo, codigoOriginalLimpo) {
+					matchExatoD = pd
+					break
+				}
+			}
+
+			if matchExatoD != nil {
+				item.Status = "IDENTIFICADO"
+				item.ProdutoDepartamento = matchExatoD
+				res.TotalIdentificados++
+				res.Itens = append(res.Itens, item)
+				continue
+			}
+
+			// Variações de confusão visual para Produto do Departamento
+			var sugestoesDept []response.SugestaoProdutoDepartamento
+			for _, varCod := range label.CandidateVariations {
+				varCodLimpo := strings.TrimSpace(varCod)
+				if varCodLimpo == "" || varCodLimpo == codigoOriginalLimpo {
+					continue
+				}
+				for _, pd := range produtosD {
+					if pd.DepartamentoID == departamentoID && strings.EqualFold(pd.Codigo, varCodLimpo) {
+						sugestoesDept = append(sugestoesDept, response.SugestaoProdutoDepartamento{
+							Produto: pd,
+							Score:   0.85,
+							Motivo:  fmt.Sprintf("Variação compatível com '%s'", varCodLimpo),
+						})
+						if len(sugestoesDept) >= 3 {
+							break
+						}
+					}
+				}
+				if len(sugestoesDept) >= 3 {
+					break
+				}
+			}
+
+			if len(sugestoesDept) > 0 {
+				item.Status = "SUGESTAO"
+				item.SugestoesDepartamento = sugestoesDept
+				res.Itens = append(res.Itens, item)
+				continue
+			}
+		}
+
+		// Busca nos produtos da Mercearia (Match Exato por Código de Barras ou SKU)
 		var matchExatoM *models.ProdutoMercearia
 		for _, p := range produtosM {
 			if strings.EqualFold(p.CodigoBarras, codigoOriginalLimpo) || strings.EqualFold(p.SKU, codigoOriginalLimpo) {
@@ -433,7 +499,7 @@ func (s *LancamentoService) ScanEtiquetas(imageBytes []byte, filename string, lo
 			item.ProdutoMercearia = matchExatoM
 			res.TotalIdentificados++
 
-			// Procura produto do departamento com o mesmo produto_generico_id
+			// Procura produto do departamento com o mesmo produto_generico_id se relevante
 			for _, pd := range produtosD {
 				if pd.ProdutoGenericoID == matchExatoM.ProdutoGenericoID {
 					if departamentoID <= 0 || pd.DepartamentoID == departamentoID {
@@ -446,7 +512,7 @@ func (s *LancamentoService) ScanEtiquetas(imageBytes []byte, filename string, lo
 			continue
 		}
 
-		// 2. Se não encontrou exato, testa as variações de confusão visual
+		// Se não encontrou exato na mercearia, testa as variações de confusão visual
 		var sugestoes []response.SugestaoProdutoMercearia
 		for _, varCod := range label.CandidateVariations {
 			varCodLimpo := strings.TrimSpace(varCod)

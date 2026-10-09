@@ -320,7 +320,9 @@ func (h *LancamentoHandler) ScanEtiquetas(ctx *gin.Context) {
 		}
 	}
 
-	resultado, err := h.service.ScanEtiquetas(imageBytes, fileHeader.Filename, lojaID, departamentoID)
+	tipoLancamento := strings.ToUpper(strings.TrimSpace(ctx.PostForm("tipo")))
+
+	resultado, err := h.service.ScanEtiquetas(imageBytes, fileHeader.Filename, lojaID, departamentoID, tipoLancamento)
 	if err != nil {
 		ResponderErro(ctx, err, "não foi possível processar a imagem das etiquetas")
 		return
