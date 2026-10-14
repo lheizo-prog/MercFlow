@@ -90,17 +90,40 @@ function Sidebar({ aberto, onNavegar }: Props) {
     },
   ];
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && aberto) {
+        onNavegar();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [aberto, onNavegar]);
+
   return (
     <aside
       id="menu-principal"
       ref={sidebarRef}
-      className="collapse d-lg-block col-lg-2 p-3"
-      style={{ minHeight: "calc(100vh - 56px)" }}
+      className="collapse d-lg-block col-lg-2 p-3 sidebar-sticky"
+      style={{
+        minHeight: "calc(100vh - 56px)",
+      }}
     >
-      <div className="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom border-secondary border-opacity-25 text-white">
-        <span className="text-secondary small text-uppercase fw-bold" style={{ letterSpacing: "1px", fontSize: "0.75rem" }}>
+      <div className="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-secondary border-opacity-25 text-white">
+        <span
+          className="text-secondary small text-uppercase fw-bold"
+          style={{ letterSpacing: "1px", fontSize: "0.75rem" }}
+        >
           Menu Principal
         </span>
+        {isAdmin && (
+          <span
+            className="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25"
+            style={{ fontSize: "0.65rem" }}
+          >
+            Admin
+          </span>
+        )}
       </div>
       <nav className="nav nav-pills flex-column gap-1">
         {links.map((link) => (
@@ -109,11 +132,11 @@ function Sidebar({ aberto, onNavegar }: Props) {
             to={link.to}
             end={link.to === "/"}
             className={({ isActive }) =>
-              `nav-link ${isActive ? "active" : ""}`
+              `nav-link sidebar-nav-link ${isActive ? "active" : ""}`
             }
             onClick={onNavegar}
           >
-            <span className="d-flex align-items-center">{link.icon}</span>
+            <span className="d-flex align-items-center link-icon">{link.icon}</span>
             <span>{link.label}</span>
           </NavLink>
         ))}

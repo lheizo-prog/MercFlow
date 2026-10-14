@@ -206,6 +206,18 @@ h1, h2, h3, h4, h5, h6 {
 #menu-principal {
   background-color: var(--mf-dark) !important;
   border-right: 1px solid var(--mf-dark-border);
+  z-index: 1030;
+}
+
+@media (min-width: 992px) {
+  .sidebar-sticky {
+    position: sticky !important;
+    top: 56px;
+    height: calc(100vh - 56px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+  }
 }
 
 #menu-principal .nav-link {
@@ -213,7 +225,7 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 500;
   border-radius: var(--mf-radius-sm);
   padding: 0.65rem 0.9rem;
-  transition: var(--mf-transition);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -221,7 +233,16 @@ h1, h2, h3, h4, h5, h6 {
 
 #menu-principal .nav-link:hover {
   color: #ffffff !important;
-  background-color: rgba(255, 255, 255, 0.06);
+  background-color: rgba(255, 255, 255, 0.08);
+  transform: translateX(3px);
+}
+
+#menu-principal .nav-link .link-icon {
+  transition: transform 0.2s ease;
+}
+
+#menu-principal .nav-link:hover .link-icon {
+  transform: scale(1.1);
 }
 
 #menu-principal .nav-link.active {
@@ -229,6 +250,7 @@ h1, h2, h3, h4, h5, h6 {
   background-color: var(--mf-primary) !important;
   font-weight: 600;
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  transform: translateX(0);
 }
 
 /* BottomNav Mobile - Flutuante & Ergonômico */
