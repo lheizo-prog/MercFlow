@@ -115,6 +115,12 @@ interface Props {
   quantidadeRegistros: number;
   totalProdutos: number;
   loading?: boolean;
+  unidadeAtiva?: "TODAS" | "KG" | "UN" | "L";
+  totalPorUnidade?: {
+    kg: number;
+    un: number;
+    l: number;
+  };
 }
 
 export function KPIsGrid({
@@ -122,6 +128,8 @@ export function KPIsGrid({
   quantidadeRegistros,
   totalProdutos,
   loading = false,
+  unidadeAtiva = "TODAS",
+  totalPorUnidade,
 }: Props) {
   if (loading) {
     return (
@@ -152,15 +160,40 @@ export function KPIsGrid({
     );
   }
 
+  // Define valor e subtítulo contextual conforme a unidade selecionada
+  let valorQtd = totalQuantidade;
+  let subtituloQtd = "kg / unidades lançadas";
+
+  if (totalPorUnidade) {
+    if (unidadeAtiva === "KG") {
+      valorQtd = totalPorUnidade.kg;
+      subtituloQtd = "total apurado em peso (kg)";
+    } else if (unidadeAtiva === "UN") {
+      valorQtd = totalPorUnidade.un;
+      subtituloQtd = "total apurado em unidades (peças)";
+    } else if (unidadeAtiva === "L") {
+      valorQtd = totalPorUnidade.l;
+      subtituloQtd = "total apurado em volume (litros)";
+    } else {
+      const partes = [];
+      if (totalPorUnidade.kg > 0) partes.push(`${totalPorUnidade.kg.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} kg`);
+      if (totalPorUnidade.un > 0) partes.push(`${totalPorUnidade.un.toLocaleString("pt-BR")} un`);
+      if (totalPorUnidade.l > 0) partes.push(`${totalPorUnidade.l.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} L`);
+      if (partes.length > 0) {
+        subtituloQtd = partes.join(" · ");
+      }
+    }
+  }
+
   return (
     <div className="row g-3 mb-4">
       <div className="col-12 col-md-4">
         <KPI
-          title="Quantidade Total"
-          value={totalQuantidade}
+          title={unidadeAtiva === "TODAS" ? "Quantidade Total" : `Quantidade (${unidadeAtiva})`}
+          value={valorQtd}
           icon="scale"
           variant="primary"
-          subtitle="kg / unidades lançadas"
+          subtitle={subtituloQtd}
         />
       </div>
       <div className="col-12 col-md-4">

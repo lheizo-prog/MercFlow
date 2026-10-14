@@ -45,12 +45,106 @@ export function ComparativoGraficos({ tipo, ranking, label, cor, altura = 280 }:
       labels: dados.map((i) => i.produto.length > 22 ? i.produto.substring(0, 22) + "..." : i.produto),
       datasets: [{ label, data: dados.map((i) => i.quantidade), backgroundColor: cor, borderColor: cor.replace("0.7", "1").replace("0.85", "1"), borderWidth: 2, borderRadius: 6 }],
     };
-    const options: ChartOptions<"bar"> = { indexAxis: "y", responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: "rgba(0,0,0,0.85)", padding: 12, cornerRadius: 8, callbacks: { label: (ctx: TooltipItem<"bar">) => `${dados[ctx.dataIndex].quantidade.toLocaleString("pt-BR")} ${dados[ctx.dataIndex].unidade}` } } }, scales: { x: { grid: { color: "rgba(0,0,0,0.05)" }, ticks: { font: { size: 11 } } }, y: { grid: { display: false }, ticks: { font: { size: 11 } } } }, animation: { duration: 800 } };
-    return <div style={{ height: altura }}><Bar data={data} options={options} /></div>;
+    const options: ChartOptions<"bar"> = {
+      indexAxis: "y",
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: "rgba(15, 23, 42, 0.9)",
+          padding: 12,
+          cornerRadius: 8,
+          callbacks: {
+            label: (ctx: TooltipItem<"bar">) => {
+              const item = dados[ctx.dataIndex];
+              const isInt = item.unidade.toUpperCase() === "UN" || Number.isInteger(item.quantidade);
+              const qtdFormatada = item.quantidade.toLocaleString("pt-BR", {
+                minimumFractionDigits: isInt ? 0 : 2,
+                maximumFractionDigits: 2,
+              });
+              return `Quantidade: ${qtdFormatada} ${item.unidade}`;
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          grid: { color: "rgba(0,0,0,0.05)" },
+          ticks: {
+            font: { size: 11 },
+            callback: (val) => Number(val).toLocaleString("pt-BR"),
+          },
+        },
+        y: {
+          grid: { display: false },
+          ticks: { font: { size: 11 } },
+        },
+      },
+      animation: { duration: 600 },
+    };
+    return (
+      <div style={{ height: altura }}>
+        <Bar data={data} options={options} />
+      </div>
+    );
   }
 
   const total = dados.reduce((s, i) => s + i.quantidade, 0);
-  const data = { labels: dados.map((i) => i.produto.length > 18 ? i.produto.substring(0, 18) + "..." : i.produto), datasets: [{ data: dados.map((i) => i.quantidade), backgroundColor: dados.map((_, j) => coresPizza[j % coresPizza.length]), borderWidth: 2, hoverOffset: 8 }] };
-  const options: ChartOptions<"doughnut"> = { responsive: true, maintainAspectRatio: false, cutout: "55%", plugins: { legend: { position: "bottom", labels: { padding: 12, usePointStyle: true, pointStyle: "circle", font: { size: 10 } } }, tooltip: { backgroundColor: "rgba(0,0,0,0.85)", padding: 12, cornerRadius: 8, callbacks: { label: (ctx: TooltipItem<"doughnut">) => { const v = ctx.raw as number; const pct = total > 0 ? ((v / total) * 100).toFixed(1) : "0"; return [`${v.toLocaleString("pt-BR")} ${dados[ctx.dataIndex].unidade}`, `Participação: ${pct}%`]; } } } }, animation: { animateRotate: true, animateScale: true, duration: 800 } };
-  return <div style={{ height: altura }}><Doughnut data={data} options={options} /></div>;
+  const data = {
+    labels: dados.map((i) =>
+      i.produto.length > 18 ? i.produto.substring(0, 18) + "..." : i.produto
+    ),
+    datasets: [
+      {
+        data: dados.map((i) => i.quantidade),
+        backgroundColor: dados.map((_, j) => coresPizza[j % coresPizza.length]),
+        borderWidth: 2,
+        hoverOffset: 8,
+      },
+    ],
+  };
+  const options: ChartOptions<"doughnut"> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: "55%",
+    plugins: {
+      legend: {
+        position: "bottom",
+        labels: {
+          padding: 12,
+          usePointStyle: true,
+          pointStyle: "circle",
+          font: { size: 10 },
+        },
+      },
+      tooltip: {
+        backgroundColor: "rgba(15, 23, 42, 0.9)",
+        padding: 12,
+        cornerRadius: 8,
+        callbacks: {
+          label: (ctx: TooltipItem<"doughnut">) => {
+            const v = ctx.raw as number;
+            const item = dados[ctx.dataIndex];
+            const isInt = item.unidade.toUpperCase() === "UN" || Number.isInteger(v);
+            const qtdFormatada = v.toLocaleString("pt-BR", {
+              minimumFractionDigits: isInt ? 0 : 2,
+              maximumFractionDigits: 2,
+            });
+            const pct = total > 0 ? ((v / total) * 100).toFixed(1) : "0";
+            return [
+              `${qtdFormatada} ${item.unidade}`,
+              `Participação: ${pct}%`,
+            ];
+          },
+        },
+      },
+    },
+    animation: { animateRotate: true, animateScale: true, duration: 600 },
+  };
+  return (
+    <div style={{ height: altura }}>
+      <Doughnut data={data} options={options} />
+    </div>
+  );
 }

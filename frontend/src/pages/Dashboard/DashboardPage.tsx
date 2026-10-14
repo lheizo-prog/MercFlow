@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Container, Button } from "react-bootstrap";
 import dashboardService from "../../services/dashboardService";
 import departamentoService from "../../services/departamentoService";
@@ -43,6 +43,58 @@ function DashboardPage() {
     departamentoId: 0,
     produtoGenericoId: 0,
   });
+  const [unidadeAtiva, setUnidadeAtiva] = useState<"TODAS" | "KG" | "UN" | "L">("TODAS");
+
+  // Decompõe os totais de quantidade por unidade a partir dos dados do ranking
+  const totalPorUnidade = useMemo(() => {
+    let kg = 0;
+    let un = 0;
+    let l = 0;
+    dashboard.ranking.forEach((item) => {
+      const u = item.unidade.toUpperCase();
+      if (u === "KG" || u === "G" || u === "GR") {
+        kg += item.quantidade;
+      } else if (u === "UN") {
+        un += item.quantidade;
+      } else if (u === "L" || u === "ML") {
+        l += item.quantidade;
+      }
+    });
+    return { kg, un, l };
+  }, [dashboard.ranking]);
+
+  // Filtra o ranking exibido nos gráficos conforme a unidade selecionada
+  const rankingFiltrado = useMemo(() => {
+    if (unidadeAtiva === "TODAS") {
+      return dashboard.ranking;
+    }
+    return dashboard.ranking.filter((item) => {
+      const u = item.unidade.toUpperCase();
+      if (unidadeAtiva === "KG") return u === "KG" || u === "G" || u === "GR";
+      if (unidadeAtiva === "UN") return u === "UN";
+      if (unidadeAtiva === "L") return u === "L" || u === "ML";
+      return true;
+    });
+  }, [dashboard.ranking, unidadeAtiva]);
+
+  // Contadores para as badges das abas
+  const contadoresUnidade = useMemo(() => {
+    let kgCount = 0;
+    let unCount = 0;
+    let lCount = 0;
+    dashboard.ranking.forEach((item) => {
+      const u = item.unidade.toUpperCase();
+      if (u === "KG" || u === "G" || u === "GR") kgCount++;
+      else if (u === "UN") unCount++;
+      else if (u === "L" || u === "ML") lCount++;
+    });
+    return {
+      todas: dashboard.ranking.length,
+      kg: kgCount,
+      un: unCount,
+      l: lCount,
+    };
+  }, [dashboard.ranking]);
 
   const carregarDepartamentos = useCallback(() => {
     departamentoService
@@ -208,6 +260,8 @@ function DashboardPage() {
         quantidadeRegistros={dashboard.resumo.quantidade_registros}
         totalProdutos={totalProdutos}
         loading={loading}
+        unidadeAtiva={unidadeAtiva}
+        totalPorUnidade={totalPorUnidade}
       />
 
       {/* Seção de Filtros */}
@@ -223,7 +277,7 @@ function DashboardPage() {
       <div className="row g-4">
         <div className="col-12">
           <div className="card border-0 shadow-sm h-100 overflow-hidden">
-            <div className="card-header bg-white border-bottom py-3 px-4 d-flex align-items-center justify-content-between">
+            <div className="card-header bg-white border-bottom py-3 px-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
               <div className="d-flex align-items-center gap-2">
                 <span className="p-2 rounded-2 bg-primary-subtle text-primary d-inline-flex">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -232,21 +286,138 @@ function DashboardPage() {
                 </span>
                 <div>
                   <h5 className="mb-0 fw-bold text-dark" style={{ fontSize: "1.05rem" }}>Ranking e Distribuição de Produtos</h5>
-                  <small className="text-secondary">Top produtos com maiores movimentações</small>
+                  <small className="text-secondary">
+                    {unidadeAtiva === "TODAS"
+                      ? "Top produtos com maiores movimentações (todas as unidades)"
+                      : unidadeAtiva === "KG"
+                      ? "Top produtos ponderados por Peso em Quilos (KG)"
+                      : unidadeAtiva === "UN"
+                      ? "Top produtos ponderados por Quantidade de Peças/Unidades (UN)"
+                      : "Top produtos ponderados por Volume em Litros (L)"}
+                  </small>
                 </div>
               </div>
+
+              {/* Seletor de Unidades (Segmented Control / Abas) */}
+              <div
+                className="btn-group p-1 bg-light border rounded-pill shadow-xs align-self-start align-self-md-auto"
+                role="group"
+                aria-label="Filtrar por unidade de medida"
+              >
+                <button
+                  type="button"
+                  className={`btn btn-sm rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1 ${
+                    unidadeAtiva === "TODAS"
+                      ? "btn-primary text-white shadow-xs"
+                      : "btn-light text-secondary border-0 bg-transparent"
+                  }`}
+                  style={{ fontSize: "0.8rem" }}
+                  onClick={() => setUnidadeAtiva("TODAS")}
+                >
+                  <span>Todas</span>
+                  <span
+                    className={`badge rounded-pill ${
+                      unidadeAtiva === "TODAS" ? "bg-white text-primary" : "bg-secondary bg-opacity-25 text-secondary"
+                    }`}
+                    style={{ fontSize: "0.68rem" }}
+                  >
+                    {contadoresUnidade.todas}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  className={`btn btn-sm rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1 ${
+                    unidadeAtiva === "KG"
+                      ? "btn-primary text-white shadow-xs"
+                      : "btn-light text-secondary border-0 bg-transparent"
+                  }`}
+                  style={{ fontSize: "0.8rem" }}
+                  onClick={() => setUnidadeAtiva("KG")}
+                  disabled={contadoresUnidade.kg === 0}
+                  title="Exibir apenas produtos medidos em Quilos (KG/G)"
+                >
+                  <span>⚖️ Peso (KG)</span>
+                  <span
+                    className={`badge rounded-pill ${
+                      unidadeAtiva === "KG" ? "bg-white text-primary" : "bg-secondary bg-opacity-25 text-secondary"
+                    }`}
+                    style={{ fontSize: "0.68rem" }}
+                  >
+                    {contadoresUnidade.kg}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  className={`btn btn-sm rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1 ${
+                    unidadeAtiva === "UN"
+                      ? "btn-primary text-white shadow-xs"
+                      : "btn-light text-secondary border-0 bg-transparent"
+                  }`}
+                  style={{ fontSize: "0.8rem" }}
+                  onClick={() => setUnidadeAtiva("UN")}
+                  disabled={contadoresUnidade.un === 0}
+                  title="Exibir apenas produtos medidos em Unidades (UN)"
+                >
+                  <span>📦 Unidades (UN)</span>
+                  <span
+                    className={`badge rounded-pill ${
+                      unidadeAtiva === "UN" ? "bg-white text-primary" : "bg-secondary bg-opacity-25 text-secondary"
+                    }`}
+                    style={{ fontSize: "0.68rem" }}
+                  >
+                    {contadoresUnidade.un}
+                  </span>
+                </button>
+
+                {contadoresUnidade.l > 0 && (
+                  <button
+                    type="button"
+                    className={`btn btn-sm rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1 ${
+                      unidadeAtiva === "L"
+                        ? "btn-primary text-white shadow-xs"
+                        : "btn-light text-secondary border-0 bg-transparent"
+                    }`}
+                    style={{ fontSize: "0.8rem" }}
+                    onClick={() => setUnidadeAtiva("L")}
+                    title="Exibir apenas produtos medidos em Litros (L/ML)"
+                  >
+                    <span>🥛 Volume (L)</span>
+                    <span
+                      className={`badge rounded-pill ${
+                        unidadeAtiva === "L" ? "bg-white text-primary" : "bg-secondary bg-opacity-25 text-secondary"
+                      }`}
+                      style={{ fontSize: "0.68rem" }}
+                    >
+                      {contadoresUnidade.l}
+                    </span>
+                  </button>
+                )}
+              </div>
             </div>
+
             <div className="card-body p-4">
-              {dashboard.ranking.length > 0 ? (
+              {rankingFiltrado.length > 0 ? (
                 <div className="row g-4">
                   <div className="col-12 col-lg-7">
                     <div className="p-3 bg-light rounded-3 h-100 border">
-                      <GraficoBarras ranking={dashboard.ranking} titulo="Top 10 Produtos por Quantidade" />
+                      <GraficoBarras
+                        ranking={rankingFiltrado}
+                        titulo={`Top 10 Produtos por Quantidade ${
+                          unidadeAtiva !== "TODAS" ? `(${unidadeAtiva})` : ""
+                        }`}
+                      />
                     </div>
                   </div>
                   <div className="col-12 col-lg-5">
                     <div className="p-3 bg-light rounded-3 h-100 border">
-                      <GraficoPizza ranking={dashboard.ranking} titulo="Distribuição Percentual" />
+                      <GraficoPizza
+                        ranking={rankingFiltrado}
+                        titulo={`Distribuição Percentual ${
+                          unidadeAtiva !== "TODAS" ? `(${unidadeAtiva})` : ""
+                        }`}
+                      />
                     </div>
                   </div>
                 </div>
@@ -264,9 +435,13 @@ function DashboardPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   </div>
-                  <h6 className="fw-semibold text-dark">Nenhum dado encontrado</h6>
+                  <h6 className="fw-semibold text-dark">
+                    Nenhum produto encontrado {unidadeAtiva !== "TODAS" ? `com unidade ${unidadeAtiva}` : ""}
+                  </h6>
                   <p className="mb-0 small text-secondary">
-                    Ajuste o período ou os filtros selecionados para visualizar os gráficos.
+                    {unidadeAtiva !== "TODAS"
+                      ? "Alterne para outra aba de unidade ou selecione 'Todas' para ver os demais produtos."
+                      : "Ajuste o período ou os filtros selecionados para visualizar os gráficos."}
                   </p>
                 </div>
               )}
