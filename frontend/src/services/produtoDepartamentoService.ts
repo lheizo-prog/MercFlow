@@ -26,6 +26,17 @@ const produtoDService = {
   async excluir(id: number): Promise<void> {
     return api.delete(`/produtos_d/id/${id}`);
   },
+
+  async atualizarProdutoBaseEmLote(
+    produtosDepartamentoIds: number[],
+    novoProdutoGenericoId: number
+  ): Promise<{ mensagem: string; total_atualizados: number; novo_produto_base_id: number }> {
+    const response = await api.put("/produtos_d/produto-base", {
+      produtos_departamento_ids: produtosDepartamentoIds,
+      novo_produto_generico_id: novoProdutoGenericoId,
+    });
+    return response.data;
+  },
 };
 
 export default produtoDService;

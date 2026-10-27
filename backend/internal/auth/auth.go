@@ -10,6 +10,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -116,6 +117,15 @@ func HasPermission(permissions []string, permission string) bool {
 	return false
 }
 
+func getTokenExpirationDuration() time.Duration {
+	if val := os.Getenv("JWT_EXPIRATION_HOURS"); val != "" {
+		if hours, err := strconv.Atoi(val); err == nil && hours > 0 {
+			return time.Duration(hours) * time.Hour
+		}
+	}
+	return 12 * time.Hour
+}
+
 func GenerateTokenForUser(user User) (string, error) {
 	header := map[string]string{"alg": "HS256", "typ": "JWT"}
 	claims := Claims{
@@ -126,7 +136,7 @@ func GenerateTokenForUser(user User) (string, error) {
 		Role:        user.Role,
 		Permissions: user.Permissions,
 		Iat:         time.Now().Unix(),
-		Exp:         time.Now().Add(2 * time.Hour).Unix(),
+		Exp:         time.Now().Add(getTokenExpirationDuration()).Unix(),
 	}
 
 	headerJSON, err := json.Marshal(header)

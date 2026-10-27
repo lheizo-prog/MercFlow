@@ -2,6 +2,7 @@ import axios from "axios";
 
 import {
   useEffect,
+  useRef,
   useState,
   type ChangeEvent,
   type SyntheticEvent,
@@ -97,6 +98,22 @@ function LancamentoForm({
     produto: ProdutoDepartamento | ProdutoMercearia,
   ): produto is ProdutoDepartamento =>
     "departamento_id" in produto && "nome" in produto && "codigo" in produto;
+
+  const produtoMerceariaInputRef = useRef<HTMLInputElement>(null);
+  const produtoDepartamentoInputRef = useRef<HTMLInputElement>(null);
+  const quantidadeInputRef = useRef<HTMLInputElement>(null);
+
+  function focarPrimeiroCampo() {
+    setTimeout(() => {
+      if (isQuebra && !isDepartamentoMercearia) {
+        produtoDepartamentoInputRef.current?.focus();
+        produtoDepartamentoInputRef.current?.select();
+      } else {
+        produtoMerceariaInputRef.current?.focus();
+        produtoMerceariaInputRef.current?.select();
+      }
+    }, 50);
+  }
 
   useEffect(() => {
     if (lancamento) {
@@ -371,6 +388,11 @@ function LancamentoForm({
       fatorConversao: 0,
       totalLancado: 0,
     }));
+
+    setTimeout(() => {
+      quantidadeInputRef.current?.focus();
+      quantidadeInputRef.current?.select();
+    }, 50);
   }
 
   function handleProdutoDepartamentoBuscaChange(
@@ -462,6 +484,16 @@ function LancamentoForm({
       fatorConversao: 0,
       totalLancado: 0,
     }));
+
+    setTimeout(() => {
+      if (!isQuebra) {
+        produtoDepartamentoInputRef.current?.focus();
+        produtoDepartamentoInputRef.current?.select();
+      } else {
+        quantidadeInputRef.current?.focus();
+        quantidadeInputRef.current?.select();
+      }
+    }, 50);
   }
 
   function handleProdutoMerceariaBuscaChange(e: ChangeEvent<HTMLInputElement>) {
@@ -573,8 +605,11 @@ function LancamentoForm({
       fatorConversao: 0,
       totalLancado: 0,
     });
+    setProdutoMerceariaBusca("");
+    setMostrarSugestoesMercearia(false);
     setProdutoDepartamentoBusca("");
     setMostrarSugestoesDepartamento(false);
+    focarPrimeiroCampo();
   }
 
   function removerItem(index: number) {
@@ -875,6 +910,14 @@ function LancamentoForm({
     <>
       <form
         onSubmit={handleSubmit}
+        onKeyDown={(e) => {
+          if (
+            e.key === "Enter" &&
+            (e.target as HTMLElement).tagName === "INPUT"
+          ) {
+            e.preventDefault();
+          }
+        }}
         className="card shadow-sm border-0 rounded-3 p-3 p-md-4"
       >
         <div className="row g-3 g-md-4">
@@ -934,6 +977,7 @@ function LancamentoForm({
               </label>
 
               <input
+                ref={produtoMerceariaInputRef}
                 id="produtoMerceariaBusca"
                 type="text"
                 className="form-control"
@@ -944,6 +988,22 @@ function LancamentoForm({
                   produtoMerceariaBusca.trim() &&
                   setMostrarSugestoesMercearia(true)
                 }
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    const lista =
+                      isQuebra && !isDepartamentoMercearia
+                        ? produtosDepartamentoBuscaFiltrados
+                        : produtosMerceariaFiltrados;
+                    if (mostrarSugestoesMercearia && lista.length > 0) {
+                      const p = lista[0];
+                      selecionarProdutoMercearia(
+                        p.id ?? 0,
+                        isProdutoDepartamento(p) ? "departamento" : "mercearia",
+                      );
+                    }
+                  }
+                }}
                 autoComplete="off"
                 disabled={isQuebra && !isDepartamentoMercearia}
               />
@@ -1011,6 +1071,7 @@ function LancamentoForm({
               </label>
 
               <input
+                ref={produtoMerceariaInputRef}
                 id="produtoMerceariaBusca"
                 type="text"
                 className="form-control"
@@ -1021,6 +1082,18 @@ function LancamentoForm({
                   produtoMerceariaBusca.trim() &&
                   setMostrarSugestoesMercearia(true)
                 }
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    if (
+                      mostrarSugestoesMercearia &&
+                      produtosMerceariaFiltrados.length > 0
+                    ) {
+                      const p = produtosMerceariaFiltrados[0];
+                      selecionarProdutoMercearia(p.id ?? 0, "mercearia");
+                    }
+                  }
+                }}
                 autoComplete="off"
               />
 
@@ -1067,6 +1140,7 @@ function LancamentoForm({
             </label>
 
             <input
+              ref={produtoDepartamentoInputRef}
               id="produtoDepartamentoBusca"
               type="text"
               className="form-control"
@@ -1077,6 +1151,18 @@ function LancamentoForm({
                 produtoDepartamentoBusca.trim() &&
                 setMostrarSugestoesDepartamento(true)
               }
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  if (
+                    mostrarSugestoesDepartamento &&
+                    produtosDepartamentoBuscaFiltrados.length > 0
+                  ) {
+                    const p = produtosDepartamentoBuscaFiltrados[0];
+                    selecionarProdutoDepartamento(p.id ?? 0);
+                  }
+                }
+              }}
               autoComplete="off"
               disabled={isQuebra && isDepartamentoMercearia}
             />
@@ -1124,6 +1210,7 @@ function LancamentoForm({
             </label>
 
             <input
+              ref={quantidadeInputRef}
               id="quantidade"
               name="quantidade"
               type="number"
@@ -1132,6 +1219,12 @@ function LancamentoForm({
               className="form-control"
               value={itemAtual.quantidade}
               onChange={handleItemChange}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  adicionarItem();
+                }
+              }}
             />
           </div>
 

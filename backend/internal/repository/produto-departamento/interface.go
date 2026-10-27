@@ -12,6 +12,7 @@ type ProdutoDepartamentoRepository interface {
 	BuscarInativo(departamentoID, produtoGenericoID int, codigo string) (*models.ProdutoDepartamento, error)
 	Reativar(id int) error
 	Atualizar(produto *models.ProdutoDepartamento) (*models.ProdutoDepartamento, error)
+	AtualizarProdutoBaseEmLote(ids []int, novoProdutoGenericoID, lojaID int) (int64, error)
 	Listar() ([]*models.ProdutoDepartamento, error)
 	ListarPorLoja(lojaID int) ([]*models.ProdutoDepartamento, error)
 }

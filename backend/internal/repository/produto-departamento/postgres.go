@@ -85,6 +85,27 @@ func (r *PostgresProdutoDepartamentoRepository) Atualizar(p *models.ProdutoDepar
 	return p, nil
 }
 
+func (r *PostgresProdutoDepartamentoRepository) AtualizarProdutoBaseEmLote(ids []int, novoProdutoGenericoID, lojaID int) (int64, error) {
+	if len(ids) == 0 {
+		return 0, nil
+	}
+
+	query := `
+		UPDATE produtos_departamento
+		SET produto_generico_id = $1
+		WHERE id = ANY($2)
+		  AND loja_id = $3
+		  AND ativo = TRUE
+	`
+
+	response, err := r.db.Exec(context.Background(), query, novoProdutoGenericoID, ids, lojaID)
+	if err != nil {
+		return 0, err
+	}
+
+	return response.RowsAffected(), nil
+}
+
 func (r *PostgresProdutoDepartamentoRepository) Listar() ([]*models.ProdutoDepartamento, error) {
 	rows, err := r.db.Query(
 		context.Background(),

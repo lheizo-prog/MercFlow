@@ -54,6 +54,28 @@ func (s *ProdutoDepartamentoService) Atualizar(p *models.ProdutoDepartamento, lo
 	return s.ProdutoDepartamentoRepo.Atualizar(p)
 }
 
+func (s *ProdutoDepartamentoService) AtualizarProdutoBaseEmLote(ids []int, novoProdutoGenericoID int, lojas ...int) (int64, error) {
+	if len(ids) == 0 {
+		return 0, errors.New("nenhum produto selecionado")
+	}
+	if novoProdutoGenericoID <= 0 {
+		return 0, errors.New("produto base inválido")
+	}
+
+	lojaID := lojaSolicitada(lojas)
+
+	// Valida se o produto genérico existe e pertence à mesma loja
+	produtoGenerico, err := s.ProdutoRepo.BuscarID(novoProdutoGenericoID)
+	if err != nil {
+		return 0, errors.New("produto base não encontrado")
+	}
+	if !pertenceALoja(lojaID, produtoGenerico.LojaID) {
+		return 0, erroAcessoLoja()
+	}
+
+	return s.ProdutoDepartamentoRepo.AtualizarProdutoBaseEmLote(ids, novoProdutoGenericoID, lojaID)
+}
+
 func (s *ProdutoDepartamentoService) RemoverID(id int, lojas ...int) error {
 	if id <= 0 {
 		return errors.New("ID inválido")

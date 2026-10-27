@@ -28,8 +28,8 @@ func (h *ProdutoDepartamentoHandler) HandleProdutosDepartamento(router gin.IRout
 	produtos_departamento.GET("/:id", auth.RequirePermission("produto.read"), h.BuscarID)
 	produtos_departamento.GET("/codigo/:codigo", auth.RequirePermission("produto.read"), h.BuscarCodigo)
 	produtos_departamento.PUT("/id/:id", auth.RequirePermission("produto.update"), h.Atualizar)
+	produtos_departamento.PUT("/produto-base", auth.RequirePermission("produto.update"), h.AtualizarProdutoBaseEmLote)
 	produtos_departamento.DELETE("/id/:id", auth.RequirePermission("produto.update"), h.RemoverID)
-
 }
 
 func (h *ProdutoDepartamentoHandler) Criar(ctx *gin.Context) {
@@ -185,4 +185,53 @@ func (h *ProdutoDepartamentoHandler) BuscarCodigo(ctx *gin.Context) {
 	}
 
 	ctx.JSON(200, produto)
+}
+
+type AtualizarProdutoBaseLoteRequest struct {
+	ProdutosDepartamentoIDs []int `json:"produtos_departamento_ids"`
+	NovoProdutoGenericoID   int   `json:"novo_produto_generico_id"`
+}
+
+func (h *ProdutoDepartamentoHandler) AtualizarProdutoBaseEmLote(ctx *gin.Context) {
+	var req AtualizarProdutoBaseLoteRequest
+	if err := ctx.BindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro": "payload JSON inválido",
+		})
+		return
+	}
+
+	if len(req.ProdutosDepartamentoIDs) == 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro": "nenhum produto selecionado",
+		})
+		return
+	}
+
+	if req.NovoProdutoGenericoID <= 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro": "novo produto base não informado",
+		})
+		return
+	}
+
+	lojaID, ok := lojaDoUsuario(ctx)
+	if !ok {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"erro": "usuário não autenticado"})
+		return
+	}
+
+	totalAtualizados, err := h.service.AtualizarProdutoBaseEmLote(req.ProdutosDepartamentoIDs, req.NovoProdutoGenericoID, lojaID)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"erro": err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"mensagem":            "produtos base atualizados com sucesso",
+		"total_atualizados":   totalAtualizados,
+		"novo_produto_base_id": req.NovoProdutoGenericoID,
+	})
 }

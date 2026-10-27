@@ -95,6 +95,9 @@ func (d *produtoDepartamentoRepositoryMock) BuscarInativo(departamentoID, produt
 func (d *produtoDepartamentoRepositoryMock) Reativar(id int) error {
 	return d.err
 }
+func (d *produtoDepartamentoRepositoryMock) AtualizarProdutoBaseEmLote(ids []int, novoProdutoGenericoID, lojaID int) (int64, error) {
+	return int64(len(ids)), d.err
+}
 
 // Lançamento
 func (l *lancamentoRepositoryMock) Criar(lancamento *models.Lancamento) (*models.Lancamento, error) {
