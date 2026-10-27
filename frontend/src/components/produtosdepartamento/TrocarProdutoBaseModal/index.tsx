@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { ProdutoDepartamento } from "../../../types/ProdutoDepartamento";
 import type { ProdutoGenerico } from "../../../types/ProdutoGenerico";
+import { normalizarTexto } from "../../../utils/format";
 
 interface TrocarProdutoBaseModalProps {
   aberto: boolean;
@@ -25,7 +26,7 @@ export function TrocarProdutoBaseModal({
   if (!aberto) return null;
 
   const produtosGenericosFiltrados = produtosGenericos.filter((pg) =>
-    pg.nome.toLowerCase().includes(filtroBase.trim().toLowerCase())
+    normalizarTexto(pg.nome).includes(normalizarTexto(filtroBase))
   );
 
   const produtoBaseEscolhido = produtosGenericos.find((p) => p.id === novoProdutoId);

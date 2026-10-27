@@ -4,7 +4,7 @@ import { useComparativo } from "../../hooks/useComparativo";
 import { ComparativoGraficos } from "./GraficosComparativo";
 import { TabelaComparativa } from "./TabelaComparativa";
 import { ExportarComparativo } from "./ExportarComparativo";
-import { formatarRange } from "../../utils/format";
+import { formatarRange, normalizarTexto } from "../../utils/format";
 
 type TipoGrafico = "barras" | "pizza";
 
@@ -18,8 +18,8 @@ export function ComparativoModal({ onClose }: { onClose: () => void }) {
   const [tipoGrafico, setTipoGrafico] = useState<TipoGrafico>("barras");
   const [filtroProduto, setFiltroProduto] = useState("");
 
-  const rankingA = useMemo(() => filtroProduto.trim() ? (dadoA?.ranking.filter((i) => i.produto.toLowerCase().includes(filtroProduto.toLowerCase())) ?? []) : (dadoA?.ranking ?? []), [dadoA, filtroProduto]);
-  const rankingB = useMemo(() => filtroProduto.trim() ? (dadoB?.ranking.filter((i) => i.produto.toLowerCase().includes(filtroProduto.toLowerCase())) ?? []) : (dadoB?.ranking ?? []), [dadoB, filtroProduto]);
+  const rankingA = useMemo(() => filtroProduto.trim() ? (dadoA?.ranking.filter((i) => normalizarTexto(i.produto).includes(normalizarTexto(filtroProduto))) ?? []) : (dadoA?.ranking ?? []), [dadoA, filtroProduto]);
+  const rankingB = useMemo(() => filtroProduto.trim() ? (dadoB?.ranking.filter((i) => normalizarTexto(i.produto).includes(normalizarTexto(filtroProduto))) ?? []) : (dadoB?.ranking ?? []), [dadoB, filtroProduto]);
 
   const variacao = useMemo<VariacaoInfo | null>(() => {
     if (!config || config.modo !== "mesma_loja" || !dadoA || !dadoB) return null;

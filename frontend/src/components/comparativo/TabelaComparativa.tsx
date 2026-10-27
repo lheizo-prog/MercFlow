@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import type { RankingItem } from "../../types/Comparativo";
+import { normalizarTexto } from "../../utils/format";
 
 type ColunaOrdenacao = "produto" | "qtdA" | "qtdB" | "delta";
 
@@ -62,7 +63,9 @@ export function TabelaComparativa({ rankingA, rankingB, labelA, labelB }: Props)
   }, [rankingA, rankingB]);
 
   const linhasFiltradas = useMemo(() => {
-    const filtradas = busca.trim() ? linhas.filter((l) => l.produto.toLowerCase().includes(busca.toLowerCase())) : linhas;
+    const filtradas = busca.trim()
+      ? linhas.filter((l) => normalizarTexto(l.produto).includes(normalizarTexto(busca)))
+      : linhas;
     return [...filtradas].sort((a, b) => {
       const dir = direcao === "desc" ? -1 : 1;
       switch (ordenacao) {

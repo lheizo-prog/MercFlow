@@ -4,6 +4,7 @@ import produtoDepartamentoService from "../../services/produtoDepartamentoServic
 import produtoService from "../../services/produtoGenericoService";
 import departamentoService from "../../services/departamentoService";
 import { useRefetchOnFocus } from "../../hooks/useRefetchOnFocus";
+import { normalizarTexto } from "../../utils/format";
 
 import type { ProdutoDepartamento } from "../../types/ProdutoDepartamento";
 import type { ProdutoGenerico } from "../../types/ProdutoGenerico";
@@ -200,13 +201,13 @@ function ProdutoDepartamentoPage() {
   }
 
   const produtosFiltrados = produtosDepartamento.filter((produto) => {
-    const termo = pesquisa.trim().toLocaleLowerCase();
+    const termo = normalizarTexto(pesquisa);
 
     if (!termo) return true;
 
     return (
-      produto.nome.toLowerCase().includes(termo) ||
-      produto.codigo.toLowerCase().includes(termo)
+      normalizarTexto(produto.nome).includes(termo) ||
+      normalizarTexto(produto.codigo).includes(termo)
     );
   });
 

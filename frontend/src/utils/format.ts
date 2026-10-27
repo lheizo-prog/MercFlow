@@ -31,3 +31,12 @@ export function formatarQuantidade(valor: number, casas = 2): string {
   });
 }
 
+export function normalizarTexto(texto: string): string {
+  if (!texto) return "";
+  return texto
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+

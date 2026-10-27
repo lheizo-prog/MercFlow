@@ -3,6 +3,7 @@ import produtoService from "../../services/produtoGenericoService";
 import type { ProdutoGenerico } from "../../types/ProdutoGenerico";
 import TabelaProdutos from "../../components/produtogenerico/TabelaProdutos";
 import ProdutoModal from "../../components/produtogenerico/ProdutoModal";
+import { normalizarTexto } from "../../utils/format";
 
 function ProdutosPage() {
   const [produtos, setProdutos] = useState<ProdutoGenerico[]>([]);
@@ -81,15 +82,15 @@ function ProdutosPage() {
   }
 
   const produtosFiltrados = produtos.filter((produto) => {
-    const termo = pesquisa.trim().toLowerCase();
+    const termo = normalizarTexto(pesquisa);
 
     if (!termo) {
       return true;
     }
 
     return (
-      produto.nome.toLowerCase().includes(termo) ||
-      produto.codigo.toLowerCase().includes(termo) ||
+      normalizarTexto(produto.nome).includes(termo) ||
+      normalizarTexto(produto.codigo).includes(termo) ||
       String(produto.id).includes(termo)
     );
   });

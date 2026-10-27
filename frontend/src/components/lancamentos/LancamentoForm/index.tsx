@@ -18,7 +18,11 @@ import type { ProdutoMercearia } from "../../../types/ProdutoMercearia";
 import type { ProdutoDepartamento } from "../../../types/ProdutoDepartamento";
 
 import LancamentoService from "../../../services/lancamentoService";
-import { arredondarQuantidade, formatarQuantidade } from "../../../utils/format";
+import {
+  arredondarQuantidade,
+  formatarQuantidade,
+  normalizarTexto,
+} from "../../../utils/format";
 import ScanEtiquetasModal, { type ItemQuebraScan } from "../ScanEtiquetasModal";
 import type { ScanEtiquetasResponse } from "../../../types/ScanEtiquetas";
 
@@ -249,8 +253,8 @@ function LancamentoForm({
       : produtosDepartamento;
 
   function calcularSimilaridade(termo: string, valor: string) {
-    const busca = termo.trim().toLowerCase();
-    const texto = valor.toLowerCase();
+    const busca = normalizarTexto(termo);
+    const texto = normalizarTexto(valor);
 
     if (!busca) {
       return 0;
@@ -276,7 +280,7 @@ function LancamentoForm({
     termo: string,
     obterValores: (item: T) => string[],
   ) {
-    const busca = termo.trim().toLowerCase();
+    const busca = normalizarTexto(termo);
 
     if (!busca) {
       return lista;
@@ -307,7 +311,7 @@ function LancamentoForm({
       produto.marca,
     ],
   ).filter((produto) => {
-    const termo = produtoMerceariaBusca.trim().toLowerCase();
+    const termo = normalizarTexto(produtoMerceariaBusca);
 
     if (!termo) {
       return true;
@@ -320,7 +324,7 @@ function LancamentoForm({
       produto.marca,
     ].filter((valor): valor is string => Boolean(valor));
 
-    return valores.some((valor) => valor.toLowerCase().includes(termo));
+    return valores.some((valor) => normalizarTexto(valor).includes(termo));
   });
 
   const produtosDepartamentoBuscaFiltrados = ordenarPorSimilaridade(
@@ -333,7 +337,7 @@ function LancamentoForm({
       (produto as ProdutoDepartamento & { sku?: string }).sku ?? "",
     ],
   ).filter((produto) => {
-    const termo = produtoDepartamentoBusca.trim().toLowerCase();
+    const termo = normalizarTexto(produtoDepartamentoBusca);
 
     if (!termo) {
       return true;
@@ -346,7 +350,7 @@ function LancamentoForm({
       (produto as ProdutoDepartamento & { sku?: string }).sku ?? "",
     ].filter((valor): valor is string => Boolean(valor));
 
-    return valores.some((valor) => valor.toLowerCase().includes(termo));
+    return valores.some((valor) => normalizarTexto(valor).includes(termo));
   });
 
   const produtoMerceariaSelecionadoAtual =
