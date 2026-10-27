@@ -748,71 +748,67 @@ function LancamentoForm({
       return str;
     };
 
-    let cabecalho = "";
-    let linhas: string[] = [];
+    const isTransferencia = form.tipo === "TRANSFERENCIA";
+    const cabecalho = isTransferencia
+      ? "Descrição;Codigo Saida;Codigo Entrada;Quantidade;Unidade Medida;Fator de Conversao"
+      : "Descrição;Codigo Saida;Quantidade;Unidade de Medida;Total";
 
-    if (form.tipo === "TRANSFERENCIA") {
-      // Descrição | Codigo Saida | Codigo Entrada | Quantidade | Unidade Medida(Ambos separado por "|") | Fator de Conversao
-      cabecalho = "Descrição;Codigo Saida;Codigo Entrada;Quantidade;Unidade Medida;Fator de Conversao";
-      linhas = form.itens.map((item) => {
-        const produtoM = produtosMercearia.find(
-          (p) => p.id === item.produtoMerceariaID,
-        );
-        const produtoD = produtosDepartamento.find(
-          (p) => p.id === item.produtoDepartamentoID,
-        );
+    const linhas = isTransferencia
+      ? form.itens.map((item) => {
+          const produtoM = produtosMercearia.find(
+            (p) => p.id === item.produtoMerceariaID,
+          );
+          const produtoD = produtosDepartamento.find(
+            (p) => p.id === item.produtoDepartamentoID,
+          );
 
-        const descricao = produtoM?.descricao ?? produtoD?.nome ?? "";
-        const codigoSaida = produtoM
-          ? `${produtoM.sku} | ${produtoM.codigo_barras}`
-          : "";
-        const codigoEntrada = produtoD
-          ? `${produtoD.codigo} | ${produtoD.nome}`
-          : "";
-        const quantidade = item.quantidade;
-        const unidadeMedida = `${item.unidadeMercearia || "-"} | ${item.unidadeDepartamento || "-"}`;
-        const fatorConversao = item.fatorConversao || 1;
+          const descricao = produtoM?.descricao ?? produtoD?.nome ?? "";
+          const codigoSaida = produtoM
+            ? `${produtoM.sku} | ${produtoM.codigo_barras}`
+            : "";
+          const codigoEntrada = produtoD
+            ? `${produtoD.codigo} | ${produtoD.nome}`
+            : "";
+          const quantidade = item.quantidade;
+          const unidadeMedida = `${item.unidadeMercearia || "-"} | ${item.unidadeDepartamento || "-"}`;
+          const fatorConversao = item.fatorConversao || 1;
 
-        return [
-          escapeCsv(descricao),
-          escapeCsv(codigoSaida),
-          escapeCsv(codigoEntrada),
-          escapeCsv(quantidade),
-          escapeCsv(unidadeMedida),
-          escapeCsv(fatorConversao),
-        ].join(";");
-      });
-    } else {
-      // QUEBRA: Descrição | Codigo Saida | Quantidade | Unidade de Medida | Total
-      cabecalho = "Descrição;Codigo Saida;Quantidade;Unidade de Medida;Total";
-      linhas = form.itens.map((item) => {
-        const produtoM = produtosMercearia.find(
-          (p) => p.id === item.produtoMerceariaID,
-        );
-        const produtoD = produtosDepartamento.find(
-          (p) => p.id === item.produtoDepartamentoID,
-        );
+          return [
+            escapeCsv(descricao),
+            escapeCsv(codigoSaida),
+            escapeCsv(codigoEntrada),
+            escapeCsv(quantidade),
+            escapeCsv(unidadeMedida),
+            escapeCsv(fatorConversao),
+          ].join(";");
+        })
+      : form.itens.map((item) => {
+          const produtoM = produtosMercearia.find(
+            (p) => p.id === item.produtoMerceariaID,
+          );
+          const produtoD = produtosDepartamento.find(
+            (p) => p.id === item.produtoDepartamentoID,
+          );
 
-        const descricao = produtoM?.descricao ?? produtoD?.nome ?? "";
-        const codigoSaida = produtoM ? produtoM.sku : (produtoD?.codigo ?? "");
-        const quantidade = item.quantidade;
-        const unidadeMedida =
-          item.unidadeMercearia ||
-          item.unidadeDepartamento ||
-          produtoM?.unidade_medida ||
-          produtoD?.unidade_medida ||
-          "";
-        const total = item.totalLancado > 0 ? item.totalLancado : item.quantidade;
+          const descricao = produtoM?.descricao ?? produtoD?.nome ?? "";
+          const codigoSaida = produtoM ? produtoM.sku : (produtoD?.codigo ?? "");
+          const quantidade = item.quantidade;
+          const unidadeMedida =
+            item.unidadeMercearia ||
+            item.unidadeDepartamento ||
+            produtoM?.unidade_medida ||
+            produtoD?.unidade_medida ||
+            "";
+          const total = item.totalLancado > 0 ? item.totalLancado : item.quantidade;
 
-        return [
-          escapeCsv(descricao),
-          escapeCsv(codigoSaida),
-          escapeCsv(quantidade),
-          escapeCsv(unidadeMedida),
-          escapeCsv(total),
-        ].join(";");
-      });
-    }
+          return [
+            escapeCsv(descricao),
+            escapeCsv(codigoSaida),
+            escapeCsv(quantidade),
+            escapeCsv(unidadeMedida),
+            escapeCsv(total),
+          ].join(";");
+        });
 
     const csvConteudo = "\uFEFF" + [cabecalho, ...linhas].join("\r\n");
     const blob = new Blob([csvConteudo], { type: "text/csv;charset=utf-8;" });
